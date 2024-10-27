@@ -128,7 +128,7 @@ a:focus {
 .navbar-brand span {
   font-weight: bold;
   color: #000000;
-  font-size: 24px;
+  font-size: 20px;
   text-transform: uppercase;
 }
 
@@ -246,7 +246,7 @@ a:focus {
 }
 
 .quote_btn-container a {
-  color: #ffffff;
+  color: #000000;
   text-transform: uppercase;
 }
 
