@@ -123,14 +123,6 @@ a:focus {
 .header_section .container-fluid {
   padding-right: 25px;
   padding-left: 25px;
-  
-  position: fixed;
-  top: 0;
-  background: rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: saturate(180%) blur(15px);
-  -moz-backdrop-filter: saturate(180%) blur(15px);
-  -o-backdrop-filter: saturate(180%) blur(15px);
-  backdrop-filter: saturate(180%) blur(15px);
 }
 
 .navbar-brand span {
@@ -145,6 +137,13 @@ a:focus {
 }
 
 .custom_nav-container .navbar-nav .nav-item .nav-link {
+  position: fixed;
+  top: 0;
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: saturate(180%) blur(15px);
+  -moz-backdrop-filter: saturate(180%) blur(15px);
+  -o-backdrop-filter: saturate(180%) blur(15px);
+  backdrop-filter: saturate(180%) blur(15px);
   padding: 3px 15px;
   margin: 10px 15px;
   color: #000000;
