@@ -143,11 +143,11 @@ a:focus {
 }
 
 .custom_nav-container {
-  padding: 10px 0;
+  padding: 2px 0;
 }
 
 .custom_nav-container .navbar-nav .nav-item .nav-link {
-  padding: 3px 15px;
+  padding: 0px 15px;
   margin: 10px 15px;
   color: #000000;
   text-align: center;
