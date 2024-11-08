@@ -780,7 +780,7 @@ a:focus {
 }
 
 .price_section .price_container .box .btn-box a:hover {
-  background-color: #transparent;
+  background-color: transparent;
   color: #b50f29;
   border: 1px solid #b50f29;
 }
