@@ -1,1 +1,186 @@
-did code
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DID Image List</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .upload-container {
+            display: flex;
+            gap: 10px;
+        }
+        .image-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .image-item {
+            position: relative;
+            width: 100%;
+        }
+        .image-item img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #uploadBtn {
+            padding: 10px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="location.href='https://6119.store'">뒤로가기</button>
+        <div class="upload-container">
+            <input type="file" id="fileInput" accept="image/*" multiple style="display: none">
+            <button id="uploadBtn" onclick="document.getElementById('fileInput').click()">이미지 업로드</button>
+        </div>
+    </div>
+    <div class="image-list" id="imageContainer"></div>
+
+    <script>
+        const IMAGE_DIR = 'did_img/';
+        
+        async function loadImageList() {
+            try {
+                const response = await fetch(IMAGE_DIR);
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                
+                const imageContainer = document.getElementById('imageContainer');
+                imageContainer.innerHTML = ''; // 기존 이미지 목록 초기화
+                
+                const links = Array.from(doc.querySelectorAll('a'));
+                
+                links.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                        const div = document.createElement('div');
+                        div.className = 'image-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = IMAGE_DIR + href;
+                        img.alt = href;
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-btn';
+                        deleteBtn.innerHTML = 'X';
+                        deleteBtn.onclick = () => deleteImage(href);
+                        
+                        div.appendChild(img);
+                        div.appendChild(deleteBtn);
+                        imageContainer.appendChild(div);
+                    }
+                });
+            } catch (error) {
+                console.error('이미지 로딩 실패:', error);
+            }
+        }
+
+        // 이미지 업로드 처리
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const files = e.target.files;
+            
+            for (let file of files) {
+                const formData = new FormData();
+                formData.append('image', file);
+
+                try {
+                    const response = await fetch('/upload.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        alert('이미지가 업로드되었습니다.');
+                        loadImageList(); // 목록 새로고침
+                    } else {
+                        alert('업로드 실패');
+                    }
+                } catch (error) {
+                    console.error('업로드 에러:', error);
+                    alert('업로드 중 오류가 발생했습니다.');
+                }
+            }
+        });
+
+        // 이미지 삭제 처리
+        async function deleteImage(filename) {
+            if (!confirm('이미지를 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch('/delete.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ filename: filename })
+                });
+
+                if (response.ok) {
+                    alert('이미지가 삭제되었습니다.');
+                    loadImageList(); // 목록 새로고침
+                } else {
+                    alert('삭제 실패');
+                }
+            } catch (error) {
+                console.error('삭제 에러:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 초기 로드
+        loadImageList();
+
+        // 60초마다 새로고침
+        setInterval(loadImageList, 60000);
+    </script>
+</body>
+</html> 
