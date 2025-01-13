@@ -92,6 +92,9 @@
         async function loadImageList() {
             try {
                 const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const files = await response.json();
                 
                 const imageContainer = document.getElementById('imageContainer');
@@ -114,12 +117,18 @@
                         div.appendChild(img);
                         div.appendChild(deleteBtn);
                         imageContainer.appendChild(div);
+
+                        img.onerror = () => {
+                            console.error('이미지 로딩 실패:', file.download_url);
+                        };
+                        img.onload = () => {
+                            console.log('이미지 로딩 성공:', file.download_url);
+                        };
                     }
                 });
             } catch (error) {
                 console.error('이미지 로딩 실패:', error);
                 console.log('Error details:', error.message);
-                console.log('Response:', error.response);
             }
         }
 
