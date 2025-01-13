@@ -118,6 +118,8 @@
                 });
             } catch (error) {
                 console.error('이미지 로딩 실패:', error);
+                console.log('Error details:', error.message);
+                console.log('Response:', error.response);
             }
         }
 
