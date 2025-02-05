@@ -10,6 +10,33 @@
             background: #f0f0f0;
             font-family: Arial, sans-serif;
         }
+
+        .image-item {
+        position: relative;
+        }
+
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .play-button::before {
+            content: '';
+            position: absolute;
+            left: 55%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border: 12px solid transparent;
+            border-left: 16px solid white;
+        }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -90,47 +117,93 @@
         const PATH = 'did_img';
 
         async function loadImageList() {
-            try {
-                const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const files = await response.json();
-                
-                const imageContainer = document.getElementById('imageContainer');
-                imageContainer.innerHTML = '';
-                
-                files.forEach(file => {
-                    if (file.name.match(/\.(jpg|jpeg|png|gif|mp4)$/i)) {
-                        const div = document.createElement('div');
-                        div.className = 'image-item';
-                        
-                        const img = document.createElement('img');
-                        img.src = file.download_url;
-                        img.alt = file.name;
-                        
-                        const deleteBtn = document.createElement('button');
-                        deleteBtn.className = 'delete-btn';
-                        deleteBtn.innerHTML = 'X';
-                        deleteBtn.onclick = () => deleteImage(file.name);
-                        
-                        div.appendChild(img);
-                        div.appendChild(deleteBtn);
-                        imageContainer.appendChild(div);
+        try {
+            const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const files = await response.json();
+            
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = '';
+            
+            const items = await Promise.all(files.map(async file => {
+                if (!file.name.match(/\.(jpg|jpeg|png|gif|mp4)$/i)) return null;
 
-                        img.onerror = () => {
-                            console.error('이미지 로딩 실패:', file.download_url);
-                        };
-                        img.onload = () => {
-                            console.log('이미지 로딩 성공:', file.download_url);
-                        };
+                const isVideo = file.name.endsWith('.mp4');
+                let thumbnailUrl;
+
+                if (isVideo) {
+                    try {
+                        thumbnailUrl = await generateVideoThumbnail(file.download_url);
+                    } catch (error) {
+                        console.error('썸네일 생성 실패:', error);
+                        thumbnailUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; // 대체 이미지
                     }
-                });
-            } catch (error) {
-                console.error('이미지 로딩 실패:', error);
-                console.log('Error details:', error.message);
-            }
+                } else {
+                    thumbnailUrl = file.download_url;
+                }
+
+                const div = document.createElement('div');
+                div.className = 'image-item';
+
+                const img = document.createElement('img');
+                img.src = thumbnailUrl;
+                img.alt = file.name;
+
+                // 동영상인 경우 재생 버튼 추가
+                if (isVideo) {
+                    const playBtn = document.createElement('div');
+                    playBtn.className = 'play-button';
+                    div.appendChild(playBtn);
+                }
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = 'X';
+                deleteBtn.onclick = () => deleteImage(file.name);
+
+                div.appendChild(img);
+                div.appendChild(deleteBtn);
+                return div;
+            }));
+
+            items.forEach(item => {
+                if (item) imageContainer.appendChild(item);
+            });
+
+        } catch (error) {
+            console.error('이미지 로딩 실패:', error);
         }
+    }
+
+    function generateVideoThumbnail(videoUrl) {
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            video.crossOrigin = 'anonymous';
+            video.muted = true;
+            video.autoplay = false;
+            video.playsInline = true;
+            video.src = videoUrl;
+
+            video.addEventListener('loadedmetadata', () => {
+                video.currentTime = 0.1; // 첫 프레임 캡처 보장
+            });
+
+            video.addEventListener('seeked', () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL());
+            });
+
+            video.addEventListener('error', (e) => {
+                reject(new Error('비디오 로딩 실패'));
+            });
+
+            video.load();
+        });
+    }
 
         // 초기 로드
         loadImageList();
