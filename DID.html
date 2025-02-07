@@ -7,12 +7,13 @@
         body {
             margin: 0;
             padding: 20px;
-            background: #f0f0f0;
+            background: #1e1e1e; /* Dark background */
             font-family: Arial, sans-serif;
+            color: #eee; /* Light text color */
         }
 
         .image-item {
-        position: relative;
+            position: relative;
         }
 
         .play-button {
@@ -22,9 +23,10 @@
             transform: translate(-50%, -50%);
             width: 40px;
             height: 40px;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7); /* Slightly transparent dark background */
             border-radius: 50%;
             cursor: pointer;
+            border: none; /* Remove default border */
         }
 
         .play-button::before {
@@ -34,7 +36,7 @@
             top: 50%;
             transform: translate(-50%, -50%);
             border: 12px solid transparent;
-            border-left: 16px solid white;
+            border-left: 16px solid #eee; /* Light play icon */
         }
 
         .header {
@@ -42,42 +44,57 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 20px;
-            background: #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: #282828; /* Darker header background */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* More prominent shadow */
             margin-bottom: 20px;
         }
-        .back-btn {
+
+        .back-btn, #uploadBtn {
             padding: 10px 20px;
-            background: #4CAF50;
-            color: white;
+            background: #333; /* Darker button background */
+            color: #eee;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s ease; /* Smooth transition */
         }
+
+        .back-btn:hover, #uploadBtn:hover {
+            background: #555; /* Slightly lighter on hover */
+        }
+
         .upload-container {
             display: flex;
             gap: 10px;
         }
+
         .image-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             padding: 20px;
         }
+
         .image-item {
             position: relative;
             width: 100%;
+            border-radius: 8px; /* Rounded corners for images */
+            overflow: hidden; /* Hide overflowing content */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Subtle shadow on images */
         }
+
         .image-item img {
             width: 100%;
             aspect-ratio: 16/9;
             object-fit: cover;
+            display: block; /* Prevent small space below image */
         }
+
         .delete-btn {
             position: absolute;
             top: 5px;
             right: 5px;
-            background: rgba(255, 0, 0, 0.7);
+            background: rgba(255, 0, 0, 0.8); /* Slightly less transparent red */
             color: white;
             border: none;
             border-radius: 50%;
@@ -87,20 +104,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: background-color 0.3s ease;
         }
-        #uploadBtn {
-            padding: 10px 20px;
-            background: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+
+        .delete-btn:hover {
+            background: rgba(255, 0, 0, 1); /* Opaque red on hover */
         }
-        .button:hover {
-            opacity: 0.8;
+
+        #fileInput {
+            display: none;
         }
+
     </style>
 </head>
+
 <body>
     <div class="header">
         <button class="back-btn" onclick="location.href='https://6119.store'">뒤로가기</button>
