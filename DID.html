@@ -137,11 +137,17 @@
         try {
             const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
             const files = await response.json();
-            
+
             const imageContainer = document.getElementById('imageContainer');
-            imageContainer.innerHTML = '';
-            
+            if (!imageContainer) {
+                console.error('imageContainer 요소를 찾을 수 없습니다.');
+                return;
+            }
+
+            imageContainer.innerHTML = ''; // 이전 목록 초기화
+
             const items = await Promise.all(files.map(async file => {
                 if (!file.name.match(/\.(jpg|jpeg|png|gif|mp4)$/i)) return null;
 
@@ -153,7 +159,7 @@
                         thumbnailUrl = await generateVideoThumbnail(file.download_url);
                     } catch (error) {
                         console.error('썸네일 생성 실패:', error);
-                        thumbnailUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; // 대체 이미지
+                        thumbnailUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
                     }
                 } else {
                     thumbnailUrl = file.download_url;
@@ -166,7 +172,6 @@
                 img.src = thumbnailUrl;
                 img.alt = file.name;
 
-                // 동영상인 경우 재생 버튼 추가
                 if (isVideo) {
                     const playBtn = document.createElement('div');
                     playBtn.className = 'play-button';
@@ -180,6 +185,7 @@
 
                 div.appendChild(img);
                 div.appendChild(deleteBtn);
+
                 return div;
             }));
 
@@ -202,7 +208,7 @@
             video.src = videoUrl;
 
             video.addEventListener('loadedmetadata', () => {
-                video.currentTime = 0.1; // 첫 프레임 캡처 보장
+                video.currentTime = 0.1;
             });
 
             video.addEventListener('seeked', () => {
@@ -214,7 +220,7 @@
                 resolve(canvas.toDataURL());
             });
 
-            video.addEventListener('error', (e) => {
+            video.addEventListener('error', () => {
                 reject(new Error('비디오 로딩 실패'));
             });
 
@@ -222,11 +228,11 @@
         });
     }
 
-        // 초기 로드
+    // DOM 로드 후 실행
+    document.addEventListener('DOMContentLoaded', () => {
         loadImageList();
-
-        // 10분마다 새로고침
-        setInterval(loadImageList, 600000);
+        setInterval(loadImageList, 600000); // 10분마다 갱신
+    });
     </script>
 </body>
 </html> 
