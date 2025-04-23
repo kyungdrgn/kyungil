@@ -44,6 +44,7 @@ modalClose.addEventListener('click',function(){
     modal.style.display = 'none';
 });
 
+
 // owl carousel slider js
 $('.team_carousel').owlCarousel({
     loop: true,
