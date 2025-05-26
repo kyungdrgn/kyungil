@@ -3,85 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖Dev_Docs</title>
+    <title>🤖Dev_docs</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #121212; /* 다크모드 배경색 */
-            color: #e0e0e0; /* 텍스트 색상 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #111827;
         }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
+        header {
+            background-color: #1F2937;
+            color: #93C5FD;
+            padding: 15px 0;
+            text-align: center;
+			border-radius: 8px;
         }
-
-        li {
+        .doc-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .doc-item {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .doc-item:hover {
+            transform: translateY(-5px);
+        }
+        .doc-item a {
+            text-decoration: none;
+            color: #333;
+            font-size: 1.1em;
+            display: block;
             margin-bottom: 10px;
         }
-
-        a {
-            text-decoration: none;
-            color: #bb86fc; /* 링크 색상 */
+        .doc-item a:hover {
+            color: #9ae6b4;
         }
-
-        a:hover {
-            text-decoration: underline;
-            color: #7c4dff; /* 호버 시 색상 */
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #888;
         }
     </style>
 </head>
 <body>
-    <h1>🤖Dev_Docs</h1>
-    <ul id="doc-list">
-        <li>문서 목록을 불러오는 중...</li>
-    </ul>
-
-    <script>
-        const owner = 'kyungdrgn';
-        const repo = 'kyungil';
-        const docPath = 'docs'; // 문서가 있는 디렉토리 경로
-        const docsListFile = 'docs/docs-list.json'; // 새로 추가할 문서 목록 파일
-
-        async function fetchDocs() {
-            const docList = document.getElementById('doc-list');
-            docList.innerHTML = ''; // 기존 목록 초기화
-
-            try {
-                // 1. GitHub Pages에서 미리 생성된 문서 목록 JSON 파일 가져오기
-                const docsListUrl = `https://${owner}.github.io/${repo}/${docsListFile}`;
-                const response = await fetch(docsListUrl);
-
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch docs list: ${response.status} ${response.statusText}`);
-                }
-                const htmlFiles = await response.json(); // JSON 파싱
-
-                if (htmlFiles.length === 0) {
-                    docList.innerHTML = '<li>문서가 없습니다.</li>';
-                    return;
-                }
-
-                // 각 HTML 파일의 정보를 사용하여 목록 생성
-                for (const fileInfo of htmlFiles) {
-                    const docUrl = `https://${owner}.github.io/${repo}/${docPath}/${fileInfo.filename}`;
-                    
-                    const listItem = document.createElement('li');
-                    const link = document.createElement('a');
-                    link.href = docUrl;
-                    link.textContent = fileInfo.title; // JSON 파일에서 제목 사용
-                    listItem.appendChild(link);
-                    docList.appendChild(listItem);
-                }
-            } catch (error) {
-                console.error('문서 목록을 불러오는 중 오류 발생:', error);
-                docList.innerHTML = '<li>문서 목록을 불러올 수 없습니다. 오류를 콘솔에서 확인하세요.</li>';
-            }
-        }
-
-        // 페이지 로드 시 문서 목록 가져오기
-        document.addEventListener('DOMContentLoaded', fetchDocs);
-    </script>
+    <header>
+        <h1>🤖Dev_docs</h1>
+        <p>문서 및 가이드의 바로가기 목록</p>
+    </header>
+    
+    <main class="doc-list">
+        <div class="doc-item">
+            <a href="docs/doc1.html">DOC 1 : 서버 및 프론트엔드 기본 가이드</a>
+            <p>WIZINFO 서버 환경에서 원활하게 업무를 수행하는 데 필요한 기본 지식과 기술을 제공하기 위해 작성</p>
+        </div>
+        <!-- 추가 문서 바로가기 항목을 여기에 추가할 수 있습니다 -->
+    </main>
+    
+    <footer class="footer">
+        <p>© 2025 DRGN. 모든 권리 보유.</p>
+    </footer>
 </body>
 </html>
