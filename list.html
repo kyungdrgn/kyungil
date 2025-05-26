@@ -89,12 +89,12 @@
     
     <main class="doc-list">
         <div class="doc-item">
-            <a href="docs/doc1.html">DOC 1 : 서버 및 프론트엔드 기본 가이드</a>
+            <a href="docs/doc1.html">DOC 1 : 🌐서버 및 프론트엔드 기본 가이드</a>
             <p>WIZINFO 서버 환경에서 원활하게 업무를 수행하는 데 필요한 기본 지식과 기술을 제공하기 위해 작성</p>
         </div>
 		<div class="doc-item">
-            <a href="docs/doc2.html">DOC 2 : Flutter DID 기술명세</a>
-            <p>WIZINFO 서버 환경에서 원활하게 업무를 수행하는 데 필요한 기본 지식과 기술을 제공하기 위해 작성</p>
+            <a href="docs/doc2.html">DOC 2 : Flutter DID 개발방향 가이드 라인</a>
+            <p>디지털 사이니지 클라이언트 애플리케이션을 Flutter를 통해 개발하는 과정을 안내</p>
         </div>
 		        <!-- 추가 문서 바로가기 -->
         </main>
@@ -121,11 +121,10 @@
             });
 
             item.addEventListener('mouseleave', () => {
-                // 마우스가 벗어났을 때 회전 및 글로우 효과 초기화
                 item.style.setProperty('--rotateX', `0deg`);
                 item.style.setProperty('--rotateY', `0deg`);
-                item.style.setProperty('--mouse-x', `50%`); /* 초기 위치로 복귀 */
-                item.style.setProperty('--mouse-y', `50%`); /* 초기 위치로 복귀 */
+                item.style.setProperty('--mouse-x', `50%`); 
+                item.style.setProperty('--mouse-y', `50%`);
             });
         });
     </script>

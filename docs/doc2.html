@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flutter 디지털 사이니지 앱 개발 가이드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a202c; /* bg-gray-900 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568; /* bg-gray-700 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096; /* bg-gray-600 */
+        }
+
+        /* Code block styling */
+        pre {
+            background-color: #2d3748; /* bg-gray-800 */
+            color: #e2e8f0; /* text-gray-200 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+            border: 1px solid #4a5568; /* border-gray-700 */
+        }
+
+        code:not(pre > code) { /* Inline code */
+            background-color: #2d3748; /* bg-gray-800 */
+            color: #9ae6b4; /* text-green-300 */
+            padding: 0.1em 0.4em;
+            border-radius: 0.25rem;
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.85em;
+        }
+        
+        pre > code { /* Code within pre, reset some inline styles if any */
+            padding: 0;
+            background-color: transparent;
+            font-size: inherit; /* Inherit from pre */
+        }
+
+        /* Table styling */
+        .custom-table {
+            width: 100%;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-collapse: collapse;
+            border-radius: 0.5rem;
+            overflow: hidden; /* Ensures border-radius is applied to table */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .custom-table th, .custom-table td {
+            border: 1px solid #4a5568; /* border-gray-700 */
+            padding: 0.75rem 1rem;
+            text-align: left;
+            color: #cbd5e0; /* text-gray-300 */
+        }
+        .custom-table thead th {
+            background-color: #2d3748; /* bg-gray-800 */
+            color: #a0aec0; /* text-gray-400 */
+            font-weight: 600;
+        }
+        .custom-table tbody tr:nth-child(even) {
+            background-color: #252f3e; /* Slightly different shade for even rows */
+        }
+        .custom-table tbody tr:hover {
+            background-color: #374151; /* bg-gray-700 on hover */
+        }
+        .table-caption {
+		font-size: 1.125rem; /* text-lg */
+		font-weight: 600; /* font-semibold */
+		color: #90cdf4; /* text-blue-300 */
+		margin-top: 1.5rem;
+		margin-bottom: 0.5rem;
+		white-space: nowrap; /* 텍스트 줄바꿈 방지하여 가로로 길게 표시 */
+		overflow: hidden; /* 내용이 너비를 초과할 경우 숨김 (선택 사항) */
+		text-overflow: ellipsis; /* 내용이 너비를 초과할 경우 말줄임표(...) 표시 (선택 사항) */
+		writing-mode: horizontal-tb; /* 명시적으로 가로쓰기 (상단에서 하단으로) 설정 */
+		/* display: block; /* div의 기본값이므로 보통 필요 없으나, 명시적으로 지정 가능 */
+		/* width: 100%; /* 부모 너비만큼 차지하도록 설정 (기본 동작) */
+		}
+
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .content-area {
+                margin-left: 0;
+            }
+            .menu-button {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <button id="menuButton" class="menu-button fixed top-4 left-4 z-50 p-3 bg-gray-800 text-gray-100 rounded-lg shadow-lg md:hidden">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+
+    <div id="mobileNav" class="fixed inset-0 bg-gray-900 bg-opacity-95 z-40 flex flex-col items-center justify-center space-y-4 hidden md:hidden overflow-y-auto py-8">
+        <button id="closeMenuButton" class="absolute top-6 right-6 p-3 bg-gray-800 text-gray-100 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <nav class="text-center">
+            <ul class="space-y-3">
+                <li><a href="#intro" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">1. 소개</a></li>
+                <li><a href="#core-setup" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">2. 핵심 애플리케이션 설정</a></li>
+                <li><a href="#feature-guide" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">3. 기능 구현 가이드</a></li>
+                <li><a href="#android-tv-specifics" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">4. Android TV 특정 고려 사항</a></li>
+                <li><a href="#backend-considerations" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">5. 백엔드 고려 사항</a></li>
+                <li><a href="#conclusion" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">6. 결론 및 모범 사례 요약</a></li>
+                <li><a href="#references" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">7. 참고 자료</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <aside class="sidebar fixed top-0 left-0 h-full w-72 bg-gray-800 p-6 shadow-lg hidden md:block overflow-y-auto rounded-r-lg">
+        <h2 class="text-2xl font-bold text-blue-400 mb-6">가이드 목차</h2>
+        <nav>
+            <ul class="space-y-2">
+                <li><a href="#intro" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">1. 소개</a>
+                    <ul class="ml-4 mt-1 space-y-1 text-sm">
+                        <li><a href="#intro-purpose" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">1.1. 목적</a></li>
+                        <li><a href="#intro-tech" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">1.2. 핵심 기술</a></li>
+                        <li><a href="#intro-structure" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">1.3. 가이드 구조</a></li>
+                    </ul>
+                </li>
+                <li><a href="#core-setup" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">2. 핵심 애플리케이션 설정</a>
+                    <ul class="ml-4 mt-1 space-y-1 text-sm">
+                        <li><a href="#core-setup-init" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">2.1. Flutter 프로젝트 초기화</a></li>
+                        <li><a href="#core-setup-manifest-android" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">2.2. Android Manifest</a></li>
+                        <li><a href="#core-setup-manifest-tv" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">2.3. Android TV Manifest</a></li>
+                    </ul>
+                </li>
+                <li><a href="#feature-guide" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">3. 기능 구현 가이드</a>
+                    <ul class="ml-4 mt-1 space-y-1 text-sm">
+                        <li><a href="#feature-guide-autostart" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">3.1. 부팅 시 자동 실행</a></li>
+                        <li><a href="#feature-guide-fullscreen" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">3.2. 전체 화면 모드</a></li>
+                        <li><a href="#feature-guide-auth" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">3.3. 사용자 인증</a></li>
+                        <li><a href="#feature-guide-content-fetch" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">3.4. 콘텐츠 가져오기 및 캐싱</a></li>
+                        <li><a href="#feature-guide-sync" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">3.5. 선택적 파일 동기화</a></li>
+                        <li><a href="#feature-guide-slideshow" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">3.6. 로컬 미디어 슬라이드쇼</a></li>
+                    </ul>
+                </li>
+                <li><a href="#android-tv-specifics" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">4. Android TV 특정 고려 사항</a>
+                    <ul class="ml-4 mt-1 space-y-1 text-sm">
+                        <li><a href="#android-tv-ux" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">4.1. TV용 UI/UX</a></li>
+                        <li><a href="#android-tv-dpad" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 transition duration-200">4.2. D-패드 네비게이션</a></li>
+                    </ul>
+                </li>
+                <li><a href="#backend-considerations" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">5. 백엔드 고려 사항</a></li>
+                <li><a href="#conclusion-summary" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">6. 결론 및 모범 사례</a></li>
+                <li><a href="#references" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">7. 참고 자료</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="content-area md:ml-72 p-6 md:p-8">
+        <h1 class="text-4xl font-extrabold text-blue-300 mb-10 text-center md:text-left">Flutter 디지털 사이니지 앱 개발 가이드</h1>
+
+        <section id="intro" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg scroll-mt-20">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6">1. 소개</h2>
+            
+            <div id="intro-purpose" class="mb-8 scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">1.1. 애플리케이션의 목적</h3>
+                <p class="text-gray-300 leading-relaxed">
+                    본 문서는 Android 및 Android TV 플랫폼에서 작동하는 디지털 사이니지 클라이언트 애플리케이션을 Flutter를 통해 개발하는 과정을 안내한다. 이 애플리케이션은 서버 환경 및 PostgreSQL 데이터베이스와 통신하여 동적 콘텐츠(이미지 및 비디오)를 로컬에 다운로드하고, 이를 슬라이드쇼 형태로 재생하며, 주기적으로 콘텐츠를 갱신하는 것을 목표로 한다.
+                </p>
+            </div>
+
+            <div id="intro-tech" class="mb-8 scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">1.2. 핵심 기술 개요</h3>
+                <p class="text-gray-300 mb-2">개발에는 다음과 같은 핵심 기술이 사용된다:</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-2 leading-relaxed">
+                    <li><strong>Flutter:</strong> Google에서 개발한 UI 툴킷으로, 단일 코드베이스를 사용하여 Android, iOS, 웹, 데스크톱 등 다양한 플랫폼을 위한 네이티브 애플리케이션을 구축할 수 있다. 본 프로젝트에서는 Android (일반 OS) 및 Android TV OS용 클라이언트 개발에 활용된다.</li>
+                    <li><strong>Dart:</strong> Flutter 애플리케이션 개발에 사용되는 객체 지향 프로그래밍 언어이다.</li>
+                    <li><strong>Android (Standard & TV OS):</strong> 애플리케이션이 배포될 대상 운영체제이다. 특히 Android TV OS의 특성을 고려한 UI/UX 및 네비게이션 구현이 중요하다.</li>
+                    <li><strong>PostgreSQL:</strong> 백엔드 데이터베이스 시스템으로, 클라이언트 애플리케이션은 이 데이터베이스에 저장된 콘텐츠 메타데이터를 서버 API를 통해 조회하고 활용한다.</li>
+                </ul>
+            </div>
+
+            <div id="intro-structure" class="scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">1.3. 가이드 구조</h3>
+                <p class="text-gray-300 mb-2">본 가이드는 프로젝트 설정부터 시작하여 각 기능별 구현 방법, 그리고 Android TV와 같은 특정 플랫폼 환경에서의 고려 사항을 단계별로 상세히 설명한다. 주요 내용은 다음과 같다:</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 leading-relaxed">
+                    <li>핵심 애플리케이션 설정: Flutter 프로젝트 초기화 및 Android Manifest 파일의 필수 구성 요소를 다룬다.</li>
+                    <li>기능 구현 가이드: 부팅 시 자동 실행, 전체 화면 모드, 사용자 인증, 콘텐츠 동기화 및 로컬 캐싱, 미디어 슬라이드쇼 등 요구되는 각 기능을 상세히 안내한다.</li>
+                    <li>Android TV 특정 고려 사항: Android TV 환경에서의 UI/UX 디자인 원칙, D-패드 네비게이션 및 포커스 관리 기법을 심층적으로 논의한다.</li>
+                    <li>백엔드 고려 사항 (간략히): Flutter 클라이언트와 상호작용할 PHP/PostgreSQL 백엔드의 API 엔드포인트 및 데이터베이스 스키마에 대한 기본적인 사항을 언급한다.</li>
+                    <li>결론 및 모범 사례 요약: 주요 과제와 해결책을 요약하고, 테스트 및 보안 관련 권장 사항을 제시한다.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="core-setup" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg scroll-mt-20">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6">2. 핵심 애플리케이션 설정</h2>
+
+            <div id="core-setup-init" class="mb-8 scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">2.1. Flutter 프로젝트 초기화</h3>
+                <p class="text-gray-300 mb-2 leading-relaxed">
+                    Flutter 개발 환경(Flutter SDK, Android Studio 또는 VS Code 등의 IDE)이 사전에 구축되어 있다는 가정 하에, 다음 명령어를 사용하여 새로운 Flutter 프로젝트를 생성한다:
+                </p>
+                <pre><code class="language-bash">flutter create digital_signage_app</code></pre>
+                <p class="text-gray-300 mt-2 leading-relaxed">
+                    이 명령어는 <code>digital_signage_app</code>이라는 이름의 Flutter 프로젝트 기본 구조를 생성한다.
+                </p>
+            </div>
+
+            <div id="core-setup-manifest-android" class="mb-8 scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">2.2. 필수 Android Manifest 구성 (<code>android/app/src/main/AndroidManifest.xml</code>)</h3>
+                <p class="text-gray-300 mb-4 leading-relaxed">
+                    애플리케이션의 올바른 작동과 특정 기능 활성화를 위해 <code>AndroidManifest.xml</code> 파일에 몇 가지 중요한 설정을 추가해야 한다.
+                </p>
+                <h4 class="text-xl font-medium text-blue-200 mb-2">인터넷 권한</h4>
+                <p class="text-gray-300 mb-2 leading-relaxed">서버 통신 및 파일 다운로드를 위해 필수적이다.</p>
+                <pre><code class="language-xml">&lt;uses-permission android:name="android.permission.INTERNET" /&gt;</code></pre>
+                <p class="text-gray-300 mt-2 leading-relaxed">이 권한은 애플리케이션이 네트워크에 접근하여 이미지/비디오 목록 및 실제 파일을 다운로드하는 데 기본적으로 요구된다.</p>
+                
+                <h4 class="text-xl font-medium text-blue-200 mt-4 mb-2">저장 공간 권한</h4>
+                <p class="text-gray-300 mb-2 leading-relaxed">
+                    파일을 로컬 저장소에 다운로드하고 관리하기 위해서는 저장 공간 접근 권한이 필요하다. Android 버전별로 저장 공간 접근 방식에 차이가 있으므로 이를 고려해야 한다.
+                </p>
+                <p class="text-gray-300 mb-2 leading-relaxed">
+                    Android 10 (API 레벨 29) 미만 버전에서는 일반적으로 외부 저장소에 대한 광범위한 접근을 위해 다음 권한이 사용되었다:
+                </p>
+                <pre><code class="language-xml">&lt;uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /&gt;
+&lt;uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /&gt;</code></pre>
+                <p class="text-gray-300 mt-2 leading-relaxed">
+                    Android 10 이상에서는 Scoped Storage 모델이 도입되어 앱이 외부 저장소에 접근하는 방식이 변경되었다. 앱별 디렉토리(app-specific directories)에 파일을 저장하는 경우, 해당 앱의 파일에 대해서는 명시적인 저장 공간 권한이 필요하지 않을 수 있다. <code>path_provider</code>와 같은 플러그인은 이러한 앱별 디렉토리 경로를 얻는 데 사용된다.
+                </p>
+                <p class="text-gray-300 mt-2 leading-relaxed">
+                    그러나 <code>flutter_downloader</code>와 같은 다운로드 관리 플러그인이 공유 저장 공간을 사용하거나 특정 기능을 위해 더 넓은 접근 권한을 요구하는 경우, 여전히 위 권한들이 필요할 수 있으며, 런타임에 사용자에게 권한을 요청해야 한다. <code>permission_handler</code> 패키지는 런타임 권한 요청을 처리하는 표준적인 방법이다.
+                </p>
+            </div>
+
+            <div id="core-setup-manifest-tv" class="scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">2.3. Android TV 특정 Manifest 구성 (<code>android/app/src/main/AndroidManifest.xml</code>)</h3>
+                <p class="text-gray-300 mb-4 leading-relaxed">
+                    Android TV에서 애플리케이션이 올바르게 인식되고 실행되도록 하려면 다음과 같은 TV 전용 설정을 Manifest 파일에 추가해야 한다.
+                </p>
+                <h4 class="text-xl font-medium text-blue-200 mb-2">Leanback Launcher 인텐트 필터</h4>
+                <p class="text-gray-300 mb-2 leading-relaxed">이 설정은 앱이 Android TV 홈 화면에 표시되도록 하는 데 필수적이다.</p>
+                <pre><code class="language-xml">&lt;application ...&gt;
+    &lt;activity ...&gt;
+        &lt;intent-filter&gt;
+            &lt;action android:name="android.intent.action.MAIN" /&gt;
+            &lt;category android:name="android.intent.category.LAUNCHER" /&gt;
+            &lt;category android:name="android.intent.category.LEANBACK_LAUNCHER" /&gt;
+        &lt;/intent-filter&gt;
+    &lt;/activity&gt;
+&lt;/application&gt;</code></pre>
+                <p class="text-gray-300 mt-2 leading-relaxed"><code>CATEGORY_LEANBACK_LAUNCHER</code> 인텐트 필터는 앱이 TV용으로 활성화되었음을 식별하고 Google Play에서 TV 앱으로 인식하도록 한다.</p>
+
+                <h4 class="text-xl font-medium text-blue-200 mt-4 mb-2">Leanback 지원 선언</h4>
+                <p class="text-gray-300 mb-2 leading-relaxed">앱이 Leanback UI(TV 환경)용으로 설계되었음을 나타낸다.</p>
+                <pre><code class="language-xml">&lt;uses-feature android:name="android.software.leanback" android:required="false" /&gt;</code></pre>
+                <p class="text-gray-300 mt-2 leading-relaxed"><code>android:required="false"</code> 속성은 일반 Android와 Android TV 모두에서 작동하는 앱을 개발할 때 중요하다.</p>
+
+                <h4 class="text-xl font-medium text-blue-200 mt-4 mb-2">터치스크린 불필요 선언</h4>
+                 <p class="text-gray-300 mb-2 leading-relaxed">TV와의 상호작용은 주로 D-패드를 통해 이루어진다.</p>
+                <pre><code class="language-xml">&lt;uses-feature android:name="android.hardware.touchscreen" android:required="false" /&gt;</code></pre>
+                <p class="text-gray-300 mt-2 leading-relaxed">이 설정은 앱이 터치 입력 없이 탐색 가능함을 나타낸다.</p>
+
+                <h4 class="text-xl font-medium text-blue-200 mt-4 mb-2">Android TV용 배너</h4>
+                <p class="text-gray-300 mb-2 leading-relaxed">TV 홈 화면에서 앱을 나타내는 데 사용되는 배너 이미지이다.</p>
+                <pre><code class="language-xml">&lt;application
+    ...
+    android:banner="@drawable/your_tv_banner" &gt;
+   ...
+&lt;/application&gt;</code></pre>
+                <p class="text-gray-300 mt-2 leading-relaxed"><code>your_tv_banner</code>는 <code>res/drawable</code> 디렉토리에 위치한 배너 이미지 파일의 이름으로 대체해야 한다.</p>
+            </div>
+        </section>
+
+        <section id="feature-guide" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg scroll-mt-20">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6">3. 기능 구현 가이드</h2>
+
+            <div id="feature-guide-autostart" class="mb-8 scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">3.1. 부팅 시 자동 실행</h3>
+                <p class="text-gray-300 mb-2 leading-relaxed">
+                    애플리케이션(또는 콘텐츠 갱신을 위한 백그라운드 서비스)은 Android 장치(일반 또는 TV)가 부팅될 때 자동으로 시작되어야 한다.
+                </p>
+                <h4 class="text-xl font-medium text-blue-200 mb-2">핵심 Android 메커니즘</h4>
+                <p class="text-gray-300 mb-2 leading-relaxed">
+                    이는 <code>android.intent.action.BOOT_COMPLETED</code> 시스템 브로드캐스트를 수신하는 <code>BroadcastReceiver</code>를 사용하여 구현된다.
+                </p>
+                <h4 class="text-xl font-medium text-blue-200 mt-4 mb-2">권한</h4>
+                <p class="text-gray-300 mb-2 leading-relaxed"><code>AndroidManifest.xml</code>에 <code>android.permission.RECEIVE_BOOT_COMPLETED</code> 권한이 필요하다.</p>
+                <pre><code class="language-xml">&lt;uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/&gt;</code></pre>
+                
+                <h4 class="text-xl font-medium text-blue-200 mt-4 mb-2">BroadcastReceiver 구현 (Kotlin 예제)</h4>
+                <pre><code class="language-kotlin">package com.example.digital_signage_app // 앱의 패키지 이름으로 변경
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.util.Log
+
+class StartupReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+            Log.d("StartupReceiver", "Boot completed, attempting to start service or activity.")
+            // 옵션 1: Flutter 액티비티 시작
+            // val activityIntent = Intent(context, MainActivity::class.java).apply {
+            //     flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            // }
+            // context.startActivity(activityIntent)
+            
+            // 옵션 2: Flutter 백그라운드 서비스 시작 (플러그인 사용 권장)
+            // 예: flutter_background_service 또는 workmanager
+            // 특정 플러그인 문서를 참조하여 부팅 시 자동 시작 설정.
+        }
+    }
+}</code></pre>
+                <h4 class="text-xl font-medium text-blue-200 mt-4 mb-2">AndroidManifest.xml에 등록</h4>
+                <pre><code class="language-xml">&lt;application ...&gt;
+    &lt;receiver android:name=".StartupReceiver" android:enabled="true" android:exported="false"&gt;
+        &lt;intent-filter&gt;
+            &lt;action android:name="android.intent.action.BOOT_COMPLETED" /&gt;
+        &lt;/intent-filter&gt;
+    &lt;/receiver&gt;
+   ...
+&lt;/application&gt;</code></pre>
+                <p class="text-gray-300 mt-2 leading-relaxed">
+                    <code>flutter_background_service</code>, <code>android_alarm_manager_plus</code>, <code>workmanager</code>와 같은 플러그인을 활용하면 부팅 시 자동 실행 및 백그라운드 작업 관리를 더 쉽게 구현할 수 있다.
+                </p>
+                
+                <div class="table-caption">표: 부팅 완료 플러그인 비교</div>
+                <div class="overflow-x-auto rounded-lg shadow-md">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>기능</th>
+                                <th>flutter_background_service</th>
+                                <th>android_alarm_manager_plus</th>
+                                <th>workmanager</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>부팅 시 설정 용이성</td>
+                                <td><code>autoStartOnBoot: true</code> 설정으로 비교적 간편</td>
+                                <td>RebootBroadcastReceiver 내장, 자동 재스케줄링</td>
+                                <td>시스템 재부팅 간 작업 지속 지원</td>
+                                <td>각 플러그인 문서 참조 필요</td>
+                            </tr>
+                            <tr>
+                                <td>Flutter 엔진 초기화</td>
+                                <td>플러그인 내부 처리</td>
+                                <td>플러그인 내부 처리</td>
+                                <td>플러그인 내부 처리</td>
+                                <td>개발자가 직접 처리할 필요 없음</td>
+                            </tr>
+                            <tr>
+                                <td>작업 유형</td>
+                                <td>일회성, 주기적, 포그라운드 서비스</td>
+                                <td>일회성, 정확한 시간의 주기적 알람 (Android 전용)</td>
+                                <td>지연 가능, 제약 조건 기반, 일회성, 주기적 작업</td>
+                                <td><code>android_alarm_manager_plus</code>는 정밀한 타이밍에 강점</td>
+                            </tr>
+                            <tr>
+                                <td>iOS 지원</td>
+                                <td>제한적 (Background Fetch 사용)</td>
+                                <td>지원 안 함</td>
+                                <td>지원 (Background Fetch/Processing 사용)</td>
+                                <td>iOS 백그라운드 실행은 제약이 많음</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="feature-guide-fullscreen" class="mb-8 scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">3.2. 전체 화면 모드</h3>
+                <p class="text-gray-300 mb-2 leading-relaxed">
+                    애플리케이션은 시스템 바(상태 바, 네비게이션 바)를 숨기고 전체 화면을 차지해야 한다. Flutter의 <code>SystemChrome</code> API를 사용한다.
+                </p>
+                <pre><code class="language-dart">import 'package:flutter/services.dart';
+
+void enableFullScreenMode() {
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  // 또는 이전 방식:
+  // SystemChrome.setEnabledSystemUIOverlays([]); // 모든 오버레이 숨김
+}</code></pre>
+                <p class="text-gray-300 mt-2 leading-relaxed">
+                    <code>SystemUiMode.immersiveSticky</code>는 사용자가 화면 가장자리에서 스와이프하면 시스템 바가 잠시 나타났다가 다시 사라지는 지속적인 전체 화면 모드이다. 일반적으로 <code>main()</code> 함수 또는 메인 앱 위젯의 <code>initState</code>에서 호출된다.
+                </p>
+            </div>
+
+            <div id="feature-guide-auth" class="mb-8 scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">3.3. 사용자 인증</h3>
+                <div id="feature-guide-auth-ui" class="mb-6 scroll-mt-20">
+                    <h4 class="text-xl font-medium text-blue-200 mb-2">3.3.1. 로그인 UI 구축</h4>
+                    <p class="text-gray-300 leading-relaxed">
+                        표준 Flutter 위젯(<code>Scaffold</code>, <code>Column</code>, <code>TextField</code>, <code>ElevatedButton</code>, <code>Form</code>)을 사용하여 사용자 이름/ID 및 비밀번호 입력 필드와 로그인 버튼으로 구성된 UI를 만든다. <code>TextEditingController</code>로 입력 값을 가져오고 유효성 검사를 구현한다.
+                    </p>
+                </div>
+                <div id="feature-guide-auth-storage" class="mb-6 scroll-mt-20">
+                    <h4 class="text-xl font-medium text-blue-200 mb-2">3.3.2. 로그인 자격 증명/토큰 보안 저장</h4>
+                    <p class="text-gray-300 mb-2 leading-relaxed">
+                        성공적인 로그인 후 서버는 세션 토큰(예: JWT)을 반환해야 한다. <code>flutter_secure_storage</code> 패키지를 사용하여 이 토큰을 안전하게 저장한다.
+                    </p>
+                    <pre><code class="language-dart">import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+final storage = FlutterSecureStorage();
+
+// 토큰 저장
+await storage.write(key: 'auth_token', value: receivedToken);
+
+// 토큰 읽기
+String? token = await storage.read(key: 'auth_token');</code></pre>
+                    <p class="text-gray-300 mt-2 leading-relaxed">
+                        이 패키지는 iOS의 Keychain과 Android의 KeyStore 기반 AES 암호화를 사용한다.
+                    </p>
+                </div>
+                <div id="feature-guide-auth-auto" class="scroll-mt-20">
+                    <h4 class="text-xl font-medium text-blue-200 mb-2">3.3.3. 자동 로그인 로직 구현</h4>
+                    <p class="text-gray-300 mb-2 leading-relaxed">
+                        앱 시작 시 <code>flutter_secure_storage</code>에 저장된 토큰을 확인한다.
+                    </p>
+                    <pre><code class="language-dart">String? token = await storage.read(key: 'auth_token');
+if (token != null && token.isNotEmpty) {
+  // 서버로 토큰 유효성 검사 (선택 사항이지만 권장)
+  // 유효하면 메인 앱 화면으로 이동.
+} else {
+  // 로그인 화면으로 이동.
+}</code></pre>
+                    <p class="text-gray-300 mt-2 leading-relaxed">
+                        만료되거나 유효하지 않은 토큰을 정상적으로 처리하여 로그인 화면으로 리디렉션해야 한다.
+                    </p>
+                </div>
+            </div>
+            
+            <div id="feature-guide-content-fetch" class="mb-8 scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">3.4. 콘텐츠 가져오기 및 로컬 캐싱 (이미지/비디오)</h3>
+                <div id="feature-guide-content-http" class="mb-6 scroll-mt-20">
+                    <h4 class="text-xl font-medium text-blue-200 mb-2">3.4.1. 백엔드로 HTTP 요청하기</h4>
+                    <p class="text-gray-300 mb-2 leading-relaxed">
+                        <code>dio</code> 또는 <code>http</code> 패키지를 사용하여 백엔드 API에 파일 메타데이터(URL, 파일 이름, 버전 등) 목록을 요청한다. 인증 토큰을 요청 헤더에 포함시킨다.
+                    </p>
+                    <pre><code class="language-dart">// dio 패키지 사용 예시
+import 'package:dio/dio.dart';
+
+Future<void> fetchFileList() async {
+  Dio dio = Dio();
+  String? token = await storage.read(key: 'auth_token'); // flutter_secure_storage 사용
+
+  try {
+    Response response = await dio.get(
+      'YOUR_API_ENDPOINT/files',
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      ),
+    );
+    // response.data 처리 (파일 메타데이터 목록)
+    print(response.data);
+  } catch (e) {
+    print('Error fetching file list: $e');
+  }
+}</code></pre>
+                </div>
+                <div id="feature-guide-content-download" class="mb-6 scroll-mt-20">
+                    <h4 class="text-xl font-medium text-blue-200 mb-2">3.4.2. 로컬 저장소로 파일 다운로드</h4>
+                    <p class="text-gray-300 mb-2 leading-relaxed">
+                        <code>flutter_downloader</code> 패키지를 사용하여 파일을 백그라운드에서 다운로드하고, <code>path_provider</code>를 사용하여 적절한 로컬 저장소 경로를 얻는다.
+                    </p>
+                    <pre><code class="language-dart">import 'package:path_provider/path_provider.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+
+Future<void> downloadFile(String url, String fileName) async {
+  final directory = await getApplicationDocumentsDirectory();
+  final localPath = '${directory.path}/$fileName';
+
+  final taskId = await FlutterDownloader.enqueue(
+    url: url,
+    savedDir: directory.path,
+    fileName: fileName,
+    showNotification: true, // 알림 표시 여부
+    openFileFromNotification: true, // 알림 클릭 시 파일 열기 여부
+  );
+}
+
+// main.dart에 FlutterDownloader 초기화 필요
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await FlutterDownloader.initialize(
+//     debug: true // 디버그 로그 활성화
+//   );
+//   runApp(MyApp());
+// }
+</code></pre>
+                     <p class="text-gray-300 mt-2 leading-relaxed">
+                        <code>flutter_downloader</code> 사용 시 네이티브 설정(Android Manifest, iOS Info.plist)이 필요할 수 있다.
+                    </p>
+                </div>
+                <div id="feature-guide-content-refresh" class="scroll-mt-20">
+                    <h4 class="text-xl font-medium text-blue-200 mb-2">3.4.3. 주기적 새로고침 예약</h4>
+                    <p class="text-gray-300 mb-2 leading-relaxed">
+                        <code>workmanager</code> 또는 <code>android_alarm_manager_plus</code> (Android 전용) 패키지를 사용하여 30분마다 파일 목록을 가져오고 로컬 파일을 업데이트하는 백그라운드 작업을 예약한다.
+                    </p>
+                    <pre><code class="language-dart">// workmanager 사용 예시
+import 'package:workmanager/workmanager.dart';
+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) {
+    print("Native called background task: $task"); // 실제 콘텐츠 새로고침 로직 호출
+    // fetchFileList() 및 동기화 로직 수행
+    return Future.value(true);
+  });
+}
+
+void schedulePeriodicRefresh() {
+  Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: true,
+  );
+  Workmanager().registerPeriodicTask(
+    "contentRefreshTaskUniqueName", // 고유 이름
+    "contentRefreshTask", // 작업 이름
+    frequency: Duration(minutes: 30),
+    constraints: Constraints(
+      networkType: NetworkType.connected,
+    ),
+  );
+}</code></pre>
+                </div>
+            </div>
+
+            <div id="feature-guide-sync" class="mb-8 scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">3.5. 선택적 파일 동기화</h3>
+                <p class="text-gray-300 mb-2 leading-relaxed">
+                    주기적 새로고침 시, 로컬 파일 목록과 서버 파일 목록(메타데이터에 버전/타임스탬프 포함)을 비교한다. 새 파일이나 수정된 파일만 다운로드하고, 서버 목록에 없는 로컬 파일은 삭제한다.
+                </p>
+                <p class="text-gray-300 mt-2 leading-relaxed">
+                    <strong>로직 개요:</strong>
+                </p>
+                <ol class="list-decimal list-inside text-gray-300 space-y-1 leading-relaxed">
+                    <li>서버에서 최신 파일 메타데이터 목록을 가져온다.</li>
+                    <li>로컬에 저장된 파일 메타데이터 목록(또는 실제 파일 정보)을 가져온다.</li>
+                    <li>두 목록을 비교하여 다음을 식별한다:
+                        <ul class="list-disc list-inside ml-6">
+                            <li>다운로드할 파일: 서버에는 있지만 로컬에는 없거나, 로컬 버전보다 최신인 파일.</li>
+                            <li>삭제할 파일: 로컬에는 있지만 서버 목록에는 없는 파일.</li>
+                        </ul>
+                    </li>
+                    <li>식별된 파일들을 다운로드하거나 삭제한다.</li>
+                </ol>
+                <p class="text-gray-300 mt-2 leading-relaxed">
+                    파일 내용의 해시(예: MD5, SHA256)를 사용하면 타임스탬프보다 더 정확한 변경 감지가 가능하다.
+                </p>
+            </div>
+
+            <div id="feature-guide-slideshow" class="scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">3.6. 로컬 미디어 슬라이드쇼</h3>
+                <p class="text-gray-300 mb-2 leading-relaxed">
+                    다운로드한 이미지와 비디오를 자동으로 순환 재생한다. <code>carousel_slider</code> (이미지/위젯 캐러셀) 및 <code>video_player</code> (비디오 재생) 패키지를 사용할 수 있다.
+                </p>
+                <p class="text-gray-300 mt-2 leading-relaxed">
+                    <strong>혼합 재생 목록 관리:</strong>
+                </p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 leading-relaxed">
+                    <li>로컬 파일 경로 및 유형(이미지/비디오) 목록을 유지한다.</li>
+                    <li><code>PageView</code> 또는 <code>AnimatedSwitcher</code>를 사용하여 현재 항목을 표시한다.</li>
+                    <li><code>PageView</code>의 <code>itemBuilder</code>는 파일 유형에 따라 <code>Image.file()</code> 또는 <code>VideoPlayer</code> 위젯을 반환한다.</li>
+                    <li><code>VideoPlayerController</code>의 수명 주기(초기화, 재생, 폐기)를 신중하게 관리한다.</li>
+                </ul>
+                <p class="text-gray-300 mt-2 leading-relaxed">
+                    <strong>자동 전환:</strong>
+                </p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 leading-relaxed">
+                    <li>이미지: <code>Timer</code>를 사용하여 일정 시간 후 다음 항목으로 전환한다.</li>
+                    <li>비디오: <code>VideoPlayerController</code>의 리스너를 사용하여 재생 완료 시 다음 항목으로 전환한다.</li>
+                </ul>
+                <p class="text-gray-300 mt-2 leading-relaxed">
+                    <code>AnimatedSwitcher</code>는 다른 유형의 위젯 간 전환(예: 이미지에서 비디오로)을 부드럽게 처리하는 데 유용할 수 있다.
+                </p>
+            </div>
+        </section>
+        
+        <section id="android-tv-specifics" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg scroll-mt-20">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6">4. Android TV 특정 고려 사항</h2>
+
+            <div id="android-tv-ux" class="mb-8 scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">4.1. TV용 UI/UX 모범 사례</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-2 leading-relaxed">
+                    <li><strong>10피트 UI:</strong> 멀리서 보는 것을 고려하여 큰 글꼴, 선명한 시각 자료, 높은 대비를 사용한다.</li>
+                    <li><strong>간단한 네비게이션:</strong> D-패드 네비게이션은 직관적이고 예측 가능해야 한다.</li>
+                    <li><strong>포커스 하이라이트:</strong> 현재 포커스된 요소를 명확하게 표시한다.</li>
+                    <li><strong>레이아웃:</strong> 가로 방향을 주로 사용하며, 콘텐츠 탐색에는 그리드 레이아웃이 일반적이다.</li>
+                    <li><strong>혼잡함 피하기:</strong> UI를 깔끔하게 유지하고 콘텐츠에 집중한다.</li>
+                </ul>
+            </div>
+
+            <div id="android-tv-dpad" class="scroll-mt-20">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">4.2. D-패드 네비게이션 및 포커스 관리</h3>
+                <p class="text-gray-300 mb-2 leading-relaxed">
+                    Flutter의 포커스 시스템 (<code>FocusNode</code>, <code>FocusScope</code>, <code>FocusTraversalGroup</code>, <code>FocusTraversalPolicy</code>)을 활용하여 D-패드 네비게이션을 구현한다.
+                </p>
+                <h4 class="text-xl font-medium text-blue-200 mt-4 mb-2">핵심 개념</h4>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 leading-relaxed">
+                    <li><code>FocusNode</code>: UI에서 포커스 가능한 요소를 나타낸다.</li>
+                    <li><code>Shortcuts</code> 및 <code>Actions</code> 위젯: 키 이벤트(예: D-패드 선택)를 <code>Intent</code> 및 <code>Action</code>에 매핑한다.</li>
+                    <li><code>RawKeyboardListener</code>: 원시 키 이벤트에 대한 하위 수준 액세스를 제공한다.</li>
+                </ul>
+                 <p class="text-gray-300 mt-2 leading-relaxed">
+                    포커스 순서 관리, 포커스 하이라이트 사용자 정의, 포커스 디버깅이 중요하다. 디지털 사이니지 앱의 주 슬라이드쇼 뷰는 복잡한 D-패드 네비게이션이 필요 없을 수 있지만, 설정 화면 등에서는 필수적이다.
+                </p>
+
+                <div class="table-caption">표: 포커스 관리 기법</div>
+                <div class="overflow-x-auto rounded-lg shadow-md">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>기법</th>
+                                <th>핵심 Flutter 클래스/위젯</th>
+                                <th>사용 사례</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>기본 포커스</td>
+                                <td><code>Focus</code>, <code>FocusNode</code></td>
+                                <td>위젯을 포커스 가능하게 만들기</td>
+                                <td><code>FocusNode</code>는 상태를 유지하고 프로그래밍 방식 제어를 허용한다.</td>
+                            </tr>
+                            <tr>
+                                <td>프로그래밍 방식 포커스</td>
+                                <td><code>FocusNode.requestFocus()</code>, <code>FocusScope.of(context).requestFocus()</code></td>
+                                <td>특정 위젯으로 포커스 동적 이동</td>
+                                <td>버튼 클릭, 유효성 검사 실패 시 등에 사용된다.</td>
+                            </tr>
+                            <tr>
+                                <td>포커스 순서</td>
+                                <td><code>FocusTraversalGroup</code>, <code>FocusTraversalPolicy</code> (예: <code>OrderedTraversalPolicy</code>, <code>ReadingOrderTraversalPolicy</code>), <code>FocusOrder</code></td>
+                                <td>D-패드 네비게이션 순서 정의</td>
+                                <td>TV UI에서 예측 가능한 네비게이션에 매우 중요하다.</td>
+                            </tr>
+                            <tr>
+                                <td>키 이벤트 처리</td>
+                                <td><code>Shortcuts</code>, <code>Actions</code>, <code>LogicalKeyboardKey</code>, <code>ActivateIntent</code>, <code>RawKeyboardListener</code></td>
+                                <td>D-패드 입력(선택, 방향키)에 응답</td>
+                                <td><code>Shortcuts</code>/<code>Actions</code>는 의미론적이며, <code>RawKeyboardListener</code>는 하위 수준이다.</td>
+                            </tr>
+                            <tr>
+                                <td>시각적 하이라이트</td>
+                                <td><code>Focus.onFocusChange</code>, <code>FocusNode.hasFocus</code>, <code>FocusThemeData</code>, <code>MaterialStateProperty</code></td>
+                                <td>포커스된 위젯을 시각적으로 강조</td>
+                                <td>사용자에게 현재 선택된 항목을 명확하게 보여준다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="backend-considerations" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg scroll-mt-20">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6">5. 백엔드 고려 사항 (간략히 - PHP/PostgreSQL)</h2>
+            <p class="text-gray-300 mb-4 leading-relaxed">
+                Flutter 애플리케이션의 기능은 백엔드 API와 밀접하게 연결되어 있으므로, 초기 단계에서 API 계약을 명확하게 정의하는 것이 중요하다.
+            </p>
+            <h4 class="text-xl font-medium text-blue-200 mb-2">API 엔드포인트 예시</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-1 leading-relaxed">
+                <li><code>/login</code> (POST): 자격 증명을 받아 인증 토큰을 반환한다.</li>
+                <li><code>/files</code> (GET, 인증됨): 로그인한 사용자에 대한 파일 메타데이터(URL, 이름, 버전/타임스탬프, 유형) 목록을 반환한다.</li>
+                <li><code>/download/&lt;file_id&gt;</code> (GET, 인증됨, 선택 사항): 파일을 제공하는 엔드포인트.</li>
+            </ul>
+            <h4 class="text-xl font-medium text-blue-200 mt-4 mb-2">데이터베이스 (PostgreSQL) 스키마 예시</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-1 leading-relaxed">
+                <li><strong><code>users</code> 테이블:</strong> <code>user_id</code>, <code>username</code>, <code>password_hash</code> 등 사용자 정보를 저장한다.</li>
+                <li><strong><code>files</code> 테이블:</strong> <code>file_id</code>, <code>user_id</code>, <code>file_name</code>, <code>file_url</code>, <code>file_type</code>, <code>version_timestamp</code> 등 파일 정보를 저장한다.</li>
+            </ul>
+            <p class="text-gray-300 mt-2 leading-relaxed">
+                PHP 백엔드는 PostgreSQL에 대한 인증을 처리하고 인증된 사용자를 기반으로 <code>files</code> 테이블을 쿼리한다. 파일 접근 보안은 백엔드의 책임이다.
+            </p>
+        </section>
+
+        <section id="conclusion-summary" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg scroll-mt-20">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6">6. 결론 및 모범 사례 요약</h2>
+            <p class="text-gray-300 mb-4 leading-relaxed">
+                본 가이드는 Flutter를 사용하여 Android 및 Android TV용 디지털 사이니지 애플리케이션을 개발하는 데 필요한 핵심 기능과 고려 사항을 다루었다. 듀얼 플랫폼 개발의 주요 과제는 각 플랫폼의 특성을 이해하고 이에 맞는 UI/UX를 제공하는 것이다.
+            </p>
+            <h4 class="text-xl font-medium text-blue-200 mb-2">주요 모범 사례</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 leading-relaxed">
+                <li><strong>플랫폼별 Manifest 구성:</strong> Android 및 Android TV 각각에 대해 <code>AndroidManifest.xml</code>을 정확하게 구성한다.</li>
+                <li><strong>안전한 인증 및 토큰 관리:</strong> <code>flutter_secure_storage</code>를 사용하고 토큰 유효성을 검증한다.</li>
+                <li><strong>효율적인 콘텐츠 동기화:</strong> 주기적인 백그라운드 작업을 통해 선택적 동기화를 구현한다.</li>
+                <li><strong>Android TV 포커스 관리:</strong> Flutter의 포커스 시스템을 적극 활용하고 명확한 시각적 포커스를 제공한다.</li>
+                <li><strong>철저한 테스트:</strong> 다양한 실제 장치에서 테스트하여 사용자 경험을 검증한다.</li>
+            </ul>
+        </section>
+
+        <section id="references" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg scroll-mt-20">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6">7. 참고 자료</h2>
+            <p class="text-gray-300 mb-4">본 가이드에서 언급된 기술 및 패키지에 대한 공식 문서 및 유용한 자료들입니다.</p>
+            <div class="max-h-96 overflow-y-auto">
+                <ol class="list-decimal list-inside text-gray-300 space-y-2">
+                    <li><a href="https://docs.flutter.dev/cookbook/networking/fetch-data" target="_blank" class="text-blue-400 hover:underline">Fetch data from the internet | Flutter</a></li>
+                    <li><a href="https://www.dhiwise.com/post/flutter-download-file-from-url-a-step-by-step-guide" target="_blank" class="text-blue-400 hover:underline">Flutter Download File from URL: A Step-by-Step Guide - DhiWise</a></li>
+                    <li><a href="https://hussainmustafa.com/flutter_downloader-tutorial-implement-file-downloads-in-flutter/" target="_blank" class="text-blue-400 hover:underline">Flutter_Downloader Tutorial: Implement File Downloads in Flutter ...</a></li>
+                    <li><a href="https://docs.flutter.dev/cookbook/persistence/reading-writing-files" target="_blank" class="text-blue-400 hover:underline">Read and write files | Flutter</a></li>
+                    <li><a href="https://www.f22labs.com/blogs/how-to-manage-app-permissions-in-flutter-a-developers-guide/" target="_blank" class="text-blue-400 hover:underline">How to Manage App Permissions in Flutter - F22 Labs</a></li>
+                    <li><a href="https://pub.dev/packages/permission_handler" target="_blank" class="text-blue-400 hover:underline">permission_handler | Flutter package - Pub.dev</a></li>
+                    <li><a href="https://developer.android.com/training/tv/get-started/create" target="_blank" class="text-blue-400 hover:underline">Create and run a TV app | Android TV | Android Developers</a></li>
+                    <li><a href="https://pub.dev/documentation/flutter_notification_listener/latest/" target="_blank" class="text-blue-400 hover:underline">flutter_notification_listener - Dart API docs - Pub.dev</a> (Note: This seems less relevant to boot completion directly, original document might have a context.)</li>
+                    <li><a href="https://support.google.com/googleplay/thread/252108175/i-m-currently-facing-an-auto-launch-issue-with-my-flutter-application?hl=ko" target="_blank" class="text-blue-400 hover:underline">Auto-launch issue with Flutter application - Google Play Help</a></li>
+                    <li><a href="https://developer.android.com/guide/components/broadcasts" target="_blank" class="text-blue-400 hover:underline">Broadcasts overview | Background work | Android Developers</a></li>
+                    <li><a href="https://medium.com/@naufal.ihsan21/flutter-run-background-service-even-after-app-is-killed-43414099610" target="_blank" class="text-blue-400 hover:underline">Flutter Run Background Service Even After App is Killed - Medium</a></li>
+                    <li><a href="https://pub.dev/packages/android_alarm_manager_plus" target="_blank" class="text-blue-400 hover:underline">android_alarm_manager_plus | Flutter package - Pub.dev</a></li>
+                    <li><a href="https://docs.flutter.dev/development/packages-and-plugins/background-processes" target="_blank" class="text-blue-400 hover:underline">Background processes | Flutter</a></li>
+                    <li><a href="https://pub.dev/packages/flutter_background_service" target="_blank" class="text-blue-400 hover:underline">flutter_background_service | Flutter package - Pub.dev</a></li>
+                    <li><a href="https://github.com/ekasetiawans/flutter_background_service/issues/413" target="_blank" class="text-blue-400 hover:underline">`flutter_background_service` stops only in release mode - GitHub Issue</a></li>
+                    <li><a href="https://pub.dev/packages/flutter_background_service/example" target="_blank" class="text-blue-400 hover:underline">flutter_background_service example | Flutter package - Pub.dev</a></li>
+                    <li><a href="https://codeclever.tech/2024/05/14/flutter-app-development-scheduling-background-task/" target="_blank" class="text-blue-400 hover:underline">Flutter App Development: Scheduling Background Task - Codeclever</a></li>
+                    <li><a href="https://www.dhiwise.com/post/work-wonders-with-flutter-workmanager-ultimate-guide" target="_blank" class="text-blue-400 hover:underline">Mastering Background Tasks in Flutter with Workmanager - DhiWise</a></li>
+                    <li><a href="https://flutterstuff.com/how-to-enable-or-disable-full-screen-mode-in-flutter-app/" target="_blank" class="text-blue-400 hover:underline">How to Enable or Disable Full Screen Mode in Flutter App - Flutter Stuff</a></li>
+                    <li><a href="https://www.reddit.com/r/flutterhelp/comments/1jiza6r/can_you_hide_the_status_bar_completely_android/" target="_blank" class="text-blue-400 hover:underline">Can you hide the status bar completely? (Android) - Reddit</a></li>
+                    <li><a href="https://docs.flutter.dev/ui/layout/tutorial" target="_blank" class="text-blue-400 hover:underline">Layout tutorial - Flutter Documentation</a></li>
+                    <li><a href="https://www.geeksforgeeks.org/flutter-design-login-page-ui/" target="_blank" class="text-blue-400 hover:underline">Flutter – Design Login Page UI | GeeksforGeeks</a></li>
+                    <li><a href="https://pub.dev/packages/flutter_secure_storage" target="_blank" class="text-blue-400 hover:underline">flutter_secure_storage | Flutter package - pub.dev</a></li>
+                    <li><a href="https://digital.ai/catalyst-blog/flutter-secure-storage/" target="_blank" class="text-blue-400 hover:underline">Storing Data in Secure Storage in Flutter | Blog | Digital.ai</a></li>
+                    <li><a href="https://www.geeksforgeeks.org/flutter-fetching-list-of-data-from-api-through-dio/" target="_blank" class="text-blue-400 hover:underline">Flutter – Fetching List of Data From API Through Dio | GeeksforGeeks</a></li>
+                    <li><a href="https://www.dbestech.com/tutorials/flutter-dio-networking" target="_blank" class="text-blue-400 hover:underline">Flutter Dio Complete Guide - Dbestech</a></li>
+                    <li><a href="https://www.geeksforgeeks.org/flutter-fetch-data-from-rest-apis/" target="_blank" class="text-blue-400 hover:underline">Flutter – Fetch Data From REST APIs | GeeksforGeeks</a></li>
+                    <li><a href="https://pub.dev/packages/sync_client/versions/1.2.2" target="_blank" class="text-blue-400 hover:underline">sync_client 1.2.2 | Flutter package - Pub.dev</a></li>
+                    <li><a href="https://pub.dev/packages/diffutil_dart" target="_blank" class="text-blue-400 hover:underline">diffutil_dart | Dart package - pub.dev</a></li>
+                    <li><a href="https://piyushagarwal.dev/posts/dart-compare-list-of-objects/" target="_blank" class="text-blue-400 hover:underline">Dart - Compare List of Objects - Piyush Agarwal</a></li>
+                    <li><a href="https://pub.dev/packages/collection" target="_blank" class="text-blue-400 hover:underline">collection | Dart package - Pub.dev</a></li>
+                    <li><a href="https://api.dart.dev/stable/dart-core/Set/difference.html" target="_blank" class="text-blue-400 hover:underline">Set difference method - Dart API</a></li>
+                    <li><a href="https://pub.dev/packages/diffutil_dart/example" target="_blank" class="text-blue-400 hover:underline">diffutil_dart example | Dart package - Pub.dev</a></li>
+                    <li><a href="https://pub.dev/packages/carousel_slider" target="_blank" class="text-blue-400 hover:underline">carousel_slider | Flutter package - Pub.dev</a></li>
+                    <li><a href="https://www.vdocipher.com/blog/flutter-video-streaming/" target="_blank" class="text-blue-400 hover:underline">Flutter Video Streaming and Player - VdoCipher</a></li>
+                    <li><a href="https://www.mux.com/video-for/flutter" target="_blank" class="text-blue-400 hover:underline">Embed a video player in your Flutter application | Mux</a></li>
+                    <li><a href="https://docs.flutter.dev/ui/layout" target="_blank" class="text-blue-400 hover:underline">Layout | Flutter</a></li>
+                    <li><a href="https://stackoverflow.com/questions/62426973/how-to-play-video-and-image-in-a-list-flutter" target="_blank" class="text-blue-400 hover:underline">How to play video and image in a list Flutter - Stack Overflow</a></li>
+                    <li><a href="https://stackoverflow.com/questions/72039968/flutter-how-to-create-a-slider-with-images-and-videos" target="_blank" class="text-blue-400 hover:underline">Flutter: How to create a slider with images and videos - Stack Overflow</a></li>
+                    <li><a href="https://dev.to/standardtouch/build-an-image-video-slider-in-flutter-5f9l" target="_blank" class="text-blue-400 hover:underline">Build an Image/Video Slider in Flutter - Dev.to</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/AnimatedSwitcher-class.html" target="_blank" class="text-blue-400 hover:underline">AnimatedSwitcher class - Flutter API</a></li>
+                    <li><a href="https://www.youtube.com/watch?v=YNn8dQQck2c" target="_blank" class="text-blue-400 hover:underline">Awesome Flutter Carousel in 7 Minutes - YouTube</a> (Original link might be dead/redirected)</li>
+                    <li><a href="https://m.youtube.com/watch?v=2W7POjFb88g&pp=ygUPI2FuaW1hdGVkd2lkZ2V0" target="_blank" class="text-blue-400 hover:underline">AnimatedSwitcher (Flutter Widget of the Week) - YouTube</a> (Original link might be dead/redirected)</li>
+                    <li><a href="https://api.flutter.dev/flutter/material/material-library.html" target="_blank" class="text-blue-400 hover:underline">material library - Flutter API</a></li>
+                    <li><a href="https://docs.flutter.dev/ui/widgets/animation" target="_blank" class="text-blue-400 hover:underline">Animation and motion widgets - Flutter Documentation</a></li>
+                    <li><a href="https://www.eitbiz.com/blog/smart-tv-app-development-best-practices-how-to-build-tv-apps/" target="_blank" class="text-blue-400 hover:underline">Smart TV App Development Best Practices - EITBiz</a></li>
+                    <li><a href="https://developer.android.com/training/tv/get-started/navigation" target="_blank" class="text-blue-400 hover:underline">TV navigation - Android Developers</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusHighlightStrategy.html" target="_blank" class="text-blue-400 hover:underline">FocusHighlightStrategy enum - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusHighlightMode.html" target="_blank" class="text-blue-400 hover:underline">FocusHighlightMode enum - Flutter API</a></li>
+                    <li><a href="https://docs.flutter.dev/ui/focus/understanding-focus" target="_blank" class="text-blue-400 hover:underline">Understanding focus - Flutter Documentation</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/Focus-class.html" target="_blank" class="text-blue-400 hover:underline">Focus class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusNode/hasFocus.html" target="_blank" class="text-blue-400 hover:underline">hasFocus property - FocusNode class - Flutter API</a></li>
+                    <li><a href="https://docs.flutter.dev/cookbook/forms/focus" target="_blank" class="text-blue-400 hover:underline">Focus and text fields | Flutter</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusNode/skipTraversal.html" target="_blank" class="text-blue-400 hover:underline">skipTraversal property - FocusNode class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusNode/descendantsAreFocusable.html" target="_blank" class="text-blue-400 hover:underline">descendantsAreFocusable property - FocusNode class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusNode/canRequestFocus.html" target="_blank" class="text-blue-400 hover:underline">canRequestFocus property - FocusNode class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/Focus/focusNode.html" target="_blank" class="text-blue-400 hover:underline">focusNode property - Focus class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusNode/debugLabel.html" target="_blank" class="text-blue-400 hover:underline">debugLabel property - FocusNode class - Flutter API</a></li>
+                    <li><a href="https://docs.flutter.dev/ui/interaction/actions-and-shortcuts" target="_blank" class="text-blue-400 hover:underline">Actions and Shortcuts - Flutter Documentation</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusScope/requestFocus.html" target="_blank" class="text-blue-400 hover:underline">requestFocus method - FocusScope class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusScopeNode/setFirstFocus.html" target="_blank" class="text-blue-400 hover:underline">setFirstFocus method - FocusScopeNode class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusScopeNode/autofocus.html" target="_blank" class="text-blue-400 hover:underline">autofocus method - FocusScopeNode class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusScope/focusedChild.html" target="_blank" class="text-blue-400 hover:underline">focusedChild property - FocusScope class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusTraversalGroup-class.html" target="_blank" class="text-blue-400 hover:underline">FocusTraversalGroup class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusOrder-class.html" target="_blank" class="text-blue-400 hover:underline">FocusOrder class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusTraversalPolicy-class.html" target="_blank" class="text-blue-400 hover:underline">FocusTraversalPolicy class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/OrderedTraversalPolicy-class.html" target="_blank" class="text-blue-400 hover:underline">OrderedTraversalPolicy class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/WidgetOrderTraversalPolicy-class.html" target="_blank" class="text-blue-400 hover:underline">WidgetOrderTraversalPolicy class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/ReadingOrderTraversalPolicy-class.html" target="_blank" class="text-blue-400 hover:underline">ReadingOrderTraversalPolicy class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusableActionDetector-class.html" target="_blank" class="text-blue-400 hover:underline">FocusableActionDetector class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/Shortcuts-class.html" target="_blank" class="text-blue-400 hover:underline">Shortcuts class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/CallbackShortcuts-class.html" target="_blank" class="text-blue-400 hover:underline">CallbackShortcuts class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/Intent-class.html" target="_blank" class="text-blue-400 hover:underline">Intent class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/Actions-class.html" target="_blank" class="text-blue-400 hover:underline">Actions class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/services/HardwareKeyboard-class.html" target="_blank" class="text-blue-400 hover:underline">HardwareKeyboard class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/services/LogicalKeyboardKey-class.html" target="_blank" class="text-blue-400 hover:underline">LogicalKeyboardKey class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/RawKeyboardListener/onKey.html" target="_blank" class="text-blue-400 hover:underline">onKey property - RawKeyboardListener class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/services/ServicesBinding/keyboard.html" target="_blank" class="text-blue-400 hover:underline">keyboard property - ServicesBinding mixin - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/Focus/autofocus.html" target="_blank" class="text-blue-400 hover:underline">autofocus property - Focus class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/RequestFocusAction-class.html" target="_blank" class="text-blue-400 hover:underline">RequestFocusAction class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusableActionDetector/descendantsAreFocusable.html" target="_blank" class="text-blue-400 hover:underline">descendantsAreFocusable property - FocusableActionDetector - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/Focus/onFocusChange.html" target="_blank" class="text-blue-400 hover:underline">onFocusChange property - Focus class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusHighlightBehavior.html" target="_blank" class="text-blue-400 hover:underline">FocusHighlightBehavior enum - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/material/FocusThemeData/overlayColor.html" target="_blank" class="text-blue-400 hover:underline">overlayColor property - FocusThemeData - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/material/MaterialStateProperty-class.html" target="_blank" class="text-blue-400 hover:underline">MaterialStateProperty class - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusManager/addHighlightStrategy.html" target="_blank" class="text-blue-400 hover:underline">addHighlightStrategy method - FocusManager - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusHighlightStrategy/paint.html" target="_blank" class="text-blue-400 hover:underline">paint method - FocusHighlightStrategy - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusHighlightStrategy/automatic.html" target="_blank" class="text-blue-400 hover:underline">automatic property - FocusHighlightStrategy - Flutter API</a></li>
+                    <li><a href="https://api.flutter.dev/flutter/widgets/FocusableActionDetector/onShowFocusHighlight.html" target="_blank" class="text-blue-400 hover:underline">onShowFocusHighlight property - FocusableActionDetector - Flutter API</a></li>
+                </ol>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetElement = document.querySelector(this.getAttribute('href'));
+                if (targetElement) {
+                    // Offset for fixed header if you have one, or general offset
+                    // const headerOffset = 0; // Adjust if you have a fixed header
+                    // const elementPosition = targetElement.getBoundingClientRect().top;
+                    // const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                    // window.scrollTo({
+                    //     top: offsetPosition,
+                    //     behavior: "smooth"
+                    // });
+                     targetElement.scrollIntoView({
+                         behavior: 'smooth'
+                     });
+                }
+                // Close mobile nav if open
+                if (mobileNav.classList.contains('flex') && !mobileNav.classList.contains('hidden')) {
+                    closeMobileNav();
+                }
+            });
+        });
+
+        // Mobile navigation toggle
+        const menuButton = document.getElementById('menuButton');
+        const closeMenuButton = document.getElementById('closeMenuButton');
+        const mobileNav = document.getElementById('mobileNav');
+
+        menuButton.addEventListener('click', () => {
+            mobileNav.classList.remove('hidden');
+            mobileNav.classList.add('flex'); // Ensure it's flex for centering
+            document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+        });
+
+        closeMenuButton.addEventListener('click', () => {
+            closeMobileNav();
+        });
+
+        function closeMobileNav() {
+            mobileNav.classList.add('hidden');
+            mobileNav.classList.remove('flex');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        // Highlight active section in sidebar (for desktop)
+        const sections = document.querySelectorAll('main section');
+        const navLinks = document.querySelectorAll('.sidebar nav ul li a');
+        const subNavLinks = document.querySelectorAll('.sidebar nav ul ul li a');
+
+        function highlightNav() {
+            let currentSectionId = '';
+            let minDistance = Infinity;
+
+            sections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top; // Position relative to viewport
+                
+                // Find the section closest to the top of the viewport (within a certain range)
+                if (sectionTop < window.innerHeight / 3 && sectionTop > -section.offsetHeight / 2) {
+                     if (Math.abs(sectionTop) < minDistance) {
+                        minDistance = Math.abs(sectionTop);
+                        currentSectionId = section.getAttribute('id');
+                    }
+                }
+            });
+            
+            // If no section is "current" (e.g., at the very top or bottom of the page),
+            // you might want to default to the first or last visible one.
+            // For simplicity, if currentSectionId is empty, we try to find the first one in view.
+            if (!currentSectionId) {
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+                        currentSectionId = section.getAttribute('id');
+                        break;
+                    }
+                }
+            }
+             if (!currentSectionId && window.scrollY === 0) { // If at the very top
+                currentSectionId = sections[0] ? sections[0].getAttribute('id') : '';
+            }
+
+
+            navLinks.forEach(link => {
+                link.classList.remove('bg-gray-700', 'text-blue-300');
+                link.classList.add('text-gray-300');
+                if (link.getAttribute('href') === `#${currentSectionId}`) {
+                    link.classList.add('bg-gray-700', 'text-blue-300');
+                    link.classList.remove('text-gray-300');
+                }
+            });
+
+            subNavLinks.forEach(link => {
+                link.classList.remove('bg-gray-600', 'text-blue-200'); // Slightly different highlight for sub-items
+                link.classList.add('text-gray-400');
+                 // Check if the parent section of this sub-link is active OR if the sub-link itself is the target
+                const parentSectionHref = link.closest('ul.ml-4').previousElementSibling.getAttribute('href');
+                if (parentSectionHref === `#${currentSectionId}` || link.getAttribute('href') === `#${currentSectionId}`) {
+                    // If the sub-section itself is the target, highlight it more strongly
+                    if (link.getAttribute('href') === `#${currentSectionId}`) {
+                         link.classList.add('bg-gray-600', 'text-blue-200');
+                         link.classList.remove('text-gray-400');
+                    }
+                }
+            });
+        }
+
+        window.addEventListener('scroll', highlightNav);
+        window.addEventListener('load', highlightNav); // Also highlight on load
+
+    </script>
+</body>
+</html>
