@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서버 및 프론트엔드 기본 가이드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d3748; /* bg-gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568; /* bg-gray-700 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6a758a; /* bg-gray-600 */
+        }
+
+        /* Code block styling */
+        pre {
+            background-color: #1a202c; /* bg-gray-900 */
+            color: #a0aec0; /* text-gray-300 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Nginx Diagram Styling */
+        .nginx-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background-color: #2d3748; /* bg-gray-800 */
+            border-radius: 0.75rem;
+            border: 1px solid #4a5568;
+        }
+
+        .nginx-box {
+            background-color: #4a5568; /* bg-gray-700 */
+            color: #e2e8f0; /* text-gray-200 */
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-weight: 600;
+            min-width: 120px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nginx-arrow {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 20px solid #63b3ed; /* blue-400 */
+            position: relative;
+			margin: 5rem;
+			margin-top: 0rem;
+			margin-bottom: 1.5rem;
+        }
+        .nginx-arrow::after {
+            content: attr(data-label);
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #a0aec0; /* text-gray-300 */
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .nginx-arrow.up {
+            transform: rotate(180deg);
+            border-top-color: #63b3ed; /* blue-400 */
+        }
+        .nginx-arrow.right {
+            transform: rotate(90deg);
+            border-top-color: #63b3ed; /* blue-400 */
+        }
+        .nginx-arrow.left {
+            transform: rotate(-90deg);
+            border-top-color: #63b3ed; /* blue-400 */
+        }
+
+        .nginx-flow {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* File Permission Diagram */
+        .permissions-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background-color: #2d3748; /* bg-gray-800 */
+            border-radius: 0.75rem;
+            border: 1px solid #4a5568;
+        }
+
+        .permission-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background-color: #4a5568; /* bg-gray-700 */
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            width: fit-content;
+            color: #e2e8f0;
+        }
+
+        .permission-type {
+            font-weight: 600;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .permission-values {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .permission-value {
+            background-color: #2d3748; /* bg-gray-800 */
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.3rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #9ae6b4; /* green-300 */
+        }
+
+        .permission-legend {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+        .permission-legend span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .permission-legend span::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #9ae6b4; /* green-300 */
+        }
+        .permission-legend span:nth-child(2)::before { background-color: #f6ad55; /* orange-300 */ }
+        .permission-legend span:nth-child(3)::before { background-color: #fc8181; /* red-400 */ }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .content-area {
+                margin-left: 0;
+            }
+            .menu-button {
+                display: block;
+            }
+            .mobile-nav {
+                display: flex;
+            }
+            .nginx-flow {
+                flex-direction: column;
+            }
+            .nginx-arrow.right, .nginx-arrow.left {
+                transform: rotate(180deg); /* Make them point down */
+                border-top-color: #63b3ed;
+            }
+            .nginx-arrow.right::after, .nginx-arrow.left::after {
+                top: 25px; /* Adjust label position */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <button id="menuButton" class="menu-button fixed top-4 left-4 z-50 p-3 bg-gray-800 text-gray-100 rounded-lg shadow-lg md:hidden">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+
+    <div id="mobileNav" class="mobile-nav fixed inset-0 bg-gray-900 bg-opacity-95 z-40 flex-col items-center justify-center space-y-4 hidden md:hidden">
+        <button id="closeMenuButton" class="absolute top-4 right-4 p-3 bg-gray-800 text-gray-100 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <nav class="text-center">
+            <ul class="space-y-4">
+                <li><a href="#intro" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">1. 소개</a></li>
+                <li><a href="#server-env-overview" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">2. 서버 환경 개요</a></li>
+                <li><a href="#essential-programs" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">3. 필수 프로그램</a></li>
+                <li><a href="#ubuntu-namsan-guide" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">4. 운영 가이드</a></li>
+                <li><a href="#dev-principles-security" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">5. 운영 원칙 및 보안</a></li>
+                <li><a href="#troubleshooting" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">6. 문제 해결</a></li>
+                <li><a href="#conclusion" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">7. 결론</a></li>
+                <li><a href="#appendix" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">부록</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <aside class="sidebar fixed top-0 left-0 h-full w-64 bg-gray-800 p-6 shadow-lg hidden md:block overflow-y-auto rounded-r-lg">
+        <h2 class="text-2xl font-bold text-blue-400 mb-6">가이드 목차</h2>
+        <nav>
+            <ul class="space-y-3">
+                <li><a href="#intro" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">1. 소개</a></li>
+                <li><a href="#server-env-overview" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">2. WIZINFO 서버 환경 개요</a>
+                    <ul class="ml-4 mt-2 space-y-1">
+                        <li><a href="#ubuntu-server" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">2.1. Ubuntu Server</a></li>
+                        <li><a href="#nginx-web-server" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">2.2. Nginx 웹 서버</a></li>
+                        <li><a href="#postgresql-db" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">2.3. PostgreSQL 데이터베이스</a></li>
+                        <li><a href="#ajax-communication" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">2.4. AJAX 통신 방식</a></li>
+                    </ul>
+                </li>
+                <li><a href="#essential-programs" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">3. 서버 접속 및 파일 관리를 위한 필수 프로그램</a>
+                    <ul class="ml-4 mt-2 space-y-1">
+                        <li><a href="#mobaxterm" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">3.1. MobaXterm</a></li>
+                        <li><a href="#winscp" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">3.2. WinSCP</a></li>
+                    </ul>
+                </li>
+                <li><a href="#ubuntu-namsan-guide" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">4. Ubuntu Server 및 Namsan DID 프로젝트 운영 가이드</a>
+                    <ul class="ml-4 mt-2 space-y-1">
+                        <li><a href="#linux-commands" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">4.1. Linux 명령어</a></li>
+                        <li><a href="#namsan-asset-management" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">4.2. 에셋 파일 관리 및 보안</a></li>
+                        <li><a href="#project-log-monitoring" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">4.3. 로그 파일 접근 및 모니터링</a></li>
+                    </ul>
+                </li>
+                <li><a href="#dev-principles-security" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">5. 개발자를 위한 서버 운영 기본 원칙 및 보안</a>
+                    <ul class="ml-4 mt-2 space-y-1">
+                        <li><a href="#file-permissions" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">5.1. 파일 권한 이해</a></li>
+                        <li><a href="#nginx-optimization-security" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">5.2. Nginx 최적화 및 보안</a></li>
+                        <li><a href="#general-security-rules" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">5.3. 일반적인 보안 수칙</a></li>
+                    </ul>
+                </li>
+                <li><a href="#troubleshooting" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">6. 기본 문제 해결 (Troubleshooting)</a>
+                    <ul class="ml-4 mt-2 space-y-1">
+                        <li><a href="#connection-issues" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">6.1. 연결 문제</a></li>
+                        <li><a href="#permission-denied" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">6.2. 권한 없음 오류</a></li>
+                        <li><a href="#asset-loading-failure" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">6.3. 에셋 로딩 실패</a></li>
+                    </ul>
+                </li>
+                <li><a href="#conclusion" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">7. 결론</a></li>
+                <li><a href="#appendix" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">부록</a>
+                    <ul class="ml-4 mt-2 space-y-1">
+                        <li><a href="#nginx-server-block-example" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">A.1. Nginx server 블록 핵심 설정 예시</a></li>
+                        <li><a href="#key-terms" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">A.2. 주요 용어 설명</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="content-area md:ml-64 p-8">
+        <h1 class="text-4xl font-extrabold text-blue-300 mb-8 text-center md:text-left">서버 및 프론트엔드 기본 가이드</h1>
+
+        <section id="intro" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-blue-400 mb-4">1. 소개</h2>
+            <p class="mb-4 text-gray-300">
+                본 문서는 지은씨가 나중에 프론트엔드 개발자 업무를 진행하게 되었을 때 우리 회사 서버 환경에서 원활하게 업무를 수행하는 데 필요한 기본 지식과 기술을 제공하기 위해 작성했습니다. 현재 우리 회사의 서버는 Ubuntu Server 운영체제 위에서 Nginx 웹 서버, PostgreSQL 데이터베이스를 사용하며, 백엔드와의 통신은 주로 AJAX 방식을 통해 이루어집니다.
+            </p>
+            <p class="mb-6 text-gray-300">
+                본 가이드를 통해 서버 접속 방법, 기본 Linux 명령어, 파일 관리, 그리고 현재 진행 중인 '남산 DID 프로젝트'의 프론트엔드 에셋 파일 관리 및 보안 설정에 대한 이해를 높일 수 있을 거예요.
+            </p>
+
+            <h3 class="text-2xl font-semibold text-blue-300 mb-3">서버 주요 정보</h3>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>서버 주소:</strong> <code class="text-green-300">wizinfo.iptime.org</code></li>
+                <li><strong>ID:</strong> <code class="text-green-300">wizinfo</code></li>
+                <li><strong>PW:</strong> <code class="text-green-300">문의</code></li>
+                <li><strong>SSH 포트:</strong> <code class="text-green-300">21212</code></li>
+                <li><strong>WEB 포트:</strong> <code class="text-green-300">8080</code> (Nginx가 이 포트에서 서비스 제공)</li>
+                <li><strong>로컬 AI:</strong> <code class="text-green-300">3000</code> (제가 만든 소형 AI 모델입니다, 예시 질문 해놓은 기록이 있으니 참고하시고, 업무 진행 하면서 사용하시면 도움이 될 거예요.)</li>
+                <ul class="list-circle list-inside ml-4">
+					<li>AI ID: <code class="text-green-300">niuiu47@naver.com</code></li>
+					<li>AI PW: <code class="text-green-300">1234</code></li>
+				</ul>
+            </ul>
+
+            <h3 class="text-2xl font-semibold text-blue-300 mb-3">서버 웹 접속 요령</h3>
+            <p class="mb-2 text-gray-300">
+                WEB포트로 접속 시(현재 namsan/index.php로 리버스 프록시 걸려있음) 아래와 같이 주소창에 입력합니다.
+            </p>
+            <pre><code class="language-text">wizinfo.iptime.org:8080</code></pre>
+            <p class="mt-2 text-gray-300">
+                위 경우와 같이 서버 주소 <code>:</code> 뒤에 포트 번호 입력하시면 됩니다.
+            </p>
+        </section>
+
+        <section id="server-env-overview" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-blue-400 mb-4">2. WIZINFO 서버 환경 개요</h2>
+            <p class="mb-6 text-gray-300">
+                본 회사의 웹 서비스는 안정적이고 효율적인 운영을 위해 다음과 같은 기술 스택으로 구성되어 있습니다. 각 구성 요소의 기본적인 역할과 특징을 이해하는 것은 프론트엔드 개발 업무에도 도움이 될 거예요.
+            </p>
+
+            <h3 id="ubuntu-server" class="text-2xl font-semibold text-blue-300 mb-3">2.1. Ubuntu Server</h3>
+            <p class="mb-2 text-gray-300">
+                <strong>개요:</strong> Ubuntu Server는 Debian GNU/Linux를 기반으로 하는 Linux 배포판으로, 개인용 데스크톱 환경뿐만 아니라 서버 환경에서도 널리 사용됩니다. Linux는 Unix를 기반으로 개발된 운영체제로, 다중 사용자와 멀티태스킹을 지원하여 보안성이 높고 안정적인 서버 운영에 적합합니다. 사실 익숙하고 공짜라 쓰는 거예요. 🙂
+            </p>
+            <p class="font-semibold text-gray-300 mt-4 mb-2">특징:</p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>오픈소스:</strong> Ubuntu는 오픈소스 소프트웨어이므로 라이선스 비용 없이 자유롭게 사용, 수정, 배포가 가능합니다. 이는 비용 절감 효과와 함께 필요에 따라 시스템을 커스터마이징할 수 있는 유연성을 제공합니다.</li>
+                <li><strong>보안성 및 안정성:</strong> Linux 기반 시스템은 사용자 권한 구조가 명확하고, 보안 취약점에 대한 패치가 빠르게 이루어져 악성코드나 바이러스로부터 비교적 안전합니다.</li>
+                <li><strong>커뮤니티 및 지원:</strong> 방대한 사용자 및 개발자 커뮤니티를 통해 문제 해결에 필요한 다양한 자료와 지원을 쉽게 얻을 수 있으며, 장기 지원(LTS) 버전을 통해 안정적인 운영이 가능합니다.</li>
+                <li><strong>소프트웨어 지원:</strong> Python, Java, Node.js, PHP 등 다양한 프로그래밍 언어와 개발 도구를 지원하여 개발 환경 구축이 용이합니다.</li>
+            </ul>
+
+            <h3 id="nginx-web-server" class="text-2xl font-semibold text-blue-300 mb-3">2.2. Nginx 웹 서버</h3>
+            <p class="mb-2 text-gray-300">
+                <strong>개요:</strong> Nginx(엔진엑스)는 가벼움과 높은 성능을 목표로 개발된 오픈소스 웹 서버 소프트웨어입니다. 웹 서버 기능 외에도 리버스 프록시, 로드 밸런서, HTTP 캐시 등으로 활용됩니다.
+            </p>
+            <p class="font-semibold text-gray-300 mt-4 mb-2">특징:</p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>이벤트 기반 구조:</strong> Nginx는 비동기 이벤트 기반(Event-driven) 아키텍처를 사용하여 적은 수의 스레드로 동시에 많은 클라이언트 요청을 효율적으로 처리합니다. 이는 메모리 사용량이 적고 CPU 부하가 낮은 장점으로 이어집니다. Apache 웹 서버가 요청마다 프로세스나 스레드를 생성하는 방식과 대조적입니다. 다시 말해 보다 낮은 사양의 서버로도 더욱 많은 트랜잭션을 처리 가능하다는 말이 됩니다.</li>
+                <li><strong>정적 파일 처리 성능:</strong> 정적 콘텐츠(HTML, CSS, JavaScript, 이미지 등)를 매우 빠르게 처리하는 데 탁월한 성능을 보입니다.</li>
+                <li><strong>리버스 프록시 및 로드 밸런싱:</strong> 클라이언트의 요청을 받아 내부 WAS(Web Application Server)로 전달하는 리버스 프록시 서버 역할을 수행하여 WAS의 부하를 줄이고, 여러 서버에 트래픽을 분산하는 로드 밸런싱 기능을 제공합니다. 이는 나중에 미니 클러스터링 서버를 구현하거나 하는 경우 보다 높은 네트워크 처리를 가능하게 합니다. (어디까지나 내 계획이에요)</li>
+                <li><strong>동적 콘텐츠 처리:</strong> Nginx 자체는 동적 콘텐츠를 직접 처리하지 않지만, PHP-FPM(PHP FastCGI Process Manager)과 같은 외부 프로세서와 연동하여 동적 웹 페이지 요청을 효율적으로 처리할 수 있습니다.</li>
+            </ul>
+            <div class="nginx-diagram">
+                <div class="nginx-box">클라이언트 (브라우저)</div>
+                <div class="nginx-arrow" data-label="HTTP/HTTPS 요청"></div>
+                <div class="nginx-box">Nginx (웹 서버/리버스 프록시)</div>
+                <div class="nginx-flow">
+                    <div class="nginx-arrow" data-label="정적 파일 제공"></div>
+                    <div class="nginx-arrow" data-label="동적 요청 (PHP-FPM)"></div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="nginx-box">정적 파일 (HTML, CSS, JS, Images)</div>
+                    <div class="nginx-box">WAS (PHP-FPM, Node.js 등)</div>
+                </div>
+            </div>
+            <p class="text-center text-gray-400 text-sm mt-2">Nginx의 리버스 프록시 및 정적/동적 콘텐츠 처리 흐름</p>
+
+
+            <h3 id="postgresql-db" class="text-2xl font-semibold text-blue-300 mb-3">2.3. PostgreSQL 데이터베이스</h3>
+            <p class="mb-2 text-gray-300">
+                <strong>개요:</strong> PostgreSQL은 객체-관계형 데이터베이스 시스템(ORDBMS)으로, 오픈소스로 개발되어 라이선스 비용 없이 사용할 수 있습니다. 금융, 제조, 소매, 물류 등 다양한 분야에서 활용되며 데이터 무결성 유지 및 대규모 워크로드 관리에 적합합니다. 그리고 많은 구현 예가 존재해서 학습 곡선이 낮아요. MySQL 한 번이라도 접하셨으면 금방 파악이 될 겁니다.
+            </p>
+            <p class="font-semibold text-gray-300 mt-4 mb-2">특징:</p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>오픈소스 및 비용 효율성:</strong> BSD 라이선스를 채택하여 자유롭게 사용, 수정, 배포가 가능하며, 데이터 볼륨 증가에 따른 라이선스 비용 부담이 없습니다.</li>
+                <li><strong>SQL 표준 및 기능 지원:</strong> ANSI SQL 표준을 높은 수준으로 지원하며(약 95%), 사용자 정의 함수, 저장 프로시저 등 다양한 고급 기능을 제공합니다.</li>
+                <li><strong>객체 관계형 모델:</strong> 관계형 데이터베이스의 장점과 객체 지향 프로그래밍의 특징을 결합하여 복잡한 데이터 구조를 효과적으로 관리할 수 있습니다.</li>
+                <li><strong>다양한 데이터 유형 지원:</strong> 숫자, 문자, 날짜/시간, JSON(JSONB 포함), 배열, XML 등 폭넓은 데이터 유형을 지원하여 유연한 데이터 처리가 가능합니다.</li>
+                <li><strong>ACID 준수 및 안정성:</strong> 트랜잭션의 원자성(Atomicity), 일관성(Consistency), 격리성(Isolation), 지속성(Durability)을 보장하여 데이터의 신뢰성을 높입니다.</li>
+                <li><strong>확장성 및 커뮤니티:</strong> 활발한 개발자 커뮤니티를 통해 지속적으로 기능이 개선되고 있으며, 다양한 운영체제에서 실행 가능합니다.</li>
+            </ul>
+
+            <h3 id="ajax-communication" class="text-2xl font-semibold text-blue-300 mb-3">2.4. AJAX 통신 방식</h3>
+            <p class="mb-2 text-gray-300">
+                <strong>개요:</strong> AJAX(Asynchronous JavaScript and XML)는 웹 페이지 전체를 다시 로드하지 않고도 서버와 비동기적으로 데이터를 교환하여 동적으로 화면 일부만 업데이트할 수 있게 하는 웹 개발 기술입니다. 이를 통해 사용자 경험을 크게 향상시킬 수 있습니다. 주로 쿼리를 쓰지 않고 RESTful API 호출로 가볍게 구현하는 것을 목표로 하고 있어요.
+            </p>
+            <p class="font-semibold text-gray-300 mt-4 mb-2">핵심 구성 요소:</p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>XHTML/HTML 및 CSS:</strong> 정보 표시</li>
+                <li><strong>DOM (Document Object Model):</strong> 동적 디스플레이 및 상호작용</li>
+                <li><strong>XMLHttpRequest 객체:</strong> 서버와의 비동기 통신</li>
+                <li><strong>XML, HTML, JSON 등:</strong> 데이터 교환 형식 (최근에는 JSON이 주로 사용됨)</li>
+                <li><strong>JavaScript:</strong> 이 모든 것을 통합하고 제어</li>
+            </ul>
+            <p class="mb-2 text-gray-300">
+                <strong>동작 원리:</strong> 사용자가 웹 애플리케이션과 상호작용하면, JavaScript로 작성된 AJAX 엔진이 백그라운드에서 XMLHttpRequest 객체를 통해 서버에 요청을 보내고 응답을 받습니다. 이 과정에서 페이지 전체가 새로고침되지 않고 필요한 부분만 동적으로 갱신됩니다.
+            </p>
+            <p class="mb-2 text-gray-300">
+                <strong>활용 사례:</strong> 자동 완성 검색어 제안, 실시간 양식 유효성 검사, 채팅 기능, 소셜 미디어 피드 업데이트, 투표 및 등급 시스템 등 다양한 인터랙티브 웹 기능 구현에 사용됩니다.
+            </p>
+            <p class="mb-2 text-gray-300">
+                <strong>고려 사항:</strong> 브라우저 지원 범위, 보안 및 개인 정보 보호, 접근성, 검색 엔진 최적화 등의 문제를 고려해야 합니다.
+            </p>
+        </section>
+
+        <section id="essential-programs" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-blue-400 mb-4">3. 서버 접속 및 파일 관리를 위한 필수 프로그램</h2>
+            <p class="mb-6 text-gray-300">
+                서버에 접속하여 파일을 조작하고 명령어를 실행하기 위해서는 특정 클라이언트 프로그램이 필요합니다. 본 섹션에서는 제가 추천하는 프로그램, MobaXterm과 WinSCP의 설치 및 기본 사용법을 안내합니다.
+            </p>
+
+            <h3 id="mobaxterm" class="text-2xl font-semibold text-blue-300 mb-3">3.1. MobaXterm: SSH 클라이언트</h3>
+            <p class="mb-2 text-gray-300">
+                MobaXterm은 SSH 접속, X11 포워딩, SFTP 파일 전송 등 다양한 기능을 하나의 프로그램으로 제공하는 터미널 소프트웨어입니다. Windows 환경에서 주로 사용됩니다.
+            </p>
+            <h4 class="text-xl font-medium text-blue-200 mb-2">3.1.1. MobaXterm 설치</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li>MobaXterm 공식 웹사이트(<a href="https://mobaxterm.mobatek.net/" target="_blank" class="text-blue-400 hover:underline">https://mobaxterm.mobatek.net/</a>)에 접속합니다. (간혹 공식 사이트에서 직접 다운로드가 원활하지 않을 수 있으니, 안정적인 다운로드 링크를 확인해야 할 수 있습니다).</li>
+                <li>'Download' 섹션으로 이동하여 'Home Edition (Installer edition)'을 다운로드합니다. Free 버전으로도 충분한 기능을 사용할 수 있어요.</li>
+                <li>다운로드한 설치 파일(MSI)을 실행하고, 화면의 지시에 따라 'Next', 'Install'을 클릭하여 설치를 완료합니다.</li>
+            </ul>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">3.1.2. MobaXterm 기본 사용법 (서버 접속)</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>한글 인코딩 설정 (최초 1회):</strong> MobaXterm 실행 후, 한글 깨짐 방지를 위해 인코딩 설정을 진행합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li>상단 메뉴에서 Settings > Configuration > Terminal 탭으로 이동합니다.</li>
+                        <li>Default terminal font settings 또는 유사한 옵션에서 Font charset 또는 Character set을 UTF-8 또는 KR (또는 DEFAULT 후 Term charset을 KR로 설정) 등으로 설정하여 한글이 정상적으로 표시되도록 합니다. (구체적인 메뉴명은 버전에 따라 다소 차이가 있을 수 있습니다.)</li>
+                    </ul>
+                </li>
+                <li><strong>SSH 세션 생성 및 접속:</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li>MobaXterm 좌측 상단의 Session 버튼을 클릭합니다.</li>
+                        <li>새로운 세션 창에서 SSH를 선택합니다.</li>
+                        <li>다음 정보를 입력합니다:
+                            <ul class="list-square list-inside ml-4">
+                                <li><strong>Remote host:</strong> 서버 주소 (<code class="text-green-300">wizinfo.iptime.co.kr</code>)</li>
+                                <li><strong>Specify username:</strong> 서버 접속 계정 ID (<code class="text-green-300">wizinfo</code>)</li>
+                                <li><strong>Port:</strong> SSH 접속 포트 (<code class="text-green-300">21212</code>)</li>
+                                <li>(선택 사항) <strong>Bookmark settings:</strong> 자주 접속하는 서버는 Session name을 지정하여 북마크로 저장해두면 편리합니다.</li>
+                            </ul>
+                        </li>
+                        <li>OK 버튼을 클릭합니다.</li>
+                    </ul>
+                </li>
+                <li><strong>비밀번호 입력 및 저장:</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li>최초 접속 시, 서버 계정의 비밀번호를 입력하라는 창이 나타납니다.</li>
+                        <li>비밀번호를 입력하고 Enter 키를 누릅니다.</li>
+                        <li>MobaXterm에서 비밀번호 저장 여부를 묻는 창이 나타나면, Yes를 선택하여 다음 접속부터 자동으로 로그인되도록 할 수 있습니다. 이 기능을 사용하려면 MobaXterm 마스터 비밀번호 설정이 필요할 수 있습니다. <br><strong class="text-red-400">(되도록 자동 저장은 사용하지 않습니다. 사용자 PC 자체만 랜섬웨어 감염되어도 비밀번호 유출 가능성 존재)</strong></li>
+                    </ul>
+                </li>
+                <li><strong>접속 확인:</strong> 성공적으로 접속되면, 서버의 커맨드 라인 프롬프트가 나타납니다.</li>
+            </ul>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">3.1.3. MobaXterm을 이용한 파일 전송 (SFTP)</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li>MobaXterm으로 SSH 세션에 성공적으로 접속하면, 프로그램 좌측에 SFTP 브라우저가 자동으로 나타납니다.</li>
+                <li>이 SFTP 브라우저는 현재 접속된 원격 서버의 파일 시스템을 보여줍니다.</li>
+                <li>로컬 PC에서 서버로 파일을 업로드하려면, 로컬 PC의 파일을 SFTP 브라우저의 원하는 서버 경로로 드래그 앤 드롭하면 됩니다.</li>
+                <li>서버에서 로컬 PC로 파일을 다운로드하려면, SFTP 브라우저에서 원하는 파일을 선택하여 로컬 PC의 폴더로 드래그 앤 드롭하거나, 마우스 오른쪽 버튼을 클릭하여 'Download' 옵션을 사용합니다.</li>
+                <li><strong class="text-yellow-400">파일 여러 개 전송, 삭제 등 SFTP 활동 시에는 아래의 WinSCP를 압도적으로 추천합니다. MobaXterm 이용 시 여러 파일, 다시 말해 시퀀셜 업로드 요청 시 서버가 뻗는 경우가 더러 있습니다.</strong></li>
+            </ul>
+
+            <h3 id="winscp" class="text-2xl font-semibold text-blue-300 mb-3">3.2. WinSCP: SFTP/FTP 클라이언트</h3>
+            <p class="mb-2 text-gray-300">
+                WinSCP는 Windows 환경에서 GUI(그래픽 사용자 인터페이스)를 통해 안전하게 파일을 전송할 수 있는 SFTP, SCP, FTP 클라이언트 프로그램입니다. 특히 서버와 로컬 PC 간의 파일 업로드 및 다운로드 작업에 유용합니다.
+            </p>
+            <h4 class="text-xl font-medium text-blue-200 mb-2">3.2.1. WinSCP 설치</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li>WinSCP 공식 다운로드 페이지(<a href="https://winscp.net/eng/download.php" target="_blank" class="text-blue-400 hover:underline">https://winscp.net/eng/download.php</a>)에 접속합니다.</li>
+                <li>"Installation package"를 다운로드합니다.</li>
+                <li>다운로드한 설치 파일을 실행합니다. 설치 과정 중 언어 선택 화면에서 "한국어"를 선택하면 한글 버전으로 설치할 수 있습니다.</li>
+                <li>설치 모드 선택 시, 특별한 경우가 아니라면 "모든 사용자를 위한 설치(권장)"를 선택하고 화면 지시에 따라 설치를 완료합니다.</li>
+            </ul>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">3.2.2. WinSCP 기본 사용법 (서버 접속 및 파일 전송)</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>WinSCP 실행 및 세션 설정:</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li>WinSCP를 실행하면 로그인 대화 상자가 나타납니다.</li>
+                        <li>다음 정보를 입력합니다:
+                            <ul class="list-square list-inside ml-4">
+                                <li><strong>파일 프로토콜:</strong> SFTP (기본값일 수 있음)</li>
+                                <li><strong>호스트 이름:</strong> 서버 주소 (<code class="text-green-300">wizinfo.iptime.co.kr</code>)</li>
+                                <li><strong>포트 번호:</strong> SSH 접속 포트 (<code class="text-green-300">21212</code>)</li>
+                                <li><strong>사용자 이름:</strong> 서버 접속 계정 ID</li>
+                                <li><strong>비밀번호:</strong> 서버 계정 비밀번호</li>
+                                <li>(선택 사항) 저장 버튼을 클릭하여 세션 정보를 저장하면 다음 접속 시 편리합니다. <strong class="text-red-400">(이 부분도 마찬가지로, 자동 저장은 사용하지 않습니다. 사용자 PC 자체만 랜섬웨어 감염되어도 비밀번호 유출 가능성 존재)</strong></li>
+                            </ul>
+                        </li>
+                        <li>로그인 버튼을 클릭합니다.</li>
+                    </ul>
+                </li>
+                <li><strong>호스트 키 확인:</strong> 최초 접속 시, 서버의 호스트 키를 신뢰할 것인지 묻는 경고창이 나타날 수 있습니다. 예 또는 업데이트를 클릭하여 접속을 계속합니다.</li>
+                <li><strong>파일 전송 인터페이스:</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li>성공적으로 접속되면, 일반적으로 좌측 패널에는 로컬 PC의 파일 시스템이, 우측 패널에는 원격 서버의 파일 시스템이 표시됩니다 (인터페이스 모드에 따라 다를 수 있음).</li>
+                        <li><strong>업로드:</strong> 로컬 PC 패널에서 업로드할 파일을 선택한 후, 서버 패널의 원하는 경로로 드래그 앤 드롭하거나, 상단 메뉴의 업로드 버튼을 사용합니다.</li>
+                        <li><strong>다운로드:</strong> 서버 패널에서 다운로드할 파일을 선택한 후, 로컬 PC 패널의 원하는 경로로 드래그 앤 드롭하거나, 상단 메뉴의 다운로드 버튼을 사용합니다.</li>
+                        <li>파일 및 폴더 생성, 이름 변경, 삭제 등의 작업도 GUI를 통해 직관적으로 수행할 수 있습니다.</li>
+                    </ul>
+                </li>
+                <li><strong>UTF-8 환경 설정 (한글 파일명 깨짐 방지):</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li>만약 서버의 파일명 중 한글이 깨져 보인다면, 로그인 세션 설정 고급 옵션에서 인코딩 설정을 변경해야 할 수 있습니다.</li>
+                        <li>로그인 화면에서 저장된 세션을 선택하고 편집 > 고급 > 환경으로 이동합니다.</li>
+                        <li>파일 이름을 UTF-8로 인코딩 옵션을 자동에서 켜짐(On) 또는 예로 변경 후 저장하고 다시 접속합니다.</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+        <section id="ubuntu-namsan-guide" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-blue-400 mb-4">4. Ubuntu Server 및 Namsan DID 프로젝트 운영 가이드</h2>
+            <p class="mb-6 text-gray-300">
+                프론트엔드 개발자로서 서버에 직접 접속하여 작업하는 경우가 빈번하지는 않지만, 기본적인 Linux 명령어와 프로젝트 파일 구조를 이해하고 있으면 개발 및 문제 해결 과정에서 큰 도움이 됩니다.
+            </p>
+
+            <h3 id="linux-commands" class="text-2xl font-semibold text-blue-300 mb-3">4.1. Ubuntu Server 기본 조작을 위한 Linux 명령어</h3>
+            <p class="mb-2 text-gray-300">
+                터미널(MobaXterm)을 통해 서버에 접속하면, 다음과 같은 기본적인 Linux 명령어들을 사용하여 파일 시스템을 탐색하고 파일을 관리하며, 실행 중인 프로세스를 확인하고 로그를 볼 수 있습니다. 명령어는 일반적으로 <code class="text-green-300">명령어 [옵션][인자]</code> 형태로 사용되며, 대소문자를 구분합니다.
+            </p>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.1.1. 디렉토리 탐색 및 관리</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong><code class="text-green-300">pwd</code> (Print Working Directory):</strong> 현재 작업 중인 디렉토리의 전체 경로를 표시합니다.
+                    <pre><code class="language-bash">$ pwd</code></pre>
+                </li>
+                <li><strong><code class="text-green-300">ls</code> (List Segments):</strong> 현재 디렉토리의 파일 및 하위 디렉토리 목록을 보여줍니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">ls -l</code>: 상세 정보(권한, 소유자, 크기, 날짜 등)를 함께 표시합니다.</li>
+                        <li><code class="text-green-300">ls -a</code>: 숨김 파일(이름이 .으로 시작하는 파일)까지 모두 표시합니다.</li>
+                        <li><code class="text-green-300">ls -al</code>: 상세 정보와 숨김 파일을 모두 표시합니다 (자주 사용).</li>
+                        <li><code class="text-green-300">ls -lt</code>: 파일을 수정된 시간 순서대로 (최신 파일 먼저) 정렬하여 표시합니다.
+                            <pre><code class="language-bash">$ ls -alt</code></pre>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong><code class="text-green-300">cd</code> (Change Directory):</strong> 지정한 디렉토리로 이동합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">cd ~</code>: 현재 사용자의 홈 디렉토리로 이동합니다.</li>
+                        <li><code class="text-green-300">cd ..</code>: 상위 디렉토리로 이동합니다.</li>
+                        <li><code class="text-green-300">cd /var/www/html</code>: <code>/var/www/html</code> 디렉토리(절대 경로)로 이동합니다.</li>
+                        <li><code class="text-green-300">cd namsan</code>: 현재 디렉토리의 하위 <code>namsan</code> 디렉토리(상대 경로)로 이동합니다.</li>
+                        <li><code class="text-green-300">cd -</code>: 바로 이전에 작업했던 디렉토리로 이동합니다.
+                            <pre><code class="language-bash">$ cd /var/www/html/namsan</code></pre>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.1.2. 파일 및 디렉토리 생성, 복사, 이동, 삭제</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong><code class="text-green-300">mkdir</code> (Make Directory):</strong> 새로운 디렉토리를 생성합니다.
+                    <pre><code class="language-bash">$ mkdir new_folder</code></pre>
+                </li>
+                <li><strong><code class="text-green-300">touch</code>:</strong> 비어있는 새 파일을 생성하거나, 기존 파일의 최종 수정 시간을 현재 시간으로 변경합니다.
+                    <pre><code class="language-bash">$ touch new_file.txt</code></pre>
+                </li>
+                <li><strong><code class="text-green-300">cp</code> (Copy):</strong> 파일 또는 디렉토리를 복사합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">cp source.txt destination.txt</code>: <code>source.txt</code> 파일을 <code>destination.txt</code>라는 이름으로 복사합니다.</li>
+                        <li><code class="text-green-300">cp -r source_dir target_dir</code>: <code>source_dir</code> 디렉토리와 그 안의 모든 내용을 <code>target_dir</code>로 복사합니다 (<code>-r</code> 또는 <code>-R</code> 옵션은 디렉토리 복사 시 필수).
+                            <pre><code class="language-bash">$ cp -r assets/images /var/www/namsan-assets/images</code></pre>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong><code class="text-green-300">mv</code> (Move):</strong> 파일 또는 디렉토리를 이동시키거나 이름을 변경합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">mv old_name.txt new_name.txt</code>: <code>old_name.txt</code> 파일의 이름을 <code>new_name.txt</code>로 변경합니다.</li>
+                        <li><code class="text-green-300">mv source_file.txt target_directory/</code>: <code>source_file.txt</code> 파일을 <code>target_directory</code> 안으로 이동합니다.
+                            <pre><code class="language-bash">$ mv temp_image.png images/final_image.png</code></pre>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong><code class="text-green-300">rm</code> (Remove):</strong> 파일 또는 디렉토리를 삭제합니다. <strong class="text-red-400">주의: <code>rm</code> 명령어는 삭제 시 확인을 거치지 않고 바로 삭제하므로 신중하게 사용해야 합니다. 특히 <code>-rf</code> 옵션은 매우 위험할 수 있습니다.</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">rm file.txt</code>: <code>file.txt</code> 파일을 삭제합니다.</li>
+                        <li><code class="text-green-300">rm -r directory_name</code>: <code>directory_name</code> 디렉토리와 그 안의 모든 내용을 삭제합니다 (삭제 시 확인을 요청할 수 있음).</li>
+                        <li><code class="text-green-300">rm -rf directory_name</code>: <code>directory_name</code> 디렉토리와 그 안의 모든 내용을 확인 없이 강제로 삭제합니다 (매우 주의!).
+                            <pre><code class="language-bash">$ rm old_asset.jpg</code></pre>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.1.3. 파일 내용 보기</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong><code class="text-green-300">cat</code> (Concatenate):</strong> 파일 내용을 터미널에 출력합니다. 주로 짧은 파일 내용을 확인할 때 사용합니다.
+                    <pre><code class="language-bash">$ cat config.txt</code></pre>
+                </li>
+                <li><strong><code class="text-green-300">less</code>:</strong> 파일 내용을 페이지 단위로 보여주며, 스크롤 및 검색이 가능합니다. <code class="text-green-300">vi</code>와 달리 전체 파일을 로드하지 않아 시작이 빠릅니다. <code>q</code>를 눌러 종료합니다.
+                    <pre><code class="language-bash">$ less large_log_file.log</code></pre>
+                </li>
+                <li><strong><code class="text-green-300">head</code>:</strong> 파일의 처음 몇 줄을 보여줍니다 (기본 10줄).
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">head -n 20 file.txt</code>: <code>file.txt</code>의 처음 20줄을 보여줍니다.
+                            <pre><code class="language-bash">$ head error.log</code></pre>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong><code class="text-green-300">tail</code>:</strong> 파일의 마지막 몇 줄을 보여줍니다 (기본 10줄).
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">tail -n 50 file.txt</code>: <code>file.txt</code>의 마지막 50줄을 보여줍니다.</li>
+                        <li><code class="text-green-300">tail -f file.log</code>: <code>file.log</code> 파일에 내용이 추가될 때마다 실시간으로 화면에 업데이트하여 보여줍니다. 로그 파일 모니터링에 매우 유용합니다. <code class="text-green-300">Ctrl+C</code>로 종료합니다.
+                            <pre><code class="language-bash">$ tail -f /var/log/nginx/access.log</code></pre>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="mb-4 text-gray-300">
+                여기까지가 서버 내부의 JSON 파일, PHP, HTML 코드 상태, 로그 확인을 위한 기초적인 조작법입니다.
+            </p>
+            <p class="mb-6 text-gray-300">
+                <strong class="text-yellow-400">4.1.4. 부터는 모르셔도 상관이 없습니다. 일단 리눅스 기본이라 생각해서 적어놓은 거예요~</strong>
+            </p>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.1.4. 프로세스 및 시스템 상태 확인</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong><code class="text-green-300">ps</code> (Process Status):</strong> 현재 실행 중인 프로세스 목록을 보여줍니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">ps aux</code>: 시스템에서 실행 중인 모든 프로세스를 사용자, CPU 사용량, 메모리 사용량 등 상세 정보와 함께 보여줍니다.</li>
+                        <li><code class="text-green-300">ps aux | grep nginx</code>: 실행 중인 프로세스 중 'nginx' 문자열을 포함하는 프로세스만 필터링하여 보여줍니다. (<code>grep</code> 명령어와 함께 사용)<br>
+					<strong class="text-yellow-400">(현재 서버는 모니터링 앱 bpytop이 설치되어 있으니 이 프로그램을 사용하는게 모니터링에는 더 좋습니다.)</strong>
+                            <pre><code class="language-bash">$ ps aux | grep php</code></pre>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong><code class="text-green-300">kill</code>:</strong> 특정 프로세스를 종료시킵니다. 프로세스 ID(PID)가 필요합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">kill PID</code>: 해당 PID의 프로세스에 종료 신호(기본적으로 SIGTERM, 15)를 보냅니다.</li>
+                        <li><code class="text-green-300">kill -9 PID</code>: 해당 PID의 프로세스를 강제로 종료합니다 (SIGKILL, 9). 데이터 유실의 위험이 있으므로 신중히 사용해야 합니다.
+                            <pre><code class="language-bash"># (먼저 ps aux | grep my_script로 PID 확인 후)
+$ kill 12345</code></pre>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong><code class="text-green-300">df</code> (Disk Free):</strong> 파일 시스템의 디스크 공간 사용 현황을 보여줍니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">df -h</code>: 사람이 읽기 쉬운 단위(GB, MB, KB)로 표시합니다.
+                            <pre><code class="language-bash">$ df -h</code></pre>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong><code class="text-green-300">du</code> (Disk Usage):</strong> 특정 파일이나 디렉토리가 차지하는 디스크 공간의 크기를 보여줍니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">du -sh directory_name</code>: <code>directory_name</code> 디렉토리의 총 사용량을 사람이 읽기 쉬운 단위로 요약하여 보여줍니다.
+                            <pre><code class="language-bash">$ du -sh /var/www/html/namsan</code></pre>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong><code class="text-green-300">free</code>:</strong> 시스템의 메모리(RAM) 사용 현황을 보여줍니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">free -h</code>: 사람이 읽기 쉬운 단위로 표시합니다.
+                            <pre><code class="language-bash">$ free -h</code></pre>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.1.5. 파일 검색</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong><code class="text-green-300">find</code>:</strong> 특정 조건에 맞는 파일이나 디렉토리를 검색합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">find /var/www -name "*.php"</code>: <code>/var/www</code> 디렉토리와 그 하위에서 확장자가 <code>.php</code>인 모든 파일을 찾습니다.</li>
+                        <li><code class="text-green-300">find . -type f -mtime -1</code>: 현재 디렉토리에서 최근 24시간 이내에 수정된 파일들을 찾습니다.
+                            <pre><code class="language-bash">$ find /var/www/html/namsan -name "config.json"</code></pre>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong><code class="text-green-300">grep</code> (Global Regular Expression Print):</strong> 파일 내에서 특정 문자열이나 패턴을 검색합니다. 다른 명령어의 출력 결과를 필터링하는 데도 많이 사용됩니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">grep "error" log_file.txt</code>: <code>log_file.txt</code> 파일에서 "error"라는 문자열이 포함된 모든 줄을 찾아 출력합니다.</li>
+                        <li><code class="text-green-300">grep -i "debug" app.log</code>: 대소문자를 구분하지 않고 "debug"를 검색합니다 (<code>-i</code> 옵션).</li>
+                        <li><code class="text-green-300">grep -r "api_key" /etc/nginx/</code>: <code>/etc/nginx/</code> 디렉토리와 그 하위 디렉토리의 모든 파일에서 "api_key"를 재귀적으로 검색합니다 (<code>-r</code> 옵션).
+                            <pre><code class="language-bash">$ cat access.log | grep "POST /api/login"</code></pre>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.1.6. 네트워크 관련 (참고용)</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong><code class="text-green-300">ifconfig</code> 또는 <code class="text-green-300">ip addr</code>:</strong> 서버의 네트워크 인터페이스 설정(IP 주소 등)을 확인합니다. (최신 시스템에서는 <code class="text-green-300">ip addr</code> 사용 권장)</li>
+                <li><strong><code class="text-green-300">ss</code> 또는 <code class="text-green-300">netstat</code>:</strong> 네트워크 연결 상태, 리스닝 포트 등을 확인합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">ss -tulnp</code>: 현재 리스닝 중인 TCP/UDP 포트와 해당 포트를 사용하는 프로세스 정보를 보여줍니다.
+                            <pre><code class="language-bash">$ ss -tulnp | grep 8080 # (8080 포트가 사용 중인지 확인)</code></pre>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong><code class="text-green-300">curl</code> 또는 <code class="text-green-300">wget</code>:</strong> URL을 통해 웹 콘텐츠를 가져오거나 파일을 다운로드합니다. API 테스트 등에 유용합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">curl http://localhost:8080/namsan/api/status</code>: 해당 URL로 GET 요청을 보내고 응답을 출력합니다.</li>
+                        <li><code class="text-green-300">wget https://example.com/some_file.zip</code>: 파일을 다운로드합니다.
+                            <pre><code class="language-bash">$ curl -X POST -H "Content-Type: application/json" -d '{"name":"test"}' http://wizinfo.iptime.co.kr:8080/namsan/api/users</code></pre>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="mb-4 text-gray-300">
+                이 명령어들은 서버 환경에서 작업할 때 기본적으로 알아두면 유용한 것들입니다. 각 명령어에는 더 많은 옵션들이 있으며, <code class="text-green-300">man 명령어이름</code> (예: <code class="text-green-300">man ls</code>)을 입력하면 해당 명령어의 매뉴얼 페이지를 통해 자세한 사용법을 확인할 수 있습니다.
+            </p>
+
+            <h3 id="namsan-asset-management" class="text-2xl font-semibold text-blue-300 mb-3">4.2. 남산 DID 프로젝트 에셋 파일 관리 및 보안</h3>
+            <p class="mb-6 text-gray-300">
+                현재 진행 중인 '남산 DID 프로젝트'의 서비스 관련 PHP 및 JSON 파일, 로그 파일들은 서버의 <code class="text-green-300">/var/www/html/namsan</code> 경로에 위치해 있습니다. 프론트엔드 개발에 필요한 에셋 파일(이미지, CSS, JavaScript 파일 등)들은 보안 및 관리 효율성을 위해 이 경로와 분리하여 별도의 경로에 위치시키는 것이 좋습니다.
+            </p>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.2.1. 에셋 파일 저장 경로</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li>프론트엔드 에셋 파일들은 서버의 <code class="text-green-300">/var/www/namsan-assets/</code> 디렉토리에 저장하는 것을 권장합니다. (PHP 등 인젝션 방지)</li>
+                <li>이 디렉토리 내부에 <code class="text-green-300">images</code>, <code class="text-green-300">css</code>, <code class="text-green-300">js</code>, <code class="text-green-300">fonts</code> 등의 하위 디렉토리를 만들어 파일을 체계적으로 관리합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li>예: <code class="text-green-300">/var/www/namsan-assets/images/logo.png</code></li>
+                        <li>예: <code class="text-green-300">/var/www/namsan-assets/css/main.css</code></li>
+                    </ul>
+                </li>
+                <li>새로운 에셋 파일들은 WinSCP의 SFTP 기능을 사용하여 이 경로에 업로드합니다. 업로드 후에는 파일 권한을 적절히 설정해야 웹 서버가 접근하여 사용자에게 제공할 수 있습니다 (자세한 내용은 5.1절 참고).</li>
+            </ul>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.2.2. Nginx를 통한 에셋 파일 접근 URL 설정</h4>
+            <p class="mb-4 text-gray-300">
+                서버의 <code class="text-green-300">/var/www/namsan-assets/</code> 디렉토리에 저장된 에셋 파일들을 웹 브라우저에서 특정 URL(예: <code class="text-green-300">http://wizinfo.iptime.co.kr:8080/namsan-assets/...</code>)로 접근할 수 있도록 Nginx 설정을 변경해야 합니다.
+            </p>
+            <p class="mb-4 text-gray-300">
+                Nginx 설정 파일(보통 <code class="text-green-300">/etc/nginx/nginx.conf</code> 또는 <code class="text-green-300">/etc/nginx/sites-available/default</code> 내의 <code class="text-green-300">server</code> 블록)에 다음과 같은 <code class="text-green-300">location</code> 블록을 추가하여 URL과 실제 파일 시스템 경로를 매핑합니다.
+            </p>
+            <p class="mb-6 text-gray-300">
+                이 작업은 일반적으로 서버 관리자나 백엔드 개발자가 수행하지만, 프론트엔드 개발자도 이 설정을 이해하고 있어야 에셋 파일의 URL을 올바르게 사용할 수 있습니다.
+            </p>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.2.3. Nginx 설정 (에셋 파일 서빙 및 보안) <span class="text-gray-400 text-sm">(이 부분은 구현되어 있는 부분을 설명하기 위함으로, 모르셔도 됩니다)</span></h4>
+            <p class="mb-4 text-gray-300">
+                Nginx에서 특정 URL 경로를 실제 파일 시스템 경로로 연결하고, 보안 설정을 적용하기 위해서는 <code class="text-green-300">server</code> 블록 내에 <code class="text-green-300">location</code> 지시어를 사용합니다. 에셋 파일들을 위한 새로운 <code class="text-green-300">location</code> 블록을 설정할 때, <code class="text-green-300">/var/www/html/namsan</code> 경로에 있는 기존 PHP 애플리케이션의 설정과 충돌하지 않도록 주의해야 합니다.
+            </p>
+            <pre><code class="language-nginx">server {
+    listen 8080;
+    server_name wizinfo.iptime.org;
+
+    # Root for the main application (Namsan DID backend)
+    # PHP 파일들이 /var/www/html/namsan/ 경로에 존재시,
+    # 이 root 설정은 /var/www/html/ 또는 /var/www/html/namsan/ 으로 구체화될 수 있음
+    # 일반적인 경우를 위해 /var/www/html 로 설정
+    root /var/www/html;
+
+    # Default index files
+    index index.php index.html index.htm;
+
+    # Location block for Namsan DID backend PHP processing
+    # /namsan/ 경로로 들어오는 요청 중 .php 로 끝나는 경우 처리
+    location ~ ^/namsan/.*\.php$ {
+        # try_files $uri =404; # PHP 파일이 실제로 존재하는지 확인
+        # PHP-FPM 설정 (실제 환경에 맞게)
+        # include snippets/fastcgi-php.conf;
+        # fastcgi_pass unix:/var/run/php/php7.4-fpm.sock; # PHP 버전 확인 필요
+        # fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        # fastcgi_index index.php;
+
+        # 임시로 단순화된 PHP 처리 예시 (실제 환경에서는 위 주석처리된 상세 설정 사용)
+        # 이 부분은 선임 개발자와 협의하여 정확한 설정을 반영해야 함.
+        # 잘못된 설정은 보안 문제를 야기하거나 에셋 파일 서빙에 영향을 줄 수 있음.
+        # 예를 들어, 모든 .php 요청을 처리하도록 너무 광범위하게 설정하면
+        # /namsan-assets/ 경로에 실수로 업로드된 php 파일이 실행될 수도.
+        # 따라서, ^/namsan/.*\.php$ 와 같이 경로를 명확히 지정하는 것이 중요.
+        # 아래는 PHP-FPM 연동을 위한 일반적인 설정.
+        # 실제 서버의 PHP-FPM 소켓 경로와 버전을 확인하여 적용해야 함.
+        include snippets/fastcgi-php.conf; # Nginx 기본 fastcgi 파라미터 포함
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+        # fastcgi_pass 127.0.0.1:9000; # TCP 소켓 사용하는 경우
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    # **New Location Block for Front-End Assets**
+    # URL /namsan-assets/ 로 시작하는 모든 요청을 처리.
+    location /namsan-assets/ {
+        # alias는 URL 경로의 일부를 파일 시스템 경로로 대체.
+        # location 경로와 alias 경로 모두 끝에 슬래시(/)를 일치시키는 것이 중요.
+        # 이는 경로 해석의 일관성을 유지, 잠재적인 경로 탐색(path traversal) 취약점을 예방하는 데 도움.
+        # 예를 들어, /namsan-assets/ (슬래시 O) 와 alias /var/www/namsan-assets/ (슬래시 O) 로 설정하면,
+        # /namsan-assets/css/style.css 요청은 /var/www/namsan-assets/css/style.css 로 매핑.
+        # 만약 location /namsan-assets (슬래시 X) 와 alias /var/www/namsan-assets/; (슬래시 O) 로 설정하면,
+        # /namsan-assets../secret 과 같은 요청이 /var/www/namsan-assets/../secret 으로 해석될 위험.
+        alias /var/www/namsan-assets/; # 실제 에셋 파일이 저장된 서버 경로
+
+        # 보안: 디렉토리 리스팅 방지
+        # autoindex off; 설정은 해당 URL로 접근 시 파일 목록이 노출방지.
+        autoindex off;
+
+        # 보안 및 성능: 허용된 에셋 파일 타입만 접근 허용 및 캐싱 설정
+        # 정규표현식을 사용하여 특정 확장자의 파일에 대해서만 처리를 정의.
+        # ~* 는 대소문자를 구분하지 않는 정규표현식 매칭을 의미.
+        # (?:...)는 그룹핑하되 캡처하지 않음을 의미.
+        # \.(?:jpg|jpeg|...)는 .jpg 또는 .jpeg 등으로 끝나는 파일을 의미.
+        location ~* \.(?:jpg|jpeg|gif|png|ico|svg|webp|css|js|woff|woff2|ttf|eot|otf|mp4|webm|json)$ {
+            # try_files는 요청된 URI에 해당하는 파일이 존재하는지 순서대로 확인.
+            # $uri는 현재 요청 URI를 의미, 파일이 존재하면 해당 파일을 제공,
+            # 존재하지 않으면 =404 에러를 반환.
+            # 이를 통해 존재하지 않는 에셋 요청에 대해 명확한 404 응답.
+            try_files $uri =404;
+
+            # 성능: 브라우저 캐싱 설정
+            # expires 30d; 는 해당 에셋을 30일 동안 브라우저에 캐시.
+            expires 30d;
+
+            # add_header Cache-Control "public, no-transform"; 는 캐시 제어 헤더를 추가
+            # 프록시 서버 등에서도 캐시될 수 있도록 하고(public), 원본 내용을 변경하지 않도록(no-transform) 한다.
+            add_header Cache-Control "public, no-transform";
+
+            # 성능 (선택 사항): 정적 에셋에 대한 접근 로그 비활성화
+            # access_log off; 로 설정하면 해당 요청이 Nginx 접근 로그에 기록되지 않아,
+            # 로그 파일 크기를 줄이고 약간의 성능 향상을 기대.
+            access_log off;
+        }
+
+        # 보안: /namsan-assets/ 경로 내에서 위에서 명시적으로 허용된 확장자 외의 모든 파일 접근 차단
+        # 이 location 블록은 /namsan-assets/ 내부의 모든 파일에 대한 기본 규칙으로 작동.
+        # 위의 특정 확장자 허용 location 블록에서 처리되지 않은 모든 요청은 이 블록으로.
+        # 예를 들어, /namsan-assets/sensitive.txt 나 /namsan-assets/script.php 와 같은 파일에 대한 직접 접근을 차단.
+        # deny all; 지시어는 모든 IP 주소에서의 접근을 거부.
+        # return 403; 은 접근 거부(Forbidden) 상태 코드를 반환. (404 Not Found도 가능)
+        # 이 설정은 혹시라도 에셋 디렉토리에 PHP 파일이나 설정 파일 등이 잘못 업로드되었을 경우,
+        # 해당 파일들이 웹을 통해 직접 실행되거나 노출되는 것을 방지하는 중요한 보안 장치.
+        location ~ /namsan-assets/ { # /namsan-assets/ 로 시작하는 모든 경로에 대해 적용 (위 확장자 규칙 이후)
+            deny all;
+            return 403; # 또는 404
+        }
+    }
+
+    # 보안: Namsan DID 프로젝트 로그 파일 직접 접근 차단
+    # /var/www/html/namsan/log/ 경로에 있는 .log 파일들에 대한 웹 접근을 차단.
+    # 로그 파일은 민감한 정보를 포함할 수 있으므로 웹을 통해 직접 접근할 수 없도록 해야 됨.
+    location ~ ^/namsan/log/.*\.log$ {
+        deny all;
+        return 403;
+    }
+
+    # 기타 애플리케이션을 위한 설정들...
+    # 예: 메인 애플리케이션의 다른 경로들
+    location / {
+        # PHP 애플리케이션의 경우, 보통 index.php로 요청을 전달하는 try_files 설정이 사용됨.
+        # try_files $uri $uri/ /index.php?$query_string; # 이 설정은 /namsan/ 경로와 중복될 수 있으므로 주의
+        # 남산 DID 프로젝트가 /namsan/ 경로를 사용한다면, 이 루트 location은 다른 용도이거나
+        # /namsan/ 보다 우선순위가 낮도록 설정되어야 함.
+        # 여기서는 남산 DID 프로젝트의 PHP가 /namsan/ 경로로만 서비스된다고 가정하고,
+        # 루트 location은 다른 정적 파일이나 기본 페이지를 위한 것으로 간주.
+        # 만약 /var/www/html/index.php 가 존재하고 이것이 기본 진입점이라면 아래와 같이 설정 가능.
+        try_files $uri $uri/ /index.php?$args;
+    }
+}</code></pre>
+            <p class="mb-4 text-gray-300">
+                <strong>Nginx <code class="text-green-300">location</code> 블록 처리 순서 및 중요성:</strong> Nginx는 요청 URI를 처리할 <code class="text-green-300">location</code> 블록을 결정할 때 특정 규칙을 따릅니다. 정확한 일치 (<code class="text-green-300">=</code>), 우선 순위가 높은 접두사 일치 (<code class="text-green-300">^~</code>), 정규 표현식 일치 (<code class="text-green-300">~</code>, <code class="text-green-300">~*</code>), 일반 접두사 일치 순으로 평가됩니다. 정규 표현식 <code class="text-green-300">location</code>은 설정 파일에 나타난 순서대로 검사되며, 첫 번째로 일치하는 정규 표현식이 사용됩니다.
+            </p>
+            <p class="mb-4 text-gray-300">
+                위의 예시에서 <code class="text-green-300">/namsan-assets/</code>에 대한 <code class="text-green-300">location</code> 블록 내부에 또 다른 <code class="text-green-300">location</code> 블록 (확장자별 처리)을 중첩하여 사용했습니다. 바깥쪽 <code class="text-green-300">location /namsan-assets/</code>는 접두사 일치로, 이 경로로 시작하는 모든 요청을 먼저 받습니다. 그 후, 내부의 <code class="text-green-300">location ~* \.(?:jpg|jpeg|...)$</code> 정규 표현식 블록이 특정 확장자에 대해 더 구체적인 처리를 합니다. 만약 이 정규 표현식에 해당하지 않는 파일 (예: <code class="text-green-300">.txt</code> 또는 <code class="text-green-300">.php</code>)이 <code class="text-green-300">/namsan-assets/</code> 경로로 요청되면, 내부의 <code class="text-green-300">location ~ /namsan-assets/</code> (실제로는 바깥쪽 <code class="text-green-300">location /namsan-assets/</code>의 규칙을 상속받아 적용되는 기본 처리 또는 명시적 <code class="text-green-300">deny all</code> 규칙)에 의해 접근이 차단됩니다.
+            </p>
+            <p class="mb-6 text-gray-300">
+                이러한 <code class="text-green-300">location</code> 블록의 구조와 처리 순서를 이해하는 것은 원하는 대로 요청을 라우팅하고 보안을 강화하는 데 매우 중요합니다. 잘못된 순서나 너무 광범위한 <code class="text-green-300">location</code> 규칙은 의도치 않은 파일 노출이나 기능 오작동을 유발할 수 있습니다. 예를 들어, 매우 일반적인 <code class="text-green-300">location / { ... }</code> 블록이 특정 에셋 경로를 위한 <code class="text-green-300">location /namsan-assets/ { ... }</code> 블록보다 먼저 정의되거나 더 높은 우선순위를 갖게 되면, 에셋 파일이 제대로 처리되지 않을 수 있습니다.
+            </p>
+            <p class="mb-6 text-gray-300">
+                따라서 Nginx 설정을 변경한 후에는 항상 <code class="text-green-300">sudo nginx -t</code> 명령어로 문법 오류를 확인하고, <code class="text-green-300">sudo systemctl reload nginx</code> (또는 <code class="text-green-300">sudo service nginx reload</code>) 명령어로 설정을 적용해야 합니다. 변경 사항은 실제 운영 환경에 배포하기 전에 개발 또는 스테이징 환경에서 충분히 테스트하는 것이 필수적입니다.
+            </p>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.2.4. 프론트엔드 코드에서 에셋 파일 참조 방법</h4>
+            <p class="mb-4 text-gray-300">
+                위와 같이 Nginx 설정에 따라, HTML, CSS, JavaScript 코드에서 에셋 파일을 참조할 때는 <code class="text-green-300">/namsan-assets/</code>로 시작하는 URL 경로를 사용합니다.
+            </p>
+            <p class="font-semibold text-gray-300 mt-4 mb-2">HTML 예시:</p>
+            <pre><code class="language-html">&lt;img src="/namsan-assets/images/logo.png" alt="남산 DID 로고"&gt;
+&lt;link rel="stylesheet" href="/namsan-assets/css/style.css"&gt;
+&lt;script src="/namsan-assets/js/main.js"&gt;&lt;/script&gt;</code></pre>
+            <p class="font-semibold text-gray-300 mt-4 mb-2">CSS 예시 (배경 이미지 등):</p>
+            <pre><code class="language-css">.header {
+    background-image: url('/namsan-assets/images/header-bg.jpg');
+}</code></pre>
+            <p class="font-semibold text-gray-300 mt-4 mb-2">JavaScript 예시 (동적 이미지 로딩 등):</p>
+            <pre><code class="language-javascript">const logoImage = new Image();
+logoImage.src = '/namsan-assets/images/logo_dynamic.svg';
+document.getElementById('logo-container').appendChild(logoImage);</code></pre>
+            <p class="mt-4 text-gray-300">
+                <strong>중요:</strong> 에셋 파일 경로는 항상 <code class="text-green-300">/</code>로 시작하는 절대 경로(root-relative path)를 사용하는 것이 좋습니다 (예: <code class="text-green-300">/namsan-assets/...</code>). 이렇게 하면 현재 페이지의 URL 깊이에 상관없이 항상 올바른 경로로 에셋을 참조할 수 있습니다. 상대 경로(예: <code class="text-green-300">../images/logo.png</code>)를 사용하면 페이지 URL 구조가 변경될 때 에셋 경로가 깨질 수 있습니다.
+            </p>
+
+            <h3 id="project-log-monitoring" class="text-2xl font-semibold text-blue-300 mb-3">4.3. 프로젝트 로그 파일 접근 및 모니터링</h3>
+            <p class="mb-4 text-gray-300">
+                웹 애플리케이션 개발 및 운영에서 로그 파일은 문제 해결과 시스템 상태 모니터링에 매우 중요한 역할을 합니다. 프론트엔드 개발자도 API 호출 실패, 에셋 로딩 문제 등 서버 측과 관련된 이슈를 디버깅할 때 로그를 확인해야 하는 경우가 있습니다.
+            </p>
+            <p class="font-semibold text-gray-300 mt-4 mb-2">로그 파일 위치:</p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>남산 DID 애플리케이션 로그:</strong> 백엔드 PHP 및 애플리케이션 관련 로그는 <code class="text-green-300">/var/www/html/namsan/log/</code> 에 <code class="text-green-300">yyyymmdd.txt</code> 로 저장됩니다. 이외 관리 페이지(<code class="text-green-300">wizinfo.iptime.org:8080/controller.php</code>)의 비밀번호를 <code class="text-green-300">wizinfo</code> 로 입력하면 로그 뷰어 페이지가 나타납니다.</li>
+                <li><strong>Nginx 웹 서버 로그:</strong> Nginx 자체의 접근 로그(access log)와 에러 로그(error log)는 일반적으로 <code class="text-green-300">/var/log/nginx/</code> 디렉토리에 저장됩니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li><code class="text-green-300">access.log</code>: 웹 서버에 들어오는 모든 HTTP 요청 기록 (누가, 언제, 무엇을 요청했는지 등)</li>
+                        <li><code class="text-green-300">error.log</code>: Nginx 서버 운영 중 발생한 오류 기록 (설정 오류, 권한 문제, PHP-FPM 연동 오류 등)</li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="font-semibold text-gray-300 mt-4 mb-2">로그 파일 확인 방법 (Linux 명령어 사용):</p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><code class="text-green-300">cd [로그_디렉토리_경로]</code>: 로그 파일이 있는 디렉토리로 이동합니다.
+                    <pre><code class="language-bash">$ cd /var/log/nginx/
+$ cd /var/www/html/namsan/logs/</code></pre>
+                </li>
+                <li><code class="text-green-300">ls -lt</code>: 파일을 수정된 시간 역순으로 정렬하여 보여줍니다 (최신 로그 파일이 위쪽에 표시됨).</li>
+                <li><code class="text-green-300">cat [파일명]</code>: 파일 전체 내용을 화면에 출력합니다 (짧은 파일에 적합).</li>
+                <li><code class="text-green-300">less [파일명]</code>: 파일 내용을 페이지 단위로 보여주며, 검색(<code class="text-green-300">/[검색어]</code>) 및 이동(방향키, PageUp/Down)이 가능합니다. <code class="text-green-300">q</code>로 종료합니다.</li>
+                <li><code class="text-green-300">head -n [숫자] [파일명]</code>: 파일의 첫 부분부터 지정된 줄 수만큼 보여줍니다.</li>
+                <li><code class="text-green-300">tail -n [숫자] [파일명]</code>: 파일의 마지막 부분부터 지정된 줄 수만큼 보여줍니다.</li>
+                <li><strong>실시간 로그 모니터링:</strong> <code class="text-green-300">tail -f [파일명]</code>
+                    <p class="mb-2 text-gray-300">
+                        이 명령어는 파일 끝에 추가되는 내용을 실시간으로 계속해서 화면에 보여줍니다. 개발 중 발생하는 오류나 요청을 즉시 확인하는 데 매우 유용합니다. 여러 로그를 동시에 보려면 여러 터미널 창을 열어 각각 실행할 수 있어요. 특히 <code class="text-green-300">status.json</code>과 같이 실시간으로 변화되거나 하는 API 값을 확인 할 때도 유용해요. <code class="text-green-300">Ctrl+C</code>를 눌러 모니터링을 중단합니다.
+                    </p>
+                    <pre><code class="language-bash">$ tail -f /var/www/html/namsan/logs/application_error.log
+$ tail -f /var/log/nginx/error.log</code></pre>
+                </li>
+            </ul>
+            <p class="font-semibold text-gray-300 mt-4 mb-2">로그 파일 접근 보안:</p>
+            <p class="mb-4 text-gray-300">
+                앞서 4.2.3절의 Nginx 설정 예시에서 보았듯이, 웹을 통해 직접 <code class="text-green-300">.log</code> 파일에 접근하는 것은 보안상 차단해야 합니다. 로그 파일에는 시스템 정보, 사용자 활동, 오류 메시지 등 민감한 내용이 포함될 수 있기 때문입니다. 서버에 SSH로 접속한 인가된 사용자만이 로그 파일을 확인할 수 있도록 하는 것이 일반적입니다. 허나 한 업체에 커스텀으로 들어가는 시스템에 한해, <code class="text-green-300">sudo</code> 관리자를 등록, 로그 확인을 하게 만드는 게 운영하기 좋아요.
+            </p>
+            <p class="mb-4 text-gray-300">
+                프론트엔드 개발 시 API 연동 문제나 특정 페이지 로딩 실패 등의 이슈가 발생했을 때, 브라우저 개발자 도구의 콘솔 및 네트워크 탭을 확인하는 것이 첫 번째 단계입니다. 여기서 원인을 찾기 어렵다면, 관련 서버 로그(애플리케이션 로그, Nginx 에러 로그)를 확인하여 서버 측에서 발생한 오류는 없는지 살펴보는 것이 문제 해결의 실마리를 제공할 수 있습니다. 예를 들어, Nginx 에러 로그에는 특정 파일에 대한 권한 부족(permission denied), 설정 파일 문법 오류, PHP 스크립트 처리 중 발생한 심각한 오류 등이 기록될 수 있습니다. 애플리케이션 로그에는 데이터베이스 연결 실패, 비즈니스 로직 오류 등이 기록될 수 있습니다. 이러한 정보를 통해 문제의 원인이 프론트엔드 코드에 있는지, 아니면 백엔드 또는 서버 환경 설정에 있는지 판단하는 데 도움이 됩니다.
+            </p>
+        </section>
+
+        <section id="dev-principles-security" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-blue-400 mb-4">5. 개발자를 위한 서버 운영 기본 원칙 및 보안</h2>
+            <p class="mb-6 text-gray-300">
+                서버 자원에 접근하고 이를 활용하는 개발자는 기본적인 서버 운영 원칙과 보안 수칙을 숙지하고 준수해야 합니다. 이는 서비스의 안정성을 유지하고 잠재적인 보안 위협으로부터 시스템을 보호하는 데 필수적입니다.
+            </p>
+
+            <h3 id="file-permissions" class="text-2xl font-semibold text-blue-300 mb-3">5.1. 파일 권한 이해 (chmod, chown)</h3>
+            <p class="mb-4 text-gray-300">
+                Linux 시스템은 파일과 디렉토리에 대한 접근을 제어하기 위해 정교한 권한 시스템을 사용합니다. 프론트엔드 개발자가 서버에 에셋 파일을 업로드하거나 기존 파일을 수정할 때, 이 권한 설정을 올바르게 이해하고 적용하는 것이 중요합니다. 잘못된 권한 설정은 파일 접근 불가 오류(403 Forbidden)를 유발하거나 보안 취약점을 만들 수 있습니다.
+            </p>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">5.1.1. Linux 권한의 기본 개념</h4>
+            <p class="mb-2 text-gray-300">
+                Linux 파일/디렉토리 권한은 세 가지 종류의 사용자에 대해 정의됩니다:
+            </p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-4">
+                <li><strong>소유자 (User, u):</strong> 파일을 생성한 사용자. 파일의 주된 관리 권한을 가집니다.</li>
+                <li><strong>그룹 (Group, g):</strong> 파일 소유자와 동일한 그룹에 속한 사용자들. 여러 사용자에게 동일한 접근 권한을 부여할 때 사용됩니다.</li>
+                <li><strong>기타 사용자 (Others, o):</strong> 소유자도 아니고 그룹에도 속하지 않은 나머지 모든 사용자.</li>
+            </ul>
+            <p class="mb-2 text-gray-300">
+                각 사용자 유형에 대해 세 가지 기본 권한이 부여되거나 거부될 수 있습니다:
+            </p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-4">
+                <li><strong>읽기 (Read, <code class="text-green-300">r</code> 또는 숫자 4):</strong> 파일의 내용을 보거나, 디렉토리의 경우 내부 파일 목록을 볼 수 있는 권한.</li>
+                <li><strong>쓰기 (Write, <code class="text-green-300">w</code> 또는 숫자 2):</strong> 파일의 내용을 수정하거나, 디렉토리의 경우 파일을 생성/삭제/이름 변경할 수 있는 권한.</li>
+                <li><strong>실행 (Execute, <code class="text-green-300">x</code> 또는 숫자 1):</strong> 파일을 프로그램으로서 실행하거나, 디렉토리의 경우 해당 디렉토리로 <code class="text-green-300">cd</code> 명령을 통해 접근(진입)할 수 있는 권한.</li>
+            </ul>
+            <p class="mb-4 text-gray-300">
+                권한은 <code class="text-green-300">ls -l</code> 명령어로 확인했을 때 <code class="text-green-300">-rwxr-xr--</code>와 같은 심볼릭 형태나, <code class="text-green-300">754</code>와 같은 8진수(octal) 숫자 형태로 표현됩니다. 8진수 숫자는 각 권한 값(<code class="text-green-300">r=4</code>, <code class="text-green-300">w=2</code>, <code class="text-green-300">x=1</code>)의 합으로 계산됩니다. 예를 들어, <code class="text-green-300">rwx</code>는 4+2+1=7이 되고, <code class="text-green-300">r-x</code>는 4+0+1=5가 됩니다.
+            </p>
+
+            <div class="permissions-diagram">
+                <div class="permission-row">
+                    <div class="permission-type">소유자 (User)</div>
+                    <div class="permission-values">
+                        <span class="permission-value">r</span>
+                        <span class="permission-value">w</span>
+                        <span class="permission-value">x</span>
+                    </div>
+                </div>
+                <div class="permission-row">
+                    <div class="permission-type">그룹 (Group)</div>
+                    <div class="permission-values">
+                        <span class="permission-value">r</span>
+                        <span class="permission-value">-</span>
+                        <span class="permission-value">x</span>
+                    </div>
+                </div>
+                <div class="permission-row">
+                    <div class="permission-type">기타 (Others)</div>
+                    <div class="permission-values">
+                        <span class="permission-value">r</span>
+                        <span class="permission-value">-</span>
+                        <span class="permission-value">-</span>
+                    </div>
+                </div>
+                <div class="permission-legend">
+                    <span>r = 읽기 (4)</span>
+                    <span>w = 쓰기 (2)</span>
+                    <span>x = 실행 (1)</span>
+                    <span>- = 권한 없음 (0)</span>
+                </div>
+                <p class="text-center text-gray-400 text-sm mt-2">파일 권한 예시: <code class="text-green-300">-rwxr-xr--</code> (754)</p>
+            </div>
+
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">5.1.2. 웹 파일 및 디렉토리 권장 권한</h4>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>일반 파일 (HTML, CSS, JS, 이미지 등):</strong> 일반적으로 <code class="text-green-300">644</code> (<code class="text-green-300">rw-r--r--</code>) 권한을 사용합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li>소유자: 읽기, 쓰기 가능</li>
+                        <li>그룹: 읽기만 가능</li>
+                        <li>기타 사용자: 읽기만 가능</li>
+                    </ul>
+                    <p class="mt-2 text-gray-300">
+                        이는 파일 소유자(개발자)는 파일을 수정할 수 있게 하고, 웹 서버(Nginx)는 해당 파일을 읽어서 사용자에게 서비스할 수 있도록 합니다.
+                    </p>
+                </li>
+                <li><strong>디렉토리:</strong> 일반적으로 <code class="text-green-300">755</code> (<code class="text-green-300">rwxr-xr-x</code>) 권한을 사용합니다.
+                    <ul class="list-circle list-inside ml-4">
+                        <li>소유자: 읽기, 쓰기, 실행(접근) 가능</li>
+                        <li>그룹: 읽기, 실행(접근) 가능</li>
+                        <li>기타 사용자: 읽기, 실행(접근) 가능</li>
+                    </ul>
+                    <p class="mt-2 text-gray-300">
+                        디렉토리에 대한 실행 권한(<code class="text-green-300">x</code>)은 해당 디렉토리 내부로 들어가거나 내부 파일 목록을 보는 데 필요합니다. 웹 서버가 디렉토리 내의 파일에 접근하려면 해당 디렉토리 및 상위 모든 디렉토리에 실행 권한이 있어야 합니다.
+                    </p>
+                </li>
+                <li><strong>민감한 설정 파일 (웹으로 직접 접근되면 안 되는 파일):</strong> 웹 루트 외부에 있거나, 웹 루트 내부에 있더라도 웹 서버가 직접 접근할 필요가 없는 설정 파일 등은 <code class="text-green-300">600</code> (<code class="text-green-300">rw-------</code>)과 같이 더 제한적인 권한을 설정하여 소유자만 읽고 쓸 수 있도록 해야 합니다.</li>
+            </ul>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">5.1.3. Nginx 사용자(예: www-data)의 역할과 파일 소유권</h4>
+            <p class="mb-2 text-gray-300">
+                Nginx와 같은 웹 서버는 보안상의 이유로 일반 사용자 계정이 아닌, 시스템에 의해 관리되는 특정 사용자(및 그룹) 권한으로 실행됩니다. Debian/Ubuntu 계열에서는 이 사용자가 주로 <code class="text-green-300">www-data</code>입니다.
+            </p>
+            <p class="mb-4 text-gray-300">
+                웹 서버가 사용자에게 파일을 제공하려면, 이 <code class="text-green-300">www-data</code> 사용자가 해당 파일에 대한 읽기 권한과, 해당 파일이 위치한 디렉토리 경로상의 모든 디렉토리에 대한 실행(접근) 권한을 가지고 있어야 합니다.
+            </p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong><code class="text-green-300">chown</code> (Change Owner) 명령어:</strong> 파일이나 디렉토리의 소유자 및 그룹을 변경합니다.
+                    <pre><code class="language-bash">$ sudo chown www-data:www-data /var/www/namsan-assets/images/logo.png</code></pre>
+                    <p class="mt-2 text-gray-300">
+                        위 명령어는 <code class="text-green-300">logo.png</code> 파일의 소유자를 <code class="text-green-300">www-data</code> 사용자로, 소유 그룹을 <code class="text-green-300">www-data</code> 그룹으로 변경합니다. 프론트엔드 개발자가 SFTP 등으로 파일을 업로드하면 파일 소유자가 개발자 계정으로 설정될 수 있습니다. 이 경우 웹 서버가 파일을 읽지 못할 수 있으므로, 필요에 따라 <code class="text-green-300">chown</code>으로 소유권을 웹 서버 사용자에게 넘겨주거나, 최소한 그룹 권한을 통해 웹 서버 그룹이 읽을 수 있도록 해야 합니다.
+                    </p>
+                </li>
+                <li><strong><code class="text-green-300">chmod</code> (Change Mode) 명령어:</strong> 파일이나 디렉토리의 권한을 변경합니다.
+                    <pre><code class="language-bash">$ sudo chmod 644 /var/www/namsan-assets/images/logo.png # (파일 권한을 rw-r--r--로 설정)
+$ sudo chmod 755 /var/www/namsan-assets/images # (디렉토리 권한을 rwxr-xr-x로 설정)
+$ sudo chmod -R 644 /var/www/namsan-assets/css/ # (css 디렉토리 내 모든 파일의 권한을 644로 재귀적으로 변경)
+$ sudo find /var/www/namsan-assets/ -type d -exec chmod 755 {} \; # (namsan-assets 내 모든 디렉토리 권한을 755로 변경)
+$ sudo find /var/www/namsan-assets/ -type f -exec chmod 644 {} \; # (namsan-assets 내 모든 파일 권한을 644로 변경)</code></pre>
+                    <p class="mt-2 text-gray-300">
+                        파일 권한은 단순한 보안 설정을 넘어 서비스 운영의 필수 요소입니다. 만약 Nginx가 (<code class="text-green-300">www-data</code> 사용자로서) 특정 에셋 파일을 읽을 수 없거나, 해당 파일이 있는 디렉토리에 접근할 수 없다면, 브라우저에는 '404 Not Found'가 아닌 '403 Forbidden' 오류가 표시됩니다. 이 차이점을 이해하는 것은 문제 해결에 매우 중요합니다 (6.3절 참고). 개발자가 파일을 서버에 올린 후 에셋이 정상적으로 로드되지 않을 때, 파일 경로와 이름이 정확한지 확인하는 것 외에도, 파일 및 디렉토리 권한이 웹 서버 사용자에 맞게 올바르게 설정되었는지 반드시 점검해야 합니다.
+                    </p>
+                </li>
+            </ul>
+
+            <h3 id="nginx-optimization-security" class="text-2xl font-semibold text-blue-300 mb-3">5.2. Nginx 에셋 서빙 최적화 및 보안 강화</h3>
+            <p class="mb-6 text-gray-300">
+                Nginx는 정적 에셋 파일을 효율적으로 제공하는 데 강력한 기능을 제공합니다. 몇 가지 설정을 통해 성능을 향상시키고 보안을 강화할 수 있습니다.
+            </p>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">5.2.1. 브라우저 캐싱 활용 (Expires, Cache-Control)</h4>
+            <p class="mb-4 text-gray-300">
+                정적 에셋(이미지, CSS, JS 등)은 내용이 자주 변경되지 않으므로, 사용자의 브라우저에 캐시(임시 저장)하도록 지시하여 반복적인 다운로드를 줄이고 페이지 로딩 속도를 향상시킬 수 있습니다. 이는 서버 부하 감소에도 기여합니다.
+            </p>
+            <p class="mb-4 text-gray-300">
+                Nginx 설정에서 <code class="text-green-300">expires</code> 지시어와 <code class="text-green-300">add_header Cache-Control</code> 지시어를 사용하여 캐싱 정책을 정의합니다.
+            </p>
+            <p class="mb-4 text-gray-300">
+                4.2.3절의 Nginx 설정 예시에 이미 포함된 내용입니다:
+            </p>
+            <pre><code class="language-nginx">location ~* \.(?:jpg|jpeg|gif|png|ico|svg|webp|css|js|woff|woff2|ttf|eot|otf|mp4|webm|json)$ {
+    expires 30d; # 30일 동안 브라우저 캐시 유지
+    add_header Cache-Control "public, no-transform"; # 공개 캐시, 변형 금지
+    #... 기타 설정...
+}</code></pre>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">5.2.2. 정적 에셋에 대한 접근 로그 비활성화 (선택 사항)</h4>
+            <p class="mb-4 text-gray-300">
+                트래픽이 많은 사이트의 경우, 모든 정적 에셋 요청을 로깅하면 로그 파일이 매우 커지고 약간의 서버 자원을 소모할 수 있습니다. 필요에 따라 특정 <code class="text-green-300">location</code> 블록에 대해 접근 로그를 비활성화할 수 있습니다.
+            </p>
+            <pre><code class="language-nginx">access_log off; # (4.2.3절 예시 참고)</code></pre>
+            <p class="mt-2 text-gray-300">
+                단, 에러 로그(<code class="text-green-300">error_log</code>)는 문제 해결을 위해 일반적으로 활성화 상태를 유지합니다.
+            </p>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">5.2.3. try_files를 이용한 안정적인 파일 서빙</h4>
+            <p class="mb-4 text-gray-300">
+                <code class="text-green-300">try_files</code> 지시어는 Nginx가 요청된 URI에 대해 지정된 순서대로 파일이나 디렉토리의 존재 여부를 확인하고, 가장 먼저 발견되는 것을 기준으로 요청을 처리하거나, 모두 없을 경우 대체 URI 또는 HTTP 상태 코드로 응답하도록 합니다.
+            </p>
+            <p class="mb-4 text-gray-300">
+                정적 에셋의 경우, <code class="text-green-300">try_files $uri =404;</code> 설정이 일반적입니다. 이는 요청된 URI에 해당하는 파일을 찾아 제공하고, 파일이 없으면 404 오류를 반환합니다. 이는 에셋 경로에 대한 간단하고 효과적인 처리 방식입니다.
+            </p>
+            <p class="mb-4 text-gray-300">
+                더 복잡한 시나리오, 예를 들어 디렉토리 요청 시 <code class="text-green-300">index.html</code>을 제공하거나 PHP 핸들러로 요청을 넘기는 경우에도 <code class="text-green-300">try_files</code>는 매우 유용하게 사용됩니다 (예: <code class="text-green-300">try_files $uri $uri/ /index.php?$query_string;</code>).
+            </p>
+
+            <h4 class="text-xl font-medium text-blue-200 mb-2">5.2.4. 에셋 디렉토리 내 PHP 실행 방지</h4>
+            <p class="mb-4 text-gray-300">
+                에셋 파일(특히 사용자가 업로드하는 파일이 저장되는 디렉토리)에서 PHP 스크립트나 다른 서버 사이드 스크립트가 실행되지 않도록 하는 것은 매우 중요한 보안 조치입니다. 이미지 파일만 업로드하도록 제한하더라도, 웹 애플리케이션의 파일 업로드 취약점을 통해 악의적인 PHP 파일이 이미지 파일로 위장하여 업로드될 수 있기 때문입니다.
+            </p>
+            <p class="mb-4 text-gray-300">
+                4.2.3절에서 제시된 Nginx 설정은 이러한 위험을 효과적으로 방지합니다.
+            </p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-4">
+                <li>먼저, 허용된 에셋 확장자(예: <code class="text-green-300">.jpg</code>, <code class="text-green-300">.png</code>, <code class="text-green-300">.css</code>, <code class="text-green-300">.js</code> 등)에 대해서만 파일을 제공하는 특정 <code class="text-green-300">location</code> 블록을 정의합니다.</li>
+                <li>그 후, <code class="text-green-300">/namsan-assets/</code> 경로 내의 다른 모든 파일 형식에 대해서는 <code class="text-green-300">deny all;</code> 지시어를 사용하여 접근 자체를 차단하는 포괄적인 <code class="text-green-300">location</code> 블록을 둡니다.</li>
+            </ul>
+            <pre><code class="language-nginx">location /namsan-assets/ {
+    alias /var/www/namsan-assets/;
+    autoindex off;
+
+    # 1. 허용된 에셋 확장자 처리
+    location ~* \.(?:jpg|jpeg|gif|png|ico|svg|webp|css|js|woff|woff2|ttf|eot|otf|mp4|webm|json)$ {
+        try_files $uri =404;
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+        access_log off;
+    }
+
+    # 2. 그 외 모든 파일 접근 차단 (PHP 실행 방지 포함)
+    # 이 블록은 위의 확장자별 location 블록에서 처리되지 않은 모든 /namsan-assets/ 하위 요청에 적용됩니다.
+    location ~ /namsan-assets/ { # /namsan-assets/ 로 시작하는 경로에 대한 기본 규칙
+        deny all;
+        return 403; # 또는 404
+    }
+}</code></pre>
+            <p class="mt-4 text-gray-300">
+                에셋 서빙에 대한 보안은 단일 설정으로 해결되는 것이 아니라, 여러 계층의 방어 전략을 통해 강화됩니다. 여기에는 올바른 파일 시스템 권한 설정, Nginx <code class="text-green-300">location</code> 블록을 통한 경로 기반 접근 제어, 정규 표현식을 이용한 파일 유형 필터링(허용된 유형만 통과시키고 나머지는 차단), 디렉토리 리스팅 비활성화, 그리고 가장 중요하게는 에셋 디렉토리 내에서 스크립트 파일이 실행되지 않도록 하는 조치가 포함됩니다. 이러한 다층적 접근 방식은 실수로 또는 악의적으로 업로드된 위험한 파일로부터 서버를 보호하는 데 필수적입니다.
+            </p><br>
+
+            <h3 id="general-security-rules" class="text-2xl font-semibold text-blue-300 mb-3">5.3. 일반적인 보안 수칙 (개발자 유의사항)</h3>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li>서버 계정에는 적당히 강력하고 고유한 비밀번호를 사용하며, 주기적으로 변경하는 것이 좋습니다. 제가 잊어도 달에 1회는 변경/공유 필요로 합니다.</li>
+                <li>개인 서버 접속 정보(ID, 비밀번호, SSH 키 등)를 타인과 공유하거나 안전하지 않은 곳에 기록해두지 마세요.</li>
+				<li>당연히 개인 업무 PC에 윈도우 비밀번호 설정은 필수 입니다. 이는 아주 기초적이지만, 상당히 효과적입니다.</li>
+                <li><code class="text-green-300">sudo</code> 명령어는 시스템에 큰 영향을 줄 수 있는 관리자 권한을 부여하므로, 실행하기 전에 해당 명령어가 어떤 작업을 수행하는지 정확히 이해하고 신중하게 사용해야 합니다. 불필요한 <code class="text-green-300">sudo</code> 사용은 피해야 합니다.</li>
+                <li>서버에 접속하는 개인 PC의 보안도 중요합니다. 최신 운영체제 업데이트를 유지하고, 신뢰할 수 있는 백신 프로그램을 ( 보통의 윈도우 디펜더는 업계에서 상당한 위상을 가지고 있습니다. ) 사용하며, 출처가 불분명한 소프트웨어 설치를 자제해야 합니다.</li>
+                <li>서버 작업 중 의심스러운 활동을 발견하거나 잠재적인 보안 문제를 인지했을 경우, 즉시 저에게 보고하여 적절한 조치를 받을 수 있도록 합니다.</li>
+            </ul>
+        </section>
+
+        <section id="troubleshooting" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-blue-400 mb-4">6. 기본 문제 해결 (Troubleshooting)</h2>
+            <p class="mb-6 text-gray-300">
+                서버 작업 중 발생할 수 있는 몇 가지 일반적인 문제와 해결 방법을 안내합니다.
+            </p>
+
+            <h3 id="connection-issues" class="text-2xl font-semibold text-blue-300 mb-3">6.1. 일반적인 연결 문제 (SSH/SFTP)</h3>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>"Connection refused" (연결 거부) 오류 발생 시:</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li>서버 주소(<code class="text-green-300">wizinfo.iptime.co.kr</code>)와 포트 번호(<code class="text-green-300">21212</code>)가 MobaXterm 또는 WinSCP 설정에 정확히 입력되었는지 다시 확인합니다.</li>
+                        <li>로컬 PC의 인터넷 연결 상태를 점검합니다.</li>
+                        <li>서버가 다운되었거나 SSH 서비스(<code class="text-green-300">sshd</code>)가 실행 중이지 않을 수 있습니다. 이 경우 팀 리드에게 문의해야 합니다.</li>
+                        <li>로컬 PC의 방화벽이나 회사 네트워크 방화벽이 해당 포트로의 아웃바운드 연결을 차단하고 있을 수 있습니다.</li>
+                    </ul>
+                </li>
+                <li><strong>"Authentication failed", "Permission denied (publickey,password)" (인증 실패) 오류 발생 시:</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li>사용자 이름과 비밀번호가 정확한지, 대소문자를 구분하여 올바르게 입력했는지 확인합니다.</li>
+                        <li>(SSH 키를 사용하는 경우) 개인 키 파일이 올바르게 지정되었고, MobaXterm이나 WinSCP의 SSH 에이전트에 키가 로드되었는지 확인합니다. 비밀번호가 설정된 키라면 정확한 암호를 입력해야 합니다.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 id="permission-denied" class="text-2xl font-semibold text-blue-300 mb-3">6.2. Linux 명령어 실행 시 "Permission denied" (권한 없음) 오류</h3>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li>특정 명령어를 실행하거나 파일/디렉토리에 접근하려고 할 때 "Permission denied" 오류가 발생한다면:
+                    <ul class="list-circle list-inside ml-4">
+                        <li>해당 작업에 관리자 권한이 필요한 경우일 수 있습니다. 명령어 앞에 <code class="text-green-300">sudo</code>를 붙여 실행해 봅니다 (예: <code class="text-green-300">sudo systemctl restart nginx</code>). 단, <code class="text-green-300">sudo</code>는 신중하게 사용해야 합니다.</li>
+                        <li>접근하려는 파일이나 디렉토리에 대한 읽기/쓰기/실행 권한이 현재 사용자에게 없는 경우입니다. <code class="text-green-300">ls -l [경로]</code> 명령어로 권한을 확인하고, 필요하다면 5.1절을 참고하여 <code class="text-green-300">chmod</code>나 <code class="text-green-300">chown</code> 명령어로 권한을 조정하거나 팀 리드에게 지원을 요청합니다.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 id="asset-loading-failure" class="text-2xl font-semibold text-blue-300 mb-3">6.3. 에셋 파일 로딩 실패 (404 Not Found 또는 403 Forbidden 오류)</h3>
+            <p class="mb-4 text-gray-300">
+                프론트엔드 개발 시 가장 흔하게 접할 수 있는 문제 중 하나는 이미지, CSS, JS 등의 에셋 파일이 웹 페이지에 제대로 로드되지 않는 것입니다. 이때 브라우저 개발자 도구의 'Network' 탭을 확인하면 HTTP 상태 코드로 원인을 짐작할 수 있습니다.
+            </p>
+            <ul class="list-disc list-inside text-gray-300 space-y-2 mb-6">
+                <li><strong>404 Not Found (파일을 찾을 수 없음) 오류 발생 시:</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li><strong>원인:</strong> 서버가 요청된 URL에 해당하는 파일을 찾지 못했다는 의미입니다.</li>
+                        <li><strong>점검 사항:</strong>
+                            <ul class="list-square list-inside ml-4">
+                                <li><strong>URL 경로 확인:</strong> HTML, CSS, JavaScript 코드에 입력된 에셋 파일의 URL 경로가 올바른지 확인합니다. (예: <code class="text-green-300">/namsan-assets/images/logo.png</code>). 오타, 대소문자 구분(Linux 서버는 파일명을 대소문자로 구분함), 누락된 슬래시 등을 점검합니다.</li>
+                                <li><strong>실제 파일 존재 여부 확인:</strong> WinSCP나 MobaXterm의 SFTP 기능을 사용하여 해당 에셋 파일이 서버의 정확한 위치(예: <code class="text-green-300">/var/www/namsan-assets/images/logo.png</code>)에 실제로 업로드되어 있는지 확인합니다.</li>
+                                <li><strong>Nginx 설정 확인:</strong>
+                                    <ul class="list-square list-inside ml-4">
+                                        <li>Nginx 설정 파일에서 해당 <code class="text-green-300">location</code> 블록의 <code class="text-green-300">alias</code> 또는 <code class="text-green-300">root</code> 지시어가 올바른 파일 시스템 경로를 가리키고 있는지 확인합니다.</li>
+                                        <li><code class="text-green-300">try_files</code> 지시어가 올바르게 설정되어 있는지 확인합니다.</li>
+                                        <li>Nginx 설정을 변경했다면, <code class="text-green-300">sudo nginx -t</code>로 문법 검사를 하고 <code class="text-green-300">sudo systemctl reload nginx</code>로 설정을 다시 로드했는지 확인합니다.</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Nginx 에러 로그 확인:</strong> <code class="text-green-300">/var/log/nginx/error.log</code> 파일에 "No such file or directory", "failed to stat" 등과 같이 파일 찾기 실패와 관련된 오류 메시지가 있는지 확인합니다.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong>403 Forbidden (접근 금지) 오류 발생 시:</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li><strong>원인:</strong> 서버가 요청된 파일이나 경로를 찾았지만, 접근할 권한이 없어서 요청을 거부했다는 의미입니다.</li>
+                        <li><strong>점검 사항:</strong>
+                            <ul class="list-square list-inside ml-4">
+                                <li><strong>파일/디렉토리 권한 확인:</strong>
+                                    <ul class="list-square list-inside ml-4">
+                                        <li>Nginx 웹 서버를 실행하는 사용자(일반적으로 <code class="text-green-300">www-data</code>)가 해당 에셋 파일에 대한 읽기(<code class="text-green-300">r</code>) 권한을 가지고 있는지 확인합니다.</li>
+                                        <li>또한, 해당 에셋 파일이 위치한 디렉토리 및 그 상위 모든 디렉토리에 대해 <code class="text-green-300">www-data</code> 사용자가 실행(<code class="text-green-300">x</code>) 권한(디렉토리 접근 권한)을 가지고 있는지 확인합니다.</li>
+                                        <li><code class="text-green-300">ls -l [경로]</code> 명령어로 권한을 확인하고, 필요한 경우 <code class="text-green-300">chmod</code> 및 <code class="text-green-300">chown</code> 명령어를 사용하여 권한을 조정합니다 (5.1절 참고).</li>
+                                        <li>예: 에셋 파일은 <code class="text-green-300">644</code> (<code class="text-green-300">rw-r--r--</code>), 에셋 디렉토리는 <code class="text-green-300">755</code> (<code class="text-green-300">rwxr-xr-x</code>) 권한, 소유자는 <code class="text-green-300">www-data:www-data</code> 또는 개발자 계정이되 그룹이 <code class="text-green-300">www-data</code>이고 그룹 읽기/실행 권한이 있도록 설정.</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Nginx 설정 확인:</strong>
+                                    <ul class="list-square list-inside ml-4">
+                                        <li>Nginx 설정 파일의 <code class="text-green-300">location</code> 블록에서 <code class="text-green-300">deny all;</code>과 같은 지시어를 통해 해당 파일 유형이나 경로에 대한 접근이 명시적으로 차단되어 있는지 확인합니다. (4.2.3절의 에셋 보안 설정 참고)</li>
+                                        <li><code class="text-green-300">autoindex off;</code>가 설정된 상태에서 디렉토리 자체를 요청하면 403 오류가 발생할 수 있습니다 (정상 동작).</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Nginx 에러 로그 확인:</strong> <code class="text-green-300">/var/log/nginx/error.log</code> 파일에 "permission denied", "client denied by server configuration" 등과 같이 권한 관련 오류 메시지가 있는지 확인합니다.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="mt-4 text-gray-300">
+                404 오류와 403 오류를 구분하는 것은 문제 해결의 방향을 잡는 데 매우 중요합니다. 404는 주로 '경로 또는 파일명 오류'이거나 '파일 부재'를 의미하는 반면, 403은 '권한 문제' 또는 '설정에 의한 명시적 차단'을 의미합니다. 이 차이를 이해하면 원인 파악을 위한 다음 단계를 더 효과적으로 결정할 수 있습니다.
+            </p>
+        </section>
+
+        <section id="conclusion" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-blue-400 mb-4">7. 결론</h2>
+            <p class="mb-4 text-gray-300">
+                처음 설명과 같이, 본 가이드는 지은씨가 나중에 프론트엔드 개발자로써 우리 회사 서버 환경에 빠르게 적응하고, 기본적인 서버 조작 및 나중의 기타 프로젝트의 프론트 개발시 에셋 관리, api호출 등 의 업무를 수행하는 데 필요한 핵심 정보를 알려드리고자 만들었어요. Ubuntu Server, Nginx, PostgreSQL, 등 으로 구성된 서버 환경의 이해부터 MobaXterm, WinSCP와 같은 필수 도구 사용법, 기본적인 Linux 명령어, 그리고 Nginx를 활용한 안전한 에셋 파일 관리 및 참조 방법까지 다루어 봤습니다.
+            </p>
+            <p class="mb-4 text-gray-300">
+                특히, 에셋 파일의 보안을 위해 별도 경로에 저장하고 Nginx의 <code class="text-green-300">location</code> 및 <code class="text-green-300">alias</code> 지시어를 통해 접근을 제어하며, 특정 파일 확장자만 허용하고 디렉토리 리스팅을 방지하는 등의 보안 설정은 매우 중요합니다. 또한, 파일 권한(<code class="text-green-300">chmod</code>, <code class="text-green-300">chown</code>)에 대한 이해와 올바른 설정은 서비스의 안정적인 운영과 보안 유지에 필수적입니다.
+            </p>
+            <p class="mb-4 text-gray-300">
+                로그 파일 확인(<code class="text-green-300">tail -f</code>) 및 기본적인 문제 해결 방법 숙지는 개발 과정에서 발생하는 다양한 이슈에 효과적으로 대응하는 데 도움이 될 것입니다.
+            </p>
+            <p class="mb-6 text-gray-300">
+                본 가이드가 보다 쉬운 온보딩과 앞으로의 업무 수행에 든든한 기초가 되기를 바라요. 서버 환경은 지속적으로 변화하고 개선될 수 있으므로, 궁금한 점이나 더 필요한 정보가 있다면 언제든지 저한테 문의해 주시기 바랍니다.
+            </p>
+        </section>
+
+        <section id="appendix" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-blue-400 mb-4">부록</h2>
+
+            <h3 id="nginx-server-block-example" class="text-2xl font-semibold text-blue-300 mb-3">A.1. 남산 DID 프로젝트 에셋 서빙을 위한 Nginx server 블록 핵심 설정 예시</h3>
+            <p class="mb-4 text-gray-300">
+                다음은 본문 4.2.3절에서 설명된 Nginx 설정을 요약한 핵심 예시입니다. 실제 적용 시에는 전체 <code class="text-green-300">nginx.conf</code> 또는 해당 <code class="text-green-300">server</code> 블록의 컨텍스트를 고려해야 합니다.
+            </p>
+            <pre><code class="language-nginx">server {
+    listen 8080;
+    server_name wizinfo.iptime.co.kr;
+
+    root /var/www/html; # 기본 웹 루트 8080 포트에 namsan 웹뭉치를 서비스 하는 것을 말해요.
+    index index.php index.html index.htm; # 기본 인덱스 파일
+
+    # 남산 DID 백엔드 PHP 처리 (예시: /namsan/ 경로)
+    location ~ ^/namsan/.*\.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock; # 실제 PHP-FPM 소켓 경로로 수정
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        # try_files $uri =404; # 필요에 따라 추가
+    }
+
+    # 프론트엔드 에셋 파일 서빙 (/namsan-assets/ URL 경로)
+    location /namsan-assets/ {
+        alias /var/www/namsan-assets/; # 실제 에셋 파일 시스템 경로
+        autoindex off; # 디렉토리 리스팅 방지
+
+        # 허용된 에셋 확장자 처리 및 캐싱
+        location ~* \.(?:jpg|jpeg|gif|png|ico|svg|webp|css|js|woff|woff2|ttf|eot|otf|mp4|webm|json)$ {
+            try_files $uri =404; # 파일 없으면 404
+            expires 30d; # 브라우저 캐시 30일
+            add_header Cache-Control "public, no-transform";
+            access_log off; # 접근 로그 비활성화 (선택 사항)
+        }
+
+        # /namsan-assets/ 내 기타 파일 접근 차단 (PHP 실행 방지 등)
+        location ~ /namsan-assets/ {
+            deny all;
+            return 403; # 또는 404
+        }
+    }
+
+    # 남산 DID 프로젝트 로그 파일 직접 접근 차단 (예시: /namsan/log/ 경로)
+    location ~ ^/namsan/log/.*\.log$ {
+        deny all;
+        return 403;
+    }
+
+    # 기타 애플리케이션 루트 경로 처리
+    location / {
+        try_files $uri $uri/ /index.php?$args; # 일반적인 PHP 애플리케이션 라우팅
+    }
+}</code></pre>
+            <p class="mt-4 text-gray-300">
+                <strong>주의:</strong> 위 설정은 예시이며, 실제 서버 환경의 PHP 버전, FPM 소켓 경로, 전체 Nginx 구성 등 지금의 설정과 다를 수 있습니다.
+            </p>
+
+            <h3 id="key-terms" class="text-2xl font-semibold text-blue-300 mb-3"><br>A.2. 주요 용어 설명</h3>
+            <dl class="text-gray-300 space-y-3">
+                <dt class="font-semibold text-blue-200">SSH (Secure Shell):</dt>
+                <dd class="ml-4">원격 컴퓨터에 안전하게 접속하여 명령을 실행하거나 파일을 전송할 수 있는 네트워크 프로토콜 및 관련 도구.</dd>
+
+                <dt class="font-semibold text-blue-200">SFTP (SSH File Transfer Protocol):</dt>
+                <dd class="ml-4">SSH 연결을 통해 파일을 안전하게 전송하는 프로토콜. FTP와 유사하지만 암호화된 채널을 사용.</dd>
+
+                <dt class="font-semibold text-blue-200">Nginx (엔진엑스):</dt>
+                <dd class="ml-4">고성능 웹 서버, 리버스 프록시, 로드 밸런서 등으로 사용되는 오픈소스 소프트웨어.</dd>
+
+                <dt class="font-semibold text-blue-200">Ubuntu Server:</dt>
+                <dd class="ml-4">서버 환경을 위해 설계된 Linux 배포판.</dd>
+
+                <dt class="font-semibold text-blue-200">PostgreSQL:</dt>
+                <dd class="ml-4">강력한 기능을 제공하는 오픈소스 객체-관계형 데이터베이스 시스템(ORDBMS).</dd>
+
+                <dt class="font-semibold text-blue-200">AJAX (Asynchronous JavaScript and XML):</dt>
+                <dd class="ml-4">웹 페이지 전체를 새로고침하지 않고 비동기적으로 서버와 데이터를 교환하는 기술.</dd>
+
+                <dt class="font-semibold text-blue-200">CLI (Command Line Interface):</dt>
+                <dd class="ml-4">텍스트 기반으로 컴퓨터와 상호작용하는 인터페이스. 터미널을 통해 사용.</dd>
+
+                <dt class="font-semibold text-blue-200">Root (사용자):</dt>
+                <dd class="ml-4">Linux/Unix 시스템에서 모든 권한을 가진 최상위 관리자 계정.</dd>
+
+                <dt class="font-semibold text-blue-200">sudo (Superuser Do):</dt>
+                <dd class="ml-4">다른 사용자의 권한(일반적으로 root)으로 명령을 실행하도록 하는 명령어.</dd>
+
+                <dt class="font-semibold text-blue-200">chmod (Change Mode):</dt>
+                <dd class="ml-4">파일이나 디렉토리의 접근 권한을 변경하는 Linux 명령어.</dd>
+
+                <dt class="font-semibold text-blue-200">chown (Change Owner):</dt>
+                <dd class="ml-4">파일이나 디렉토리의 소유자 및 그룹을 변경하는 Linux 명령어.</dd>
+
+                <dt class="font-semibold text-blue-200">alias (Nginx 지시어):</dt>
+                <dd class="ml-4">Nginx 설정에서 특정 URL 경로를 다른 파일 시스템 경로로 매핑하는 데 사용되는 지시어.</dd>
+
+                <dt class="font-semibold text-blue-200">location (Nginx 지시어):</dt>
+                <dd class="ml-4">Nginx 설정에서 특정 URL 패턴에 대한 요청 처리 방법을 정의하는 블록.</dd>
+
+                <dt class="font-semibold text-blue-200">www-data:</dt>
+                <dd class="ml-4">Debian/Ubuntu 계열 Linux에서 Nginx나 Apache 같은 웹 서버가 실행될 때 사용하는 기본 사용자 및 그룹 이름.</dd>
+
+                <dt class="font-semibold text-blue-200">try_files (Nginx 지시어):</dt>
+                <dd class="ml-4">요청된 URI에 대해 순서대로 파일 존재 여부를 확인하고, 첫 번째로 발견된 파일을 제공하거나 대체 처리를 하는 지시어.</dd>
+
+                <dt class="font-semibold text-blue-200">autoindex (Nginx 지시어):</dt>
+                <dd class="ml-4">특정 디렉토리로 요청이 왔을 때, 해당 디렉토리의 파일 목록을 보여줄지 여부를 설정하는 지시어. (on이면 목록 표시, off이면 금지)</dd>
+
+                <dt class="font-semibold text-blue-200">expires (Nginx 지시어):</dt>
+                <dd class="ml-4">HTTP 응답 헤더에 Expires 및 Cache-Control 정보를 추가하여 브라우저 캐싱 기간을 설정하는 지시어.</dd>
+            </dl>
+        </section>
+
+    </main>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Mobile navigation toggle
+        const menuButton = document.getElementById('menuButton');
+        const closeMenuButton = document.getElementById('closeMenuButton');
+        const mobileNav = document.getElementById('mobileNav');
+
+        menuButton.addEventListener('click', () => {
+            mobileNav.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+        });
+
+        closeMenuButton.addEventListener('click', () => {
+            closeMobileNav();
+        });
+
+        function closeMobileNav() {
+            mobileNav.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        // Highlight active section in sidebar (for desktop)
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.sidebar a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100; // Adjust for sticky header/padding
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop && pageYOffset < sectionTop + sectionHeight) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('bg-gray-700', 'text-blue-300');
+                link.classList.add('text-gray-300', 'hover:bg-gray-700', 'hover:text-blue-300'); // Reset to default
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('bg-gray-700', 'text-blue-300');
+                    link.classList.remove('text-gray-300');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
