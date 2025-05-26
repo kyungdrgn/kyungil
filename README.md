@@ -1,22 +1,32 @@
-# 6119.store Introduction
+# ✨ 6119.store: (주)경일정보 다운로드 센터
 
-This page serves as a download hub for KyungIL's internal utilities and various other software programs.
+환영합니다! 이곳은 **(주)경일정보**의 공식 다운로드 페이지입니다. 내부 유틸리티 및 다양한 소프트웨어 프로그램을 편리하게 다운로드하실 수 있습니다.
 
-## Important Notice
+---
 
-Please be aware that unauthorized access by non-employees may result in civil and criminal liability.
+## ⚠️ 중요 공지
 
-## Key Offerings
+**비직원의 무단 접근은 민형사상 책임으로 이어질 수 있습니다.** 접근에 유의해 주시기 바랍니다.
 
-The website showcases several products, including:
-* **PRODUCT**
+---
+
+## 📦 주요 제품 소개
+
+(주)경일정보에서 제공하는 주요 POS 솔루션을 만나보세요:
+
 * **UTILITIES**
 * **SOFTWARE**
+* **DID**
 
-## Contact Information
+---
 
-**Owner:** (주)경일정보 / (주)WIZINFO
-**Address:** [Suwon, South Korea]
-**Contact:** wiz@wizinfo.co.kr
+## 📞 문의 및 연락처
 
-**All rights reserved in 2025.**
+* **운영사:** (주)경일정보
+* **주소:** 수원
+* **연락처:** wiz@wizinfo.co.kr
+
+---
+
+© 2025 (주)경일정보. All rights reserved.
+```
