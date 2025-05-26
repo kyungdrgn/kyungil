@@ -42,59 +42,37 @@
         const owner = 'kyungdrgn';
         const repo = 'kyungil';
         const docPath = 'docs'; // 문서가 있는 디렉토리 경로
+        const docsListFile = 'docs/docs-list.json'; // 새로 추가할 문서 목록 파일
 
         async function fetchDocs() {
             const docList = document.getElementById('doc-list');
             docList.innerHTML = ''; // 기존 목록 초기화
 
             try {
-                // 1. GitHub API를 사용하여 /docs 디렉토리의 파일 목록 가져오기
-                const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${docPath}`;
-                const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    throw new Error(`GitHub API Error: ${response.status} ${response.statusText}`);
-                }
-                const files = await response.json();
+                // 1. GitHub Pages에서 미리 생성된 문서 목록 JSON 파일 가져오기
+                const docsListUrl = `https://${owner}.github.io/${repo}/${docsListFile}`;
+                const response = await fetch(docsListUrl);
 
-                // HTML 파일만 필터링
-                const htmlFiles = files.filter(file => file.type === 'file' && file.name.endsWith('.html'));
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch docs list: ${response.status} ${response.statusText}`);
+                }
+                const htmlFiles = await response.json(); // JSON 파싱
 
                 if (htmlFiles.length === 0) {
                     docList.innerHTML = '<li>문서가 없습니다.</li>';
                     return;
                 }
 
-                // 각 HTML 파일의 제목 가져오기
-                for (const file of htmlFiles) {
-                    const docUrl = `https://${owner}.github.io/${repo}/${docPath}/${file.name}`; // GitHub Pages URL
+                // 각 HTML 파일의 정보를 사용하여 목록 생성
+                for (const fileInfo of htmlFiles) {
+                    const docUrl = `https://${owner}.github.io/${repo}/${docPath}/${fileInfo.filename}`;
                     
-                    try {
-                        const docResponse = await fetch(docUrl);
-                        if (!docResponse.ok) {
-                            console.error(`Failed to fetch document: ${docUrl}, Status: ${docResponse.status}`);
-                            continue; // 다음 파일로 넘어감
-                        }
-                        const docText = await docResponse.text();
-                        
-                        // DOMParser를 사용하여 HTML 파싱 및 title 태그 추출
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(docText, 'text/html');
-                        const titleElement = doc.querySelector('title');
-                        const title = titleElement ? titleElement.textContent : file.name.replace('.html', ''); // title이 없으면 파일 이름 사용
-
-                        const listItem = document.createElement('li');
-                        const link = document.createElement('a');
-                        link.href = docUrl;
-                        link.textContent = title;
-                        listItem.appendChild(link);
-                        docList.appendChild(listItem);
-
-                    } catch (docFetchError) {
-                        console.error(`Error fetching or parsing document ${file.name}:`, docFetchError);
-                        const listItem = document.createElement('li');
-                        listItem.textContent = `${file.name} (불러오기 실패)`;
-                        docList.appendChild(listItem);
-                    }
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = docUrl;
+                    link.textContent = fileInfo.title; // JSON 파일에서 제목 사용
+                    listItem.appendChild(link);
+                    docList.appendChild(listItem);
                 }
             } catch (error) {
                 console.error('문서 목록을 불러오는 중 오류 발생:', error);
