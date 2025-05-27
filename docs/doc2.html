@@ -808,28 +808,16 @@ void schedulePeriodicRefresh() {
 
     </main>
 
-    <script>
+<script>
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const targetElement = document.querySelector(this.getAttribute('href'));
                 if (targetElement) {
-                    // Offset for fixed header if you have one, or general offset
-                    // const headerOffset = 0; // Adjust if you have a fixed header
-                    // const elementPosition = targetElement.getBoundingClientRect().top;
-                    // const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                    // window.scrollTo({
-                    //     top: offsetPosition,
-                    //     behavior: "smooth"
-                    // });
-                     targetElement.scrollIntoView({
-                         behavior: 'smooth'
-                     });
-                }
-                // Close mobile nav if open
-                if (mobileNav.classList.contains('flex') && !mobileNav.classList.contains('hidden')) {
-                    closeMobileNav();
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
                 }
             });
         });
@@ -838,87 +826,72 @@ void schedulePeriodicRefresh() {
         const menuButton = document.getElementById('menuButton');
         const closeMenuButton = document.getElementById('closeMenuButton');
         const mobileNav = document.getElementById('mobileNav');
+        const mainContentForMobile = document.querySelector('.content-area');
 
         menuButton.addEventListener('click', () => {
             mobileNav.classList.remove('hidden');
-            mobileNav.classList.add('flex'); // Ensure it's flex for centering
-            document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+            // Optional: Prevent body scroll when mobile nav is open
+            document.body.style.overflow = 'hidden'; 
         });
-
-        closeMenuButton.addEventListener('click', () => {
-            closeMobileNav();
-        });
-
+        
         function closeMobileNav() {
             mobileNav.classList.add('hidden');
-            mobileNav.classList.remove('flex');
-            document.body.style.overflow = ''; // Restore scrolling
+             // Optional: Restore body scroll
+            document.body.style.overflow = '';
         }
+        closeMenuButton.addEventListener('click', closeMobileNav);
+        // Close mobile nav if a link is clicked (for SPA behavior)
+        mobileNav.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', closeMobileNav);
+        });
+
 
         // Highlight active section in sidebar (for desktop)
         const sections = document.querySelectorAll('main section');
-        const navLinks = document.querySelectorAll('.sidebar nav ul li a');
-        const subNavLinks = document.querySelectorAll('.sidebar nav ul ul li a');
+        const navLinks = document.querySelectorAll('.sidebar nav ul li a'); // More specific selector for direct links
+        const subNavLinks = document.querySelectorAll('.sidebar nav ul ul li a'); // For sub-links
 
         function highlightNav() {
-            let currentSectionId = '';
-            let minDistance = Infinity;
-
+            let current = '';
             sections.forEach(section => {
-                const sectionTop = section.getBoundingClientRect().top; // Position relative to viewport
-                
-                // Find the section closest to the top of the viewport (within a certain range)
-                if (sectionTop < window.innerHeight / 3 && sectionTop > -section.offsetHeight / 2) {
-                     if (Math.abs(sectionTop) < minDistance) {
-                        minDistance = Math.abs(sectionTop);
-                        currentSectionId = section.getAttribute('id');
-                    }
+                const sectionTop = section.offsetTop;
+                // Adjust offset for fixed header or other elements if necessary
+                // A common offset is around 100-150px to trigger highlighting a bit earlier
+                const activationOffset = 150; 
+                if (pageYOffset >= sectionTop - activationOffset) {
+                    current = section.getAttribute('id');
                 }
             });
-            
-            // If no section is "current" (e.g., at the very top or bottom of the page),
-            // you might want to default to the first or last visible one.
-            // For simplicity, if currentSectionId is empty, we try to find the first one in view.
-            if (!currentSectionId) {
-                for (let section of sections) {
-                    const rect = section.getBoundingClientRect();
-                    if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
-                        currentSectionId = section.getAttribute('id');
-                        break;
-                    }
-                }
-            }
-             if (!currentSectionId && window.scrollY === 0) { // If at the very top
-                currentSectionId = sections[0] ? sections[0].getAttribute('id') : '';
-            }
-
 
             navLinks.forEach(link => {
                 link.classList.remove('bg-gray-700', 'text-blue-300');
-                link.classList.add('text-gray-300');
-                if (link.getAttribute('href') === `#${currentSectionId}`) {
+                link.classList.add('text-gray-300'); // Reset to default
+                // Check if the link's href matches the current section ID
+                if (link.getAttribute('href') === `#${current}`) {
                     link.classList.add('bg-gray-700', 'text-blue-300');
                     link.classList.remove('text-gray-300');
                 }
             });
-
             subNavLinks.forEach(link => {
-                link.classList.remove('bg-gray-600', 'text-blue-200'); // Slightly different highlight for sub-items
-                link.classList.add('text-gray-400');
-                 // Check if the parent section of this sub-link is active OR if the sub-link itself is the target
-                const parentSectionHref = link.closest('ul.ml-4').previousElementSibling.getAttribute('href');
-                if (parentSectionHref === `#${currentSectionId}` || link.getAttribute('href') === `#${currentSectionId}`) {
-                    // If the sub-section itself is the target, highlight it more strongly
-                    if (link.getAttribute('href') === `#${currentSectionId}`) {
-                         link.classList.add('bg-gray-600', 'text-blue-200');
-                         link.classList.remove('text-gray-400');
+                link.classList.remove('bg-gray-700', 'text-blue-300');
+                link.classList.add('text-gray-400'); // Reset to default for sublinks
+                 if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('bg-gray-700', 'text-blue-300');
+                    link.classList.remove('text-gray-400');
+                    // Also highlight parent
+                    const parentLi = link.closest('ul.ml-4')?.closest('li');
+                    if(parentLi){
+                        const parentAnchor = parentLi.querySelector('a');
+                        if(parentAnchor){
+                             parentAnchor.classList.add('bg-gray-700', 'text-blue-300');
+                             parentAnchor.classList.remove('text-gray-300');
+                        }
                     }
                 }
             });
         }
-
         window.addEventListener('scroll', highlightNav);
-        window.addEventListener('load', highlightNav); // Also highlight on load
+        window.addEventListener('load', highlightNav); // Highlight on page load as well
 
     </script>
 </body>
