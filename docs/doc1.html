@@ -722,7 +722,8 @@ $ kill 12345</code></pre>
                 이 작업은 일반적으로 서버 관리자나 백엔드 개발자가 수행하지만, 프론트엔드 개발자도 이 설정을 이해하고 있어야 에셋 파일의 URL을 올바르게 사용할 수 있습니다.
             </p>
 
-            <h4 class="text-xl font-medium text-blue-200 mb-2">4.2.3. Nginx 설정 (에셋 파일 서빙 및 보안) <span class="text-gray-400 text-sm">(이 부분은 구현되어 있는 부분을 설명하기 위함으로, 모르셔도 됩니다)</span></h4>
+            <h4 class="text-xl font-medium text-blue-200 mb-2">4.2.3. Nginx 설정 (에셋 파일 서빙 및 보안) <br>
+                <strong class="text-yellow-400">(이 부분은 구현되어 있는 부분을 설명하기 위함으로, 모르셔도 됩니다)</strong></h4>
             <p class="mb-4 text-gray-300">
                 Nginx에서 특정 URL 경로를 실제 파일 시스템 경로로 연결하고, 보안 설정을 적용하기 위해서는 <code class="text-green-300">server</code> 블록 내에 <code class="text-green-300">location</code> 지시어를 사용합니다. 에셋 파일들을 위한 새로운 <code class="text-green-300">location</code> 블록을 설정할 때, <code class="text-green-300">/var/www/html/namsan</code> 경로에 있는 기존 PHP 애플리케이션의 설정과 충돌하지 않도록 주의해야 합니다.
             </p>
