@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>범용 DID 서버 (백엔드) 기획서</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            background-color: #111827; /* bg-gray-900 */
+            color: #d1d5db; /* text-gray-300 */
+        }
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937; /* bg-gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151; /* bg-gray-700 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563; /* bg-gray-600 */
+        }
+
+        /* Code block styling */
+        pre {
+            background-color: #0f172a; /* bg-slate-900 or similar dark */
+            color: #cbd5e1; /* text-slate-300 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.875rem; /* text-sm */
+            border: 1px solid #374151; /* border-gray-700 */
+        }
+
+        code {
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.875rem; /* text-sm */
+            color: #93c5fd; /* text-blue-300 for inline code */
+        }
+        pre code {
+            color: #cbd5e1; /* Reset for code within pre */
+        }
+
+        /* Diagram Styling (adapted from example) */
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem; /* Reduced gap for potentially more items */
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background-color: #1f2937; /* bg-gray-800 */
+            border-radius: 0.75rem;
+            border: 1px solid #374151; /* border-gray-700 */
+        }
+
+        .flow-box {
+            background-color: #374151; /* bg-gray-700 */
+            color: #e5e7eb; /* text-gray-200 */
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-weight: 500;
+            min-width: 150px; /* Adjusted min-width */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .flow-arrow {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent; /* Smaller arrow */
+            border-right: 8px solid transparent;
+            border-top: 16px solid #60a5fa; /* blue-400 */
+            position: relative;
+            margin-top: 0.5rem; /* Adjusted margin */
+            margin-bottom: 0.5rem;
+        }
+         .flow-arrow::after {
+            content: attr(data-label);
+            position: absolute;
+            top: -20px; /* Adjusted for smaller arrow */
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            color: #9ca3af; /* text-gray-400 */
+            font-size: 0.75rem; /* text-xs */
+            white-space: nowrap;
+            background-color: #1f2937; /* bg-gray-800 to match diagram bg */
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+        }
+
+        .flow-horizontal-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .flow-arrow-right {
+            width: 16px; /* Width of the arrow shaft */
+            height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-left: 16px solid #60a5fa; /* blue-400 */
+            position: relative;
+        }
+        .flow-arrow-right::after {
+            content: attr(data-label);
+            position: absolute;
+            top: -10px; /* Adjust label position */
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            color: #9ca3af; /* text-gray-400 */
+            font-size: 0.75rem; /* text-xs */
+            white-space: nowrap;
+            background-color: #1f2937;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+        }
+
+
+        /* Table styling */
+        table {
+            width: 100%;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            color: #d1d5db; /* text-gray-300 */
+        }
+        th, td {
+            border: 1px solid #374151; /* border-gray-700 */
+            padding: 0.75rem 1rem; /* p-3 */
+            text-align: left;
+        }
+        th {
+            background-color: #1f2937; /* bg-gray-800 */
+            font-weight: 600;
+            color: #9ca3af; /* text-gray-400 */
+        }
+        tbody tr:nth-child(even) {
+            background-color: #1a2330; /* Slightly different for striping if desired, or keep uniform */
+        }
+        tbody tr:hover {
+            background-color: #2c3646; /* bg-gray-700 on hover */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .content-area {
+                margin-left: 0;
+            }
+            .menu-button {
+                display: block;
+            }
+            .mobile-nav {
+                display: flex; /* Will be toggled by JS */
+            }
+            .flow-horizontal-container {
+                flex-direction: column;
+            }
+            .flow-arrow-right { /* Make horizontal arrows point down on mobile */
+                transform: rotate(90deg);
+                margin-top: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+             .flow-arrow-right::after {
+                transform: translateX(-50%) translateY(0%) rotate(-90deg) translateX(50%) translateY(-8px) ;
+                top: auto;
+                left: -15px; /* Adjust to position next to arrow head */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <button id="menuButton" class="menu-button fixed top-4 left-4 z-50 p-3 bg-gray-800 text-gray-100 rounded-lg shadow-lg md:hidden">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+
+    <div id="mobileNav" class="mobile-nav fixed inset-0 bg-gray-900 bg-opacity-95 z-40 flex-col items-center justify-center space-y-4 hidden md:hidden overflow-y-auto py-8">
+        <button id="closeMenuButton" class="absolute top-4 right-4 p-3 bg-gray-800 text-gray-100 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <nav class="text-center">
+            <ul class="space-y-3">
+                <li><a href="#intro" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">1. 소개</a></li>
+                <li><a href="#infra" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">2. 핵심 백엔드 인프라</a></li>
+                <li><a href="#php-enhancements" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">3. PHP 기능 강화</a></li>
+                <li><a href="#user-management" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">4. 사용자 계정 관리</a></li>
+                <li><a href="#file-handling" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">5. 안전한 파일 처리</a></li>
+                <li><a href="#approval-workflow" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">6. 승인 워크플로우</a></li>
+                <li><a href="#security-hardening" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">7. 서버 및 보안 강화</a></li>
+                <li><a href="#logging-monitoring" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">8. 로깅 및 모니터링</a></li>
+                <li><a href="#framework-considerations" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">9. 프레임워크 고려 사항</a></li>
+                <li><a href="#summary" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">10. 요약 및 권장 사항</a></li>
+                <li><a href="#references" class="text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300" onclick="closeMobileNav()">참고 자료</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <aside class="sidebar fixed top-0 left-0 h-full w-72 bg-gray-800 p-6 shadow-lg hidden md:block overflow-y-auto rounded-r-lg">
+        <h2 class="text-2xl font-bold text-blue-400 mb-6">목차</h2>
+        <nav>
+            <ul class="space-y-2">
+                <li><a href="#intro" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">1. 소개</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li><a href="#intro-purpose" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">1.1. 보고서의 목적</a></li>
+                        <li><a href="#intro-current-setup" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">1.2. 현재 사용자 설정</a></li>
+                        <li><a href="#intro-importance" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">1.3. 강력한 백엔드 시스템의 중요성</a></li>
+                    </ul>
+                </li>
+                <li><a href="#infra" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">2. 핵심 백엔드 인프라</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li><a href="#infra-db-role" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">2.1. 데이터베이스의 필수적인 역할</a></li>
+                        <li><a href="#infra-db-selection" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">2.2. RDBMS 선택</a></li>
+                        <li><a href="#infra-db-install" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">2.3. 설치 및 기본 구성</a></li>
+                        <li><a href="#infra-db-schema" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">2.4. 데이터베이스 스키마 설계</a></li>
+                        <li><a href="#table-1" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">표 1: DB 옵션 비교</a></li>
+                    </ul>
+                </li>
+                 <li><a href="#php-enhancements" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">3. PHP 기능 강화</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li><a href="#php-ext-purpose" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">3.1. PHP 확장 프로그램의 목적</a></li>
+                        <li><a href="#php-ext-list" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">3.2. 필수 및 권장 확장</a></li>
+                        <li><a href="#php-ext-install" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">3.3. Ubuntu에서의 설치</a></li>
+                        <li><a href="#table-2" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">표 2: PHP 확장 프로그램</a></li>
+                    </ul>
+                </li>
+                <li><a href="#user-management" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">4. 사용자 계정 관리</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li><a href="#user-password" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">4.1. 안전한 비밀번호 저장</a></li>
+                        <li><a href="#user-session" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">4.2. PHP 세션 관리</a></li>
+                        <li><a href="#user-login-flow" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">4.3. 로그인 프로세스 흐름</a></li>
+                        <li><a href="#user-registration" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">4.4. 사용자 등록 및 관리</a></li>
+                        <li><a href="#table-3" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">표 3: 세션 보안 체크리스트</a></li>
+                    </ul>
+                </li>
+                <li><a href="#file-handling" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">5. 안전한 파일 처리</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li><a href="#file-upload" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">5.1. 안전한 파일 업로드</a></li>
+                        <li><a href="#file-download" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">5.2. 안전한 파일 다운로드</a></li>
+                        <li><a href="#table-4" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">표 4: 파일 업로드 보안</a></li>
+                    </ul>
+                </li>
+                <li><a href="#approval-workflow" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">6. 승인 워크플로우</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li><a href="#approval-overview" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">6.1. 개념적 개요</a></li>
+                        <li><a href="#approval-db" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">6.2. 데이터베이스 연동</a></li>
+                        <li><a href="#approval-php-logic" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">6.3. PHP 기반 로직</a></li>
+                        <li><a href="#approval-framework" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">6.4. PHP 프레임워크 활용</a></li>
+                        <li><a href="#approval-uiux" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">6.5. 관리자 대시보드 UI/UX</a></li>
+                        <li><a href="#table-5" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">표 5: 승인 워크플로우 구성</a></li>
+                    </ul>
+                </li>
+                <li><a href="#security-hardening" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">7. 서버 및 보안 강화</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li><a href="#security-https" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">7.1. HTTPS (Let's Encrypt)</a></li>
+                        <li><a href="#security-ufw" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">7.2. UFW 설정</a></li>
+                        <li><a href="#security-waf" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">7.3. WAF (ModSecurity)</a></li>
+                        <li><a href="#security-updates" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">7.4. 정기적인 시스템 업데이트</a></li>
+                        <li><a href="#table-6" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">표 6: 보안 계층 비교</a></li>
+                    </ul>
+                </li>
+                <li><a href="#logging-monitoring" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">8. 로깅 및 모니터링</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li><a href="#log-nginx" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">8.1. Nginx 로깅</a></li>
+                        <li><a href="#log-phpfpm" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">8.2. PHP-FPM 로깅</a></li>
+                        <li><a href="#log-journald" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">8.3. Ubuntu 시스템 로그</a></li>
+                        <li><a href="#log-tools" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">8.4. 로그 분석 도구</a></li>
+                        <li><a href="#log-monitoring-tools" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">8.5. 시스템 모니터링 도구</a></li>
+                        <li><a href="#table-7" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">표 7: 로깅 및 모니터링 도구</a></li>
+                    </ul>
+                </li>
+                <li><a href="#framework-considerations" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">9. 프레임워크 고려 사항</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li><a href="#fw-context" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">9.1. 컨텍스트</a></li>
+                        <li><a href="#fw-overview" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">9.2. PHP 프레임워크 개요</a></li>
+                        <li><a href="#fw-template-engines" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">9.3. UI를 위한 템플릿 엔진</a></li>
+                        <li><a href="#fw-recommendations" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">9.4. 권장 사항</a></li>
+                        <li><a href="#table-8" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">표 8: PHP 프레임워크 비교</a></li>
+                    </ul>
+                </li>
+                <li><a href="#summary" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">10. 요약 및 권장 사항</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li><a href="#summary-tools" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">10.1. 필수 도구 요약</a></li>
+                        <li><a href="#summary-plan" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">10.2. 우선순위 실행 계획</a></li>
+                        <li><a href="#summary-final" class="block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200">10.3. 최종 고려 사항</a></li>
+                    </ul>
+                </li>
+                <li><a href="#references" class="block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200">참고 자료</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="content-area md:ml-72 p-6 md:p-8">
+        <h1 class="text-4xl font-extrabold text-blue-300 mb-10 text-center md:text-left">범용 DID 서버 (백엔드) 기획서</h1>
+
+        <section id="intro" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">1. 소개</h2>
+            
+            <div id="intro-purpose" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">1.1. 보고서의 목적</h3>
+                <p class="text-gray-300 leading-relaxed">본 보고서는 안드로이드 디지털 사이니지 애플리케이션(클라이언트)의 사용자 계정 관리, 파일 업로드 및 다운로드, 그리고 업로드된 파일에 대한 승인 워크플로우 기능을 구현하기 위해 Ubuntu 서버 환경에 필요한 추가 도구 및 구성 방안을 제시하는 것을 목적으로 한다. 현재 서버에는 Nginx가 설치되어 있고, 도메인이 연결되어 있으며, 기본적인 PHP 로그인 페이지가 마련된 상태를 기준으로 한다.</p>
+            </div>
+
+            <div id="intro-current-setup" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">1.2. 현재 사용자 설정</h3>
+                <p class="text-gray-300 leading-relaxed">사용자는 이미 Ubuntu 서버에 Nginx 웹 서버를 설치하고 도메인을 연결하였으며, PHP를 통해 기본적인 로그인 페이지를 구축한 상태이다. 이는 백엔드 시스템 구축을 위한 견고한 초기 기반으로 평가될 수 있다.</p>
+            </div>
+
+            <div id="intro-importance" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">1.3. 강력한 백엔드 시스템의 중요성</h3>
+                <p class="text-gray-300 leading-relaxed">디지털 사이니지 시스템의 신뢰성, 보안성 및 확장성을 위해서는 잘 구조화되고 안전한 백엔드 시스템 구축이 필수적이다. 특히 사용자 데이터와 중요 콘텐츠 파일을 다루는 경우, 백엔드는 모든 관리 및 콘텐츠 운영 활동의 중앙 허브 역할을 수행하게 된다. 따라서 체계적인 사용자 계정 관리, 안전한 파일 처리 메커니즘, 그리고 명확한 콘텐츠 승인 절차는 시스템의 핵심 기능이 될 것이다.</p>
+            </div>
+        </section>
+
+        <section id="infra" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">2. 핵심 백엔드 인프라: 데이터베이스 설정</h2>
+            
+            <div id="infra-db-role" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">2.1. 데이터베이스의 필수적인 역할</h3>
+                <p class="text-gray-300 leading-relaxed">데이터베이스는 사용자 인증 정보, 프로필, 파일 메타데이터(파일명, 저장 경로, 업로드 날짜, 파일 유형, 크기 등), 그리고 각 파일의 승인 워크플로우 상태와 같은 영구적인 데이터를 저장하고 관리하는 데 있어 핵심적인 역할을 수행한다. 이러한 정보들을 데이터베이스 없이 관리하는 것은 비효율적일 뿐만 아니라 보안에도 매우 취약하다.</p>
+            </div>
+
+            <div id="infra-db-selection" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">2.2. Ubuntu 환경 PHP를 위한 관계형 데이터베이스 관리 시스템(RDBMS) 선택</h3>
+                <p class="text-gray-300 leading-relaxed mb-4">Ubuntu는 PHP 애플리케이션에 적합한 여러 강력한 오픈소스 RDBMS를 지원한다. 데이터베이스 선택은 특정 기능 요구사항, 개발팀의 기존 경험, 그리고 성능 고려 사항에 따라 달라질 수 있다.</p>
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-xl font-medium text-blue-200 mb-1">MySQL:</h4>
+                        <p class="text-gray-400 ml-4">설명: 웹 애플리케이션 분야에서 널리 사용되는 오픈소스 RDBMS로, 사용 편의성, 방대한 커뮤니티 지원, 그리고 우수한 성능으로 잘 알려져 있다. 많은 PHP 프로젝트에서 기본 선택지로 고려된다.</p>
+                        <p class="text-gray-400 ml-4 mt-1">관련성: 다수의 개발자가 MySQL에 익숙하며, php-mysql 확장을 통해 PHP와 원활하게 통합된다. Ubuntu에서의 설치 과정 또한 간단하다.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-medium text-blue-200 mb-1">PostgreSQL:</h4>
+                        <p class="text-gray-400 ml-4">설명: 강력한 객체-관계형 데이터베이스 시스템으로, 높은 안정성, 풍부한 기능 세트, 그리고 표준 준수로 정평이 나 있다. 복잡한 쿼리 처리와 데이터 무결성 유지에 강점을 보인다.</p>
+                        <p class="text-gray-400 ml-4 mt-1">관련성: PostgreSQL은 JSONB나 UUID와 같은 고급 데이터 타입을 제공하여, 유연한 파일 메타데이터 저장이나 고유 식별자 관리에 매우 유용할 수 있다. 또한 효율적인 쿼리를 위한 강력한 인덱싱 기능을 제공한다. Ubuntu에서의 설치 및 PHP 연동(php-pgsql)은 문서화가 잘 되어 있다.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-medium text-blue-200 mb-1">MariaDB:</h4>
+                        <p class="text-gray-400 ml-4">설명: MySQL의 원 개발자들이 만든 커뮤니티 기반의 MySQL 포크이다. MySQL과의 높은 호환성을 유지하면서 추가 기능 및 성능 개선을 목표로 한다.</p>
+                        <p class="text-gray-400 ml-4 mt-1">관련성: MariaDB는 MySQL과의 완벽한 호환성을 제공하여 마이그레이션이 용이하다. 내결함성, 속도, 확장성 면에서 장점을 가지며, 일부 사용자는 오픈소스 거버넌스와 상대적으로 용이한 업그레이드 경로 때문에 선호하기도 한다. Ubuntu에서의 설치는 MySQL과 유사하다.</p>
+                    </div>
+                </div>
+                <p class="text-gray-300 leading-relaxed mt-4">데이터베이스 선택은 애플리케이션의 장기적인 유지보수와 확장성에 영향을 미치므로 신중하게 결정해야 한다. 예를 들어, 사이니지 콘텐츠에 대해 다양하고 변화 가능성이 높은 메타데이터(예: 디스플레이 일정, 콘텐츠 태그, 애니메이션 매개변수)를 저장해야 할 경우, PostgreSQL의 네이티브 JSONB 타입 지원은 큰 이점을 제공한다. JSONB를 사용하면 스키마 변경 없이도 파일 테이블 내에 유연한 필드를 추가할 수 있으며, 이 메타데이터에 대한 효율적인 인덱싱 및 쿼리가 가능해진다. 이는 관리자 인터페이스에서 커스텀 속성을 기준으로 파일을 필터링하거나 검색해야 할 때 매우 중요하다. MySQL과 MariaDB도 JSON을 지원하지만, 쿼리 및 인덱싱 성능 면에서는 PostgreSQL의 JSONB가 종종 더 우수하다고 평가받는다.</p>
+            </div>
+
+            <div id="infra-db-install" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">2.3. 설치 및 기본 구성</h3>
+                <p class="text-gray-300 leading-relaxed">선택한 데이터베이스의 설치는 일반적으로 간단한 <code>apt</code> 명령어를 통해 이루어진다 (예: <code class="text-green-300">sudo apt install mysql-server</code>, <code class="text-green-300">sudo apt install postgresql</code>, <code class="text-green-300">sudo apt install mariadb-server</code>). 설치 후에는 보안 스크립트(예: MySQL/MariaDB의 경우 <code class="text-green-300">mysql_secure_installation</code>)를 실행하여 기본적인 보안 설정을 강화하는 것이 권장된다. 애플리케이션을 위한 전용 데이터베이스와 사용자 계정을 생성하여 접근 권한을 최소화하는 것도 중요한 보안 관행이다.</p>
+            </div>
+
+            <div id="infra-db-schema" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">2.4. 데이터베이스 스키마 설계 고려 사항</h3>
+                <p class="text-gray-300 leading-relaxed mb-2">효율적인 데이터 관리를 위해 다음과 같은 테이블 구조를 고려할 수 있다.</p>
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-xl font-medium text-blue-200 mb-2">Users (사용자) 테이블:</h4>
+                        <pre><code class="language-sql">user_id (PK, INT, AUTO_INCREMENT)
+username (VARCHAR, UNIQUE, NOT NULL)
+password_hash (VARCHAR, NOT NULL) -- 비밀번호 해시값
+email (VARCHAR, UNIQUE, NOT NULL)
+role (VARCHAR, DEFAULT: 'uploader') -- 예: 'admin', 'uploader'
+created_at (TIMESTAMP)
+updated_at (TIMESTAMP)</code></pre>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-medium text-blue-200 mb-2">Files (파일) 테이블:</h4>
+                        <pre><code class="language-sql">file_id (PK, INT, AUTO_INCREMENT)
+uploader_user_id (FK, INT, Users 테이블 참조)
+original_filename (VARCHAR, NOT NULL) -- 원본 파일명
+stored_filename (VARCHAR, UNIQUE, NOT NULL) -- 서버 저장 시 사용될 고유하고 무작위적인 파일명
+file_path (VARCHAR, NOT NULL) -- 보안된 저장소 루트 디렉토리 기준 상대 경로
+mime_type (VARCHAR, NOT NULL)
+file_size (BIGINT, NOT NULL)
+upload_timestamp (TIMESTAMP, DEFAULT: CURRENT_TIMESTAMP)
+title (VARCHAR) -- 파일 제목 (선택 사항)
+description (TEXT) -- 파일 설명 (선택 사항)
+metadata (JSON 또는 PostgreSQL의 경우 JSONB) -- 추가적인 메타데이터 저장
+version (INT, DEFAULT: 1) -- 파일 버전 관리용</code></pre>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-medium text-blue-200 mb-2">Approval_Workflow (승인 워크플로우) 테이블:</h4>
+                        <pre><code class="language-sql">approval_id (PK, INT, AUTO_INCREMENT)
+file_id (FK, INT, Files 테이블 참조)
+status (VARCHAR, DEFAULT: 'pending') -- 예: 'pending'(대기), 'approved'(승인), 'rejected'(거부)
+approver_user_id (FK, INT, Users 테이블 참조, NULL 가능) -- 승인/거부 처리한 관리자
+approval_timestamp (TIMESTAMP, NULL 가능) -- 처리 일시
+comments (TEXT) -- 승인/거부 관련 코멘트</code></pre>
+                    </div>
+                </div>
+                <p class="text-gray-300 leading-relaxed mt-4">승인 워크플로우 테이블을 잘 설계하는 것은 현재 상태 추적뿐만 아니라 감사 추적 기능에도 매우 중요하다. 각 상태 변경에 대해 <code class="text-green-300">approver_user_id</code>와 <code class="text-green-300">approval_timestamp</code>를 저장하면 누가 언제 어떤 작업을 수행했는지에 대한 이력을 남길 수 있어 책임 소재를 명확히 하는 데 도움이 된다. 만약 승인 절차가 여러 단계로 복잡해질 경우, 이 테이블을 확장하거나 별도의 <code class="text-green-300">Approval_Steps</code> 테이블과 연결하여 각 단계별 담당자와 상태를 관리할 수 있다. 이러한 초기 스키마 설계의 유연성은 추후 대규모 변경 작업을 방지하는 데 기여한다.</p>
+                <p class="text-gray-300 leading-relaxed mt-2">또한, 사용자 및 업로드 파일 수가 증가함에 따라 데이터베이스 쿼리 성능이 저하될 수 있다. <code class="text-green-300">WHERE</code> 절, <code class="text-green-300">JOIN</code> 조건 또는 <code class="text-green-300">ORDER BY</code> 절에 자주 사용되는 필드(예: Users 테이블의 <code class="text-green-300">username</code>, <code class="text-green-300">email</code>; Files 및 Approval_Workflow 테이블의 <code class="text-green-300">uploader_user_id</code>, <code class="text-green-300">upload_timestamp</code>, <code class="text-green-300">status</code>)는 초기에 인덱싱 전략을 수립하는 것이 중요하다. 예를 들어, 관리자가 "대기 중"인 모든 파일을 검색할 때 이 쿼리는 신속하게 처리되어야 한다. PostgreSQL의 고급 인덱싱 기능은 이러한 상황에서 특히 유용할 수 있다.</p>
+            </div>
+            
+            <div id="table-1" class="overflow-x-auto">
+                 <h3 class="text-2xl font-semibold text-blue-300 mb-3">표 1: 데이터베이스 옵션 비교 (MySQL, PostgreSQL, MariaDB)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>기능</th>
+                            <th>MySQL</th>
+                            <th>PostgreSQL</th>
+                            <th>MariaDB</th>
+                            <th>사이니지 앱 관련성</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>데이터 타입</td>
+                            <td>JSON 지원</td>
+                            <td>JSONB (고급), UUID 등 풍부한 타입 지원</td>
+                            <td>JSON 지원, MySQL 호환</td>
+                            <td>PostgreSQL의 JSONB는 유연한 파일 메타데이터 저장 및 쿼리에 유리함.</td>
+                        </tr>
+                        <tr>
+                            <td>인덱싱</td>
+                            <td>B-tree, Full-text 등</td>
+                            <td>GIN, GiST, B-tree 등 다양한 고급 인덱싱</td>
+                            <td>B-tree, Full-text 등 (MySQL 호환)</td>
+                            <td>PostgreSQL의 고급 인덱싱은 복잡한 메타데이터 검색 성능 향상에 기여 가능.</td>
+                        </tr>
+                        <tr>
+                            <td>확장성</td>
+                            <td>수직적 확장 용이</td>
+                            <td>수평/수직적 확장 모두 우수</td>
+                            <td>수직적 확장 용이, Galera Cluster 등 지원</td>
+                            <td>대규모 사용자 및 파일 관리를 고려할 때 PostgreSQL의 유연한 확장성이 유리할 수 있음.</td>
+                        </tr>
+                        <tr>
+                            <td>PHP와의 용이성</td>
+                            <td>매우 우수, php-mysql 널리 사용</td>
+                            <td>우수, php-pgsql 사용</td>
+                            <td>매우 우수, MySQL과 거의 동일</td>
+                            <td>세 가지 모두 PHP와 잘 통합되지만, 개발팀의 익숙도에 따라 선택 가능.</td>
+                        </tr>
+                        <tr>
+                            <td>커뮤니티 지원</td>
+                            <td>매우 방대함</td>
+                            <td>강력하고 활발함</td>
+                            <td>성장 중, MySQL 커뮤니티와 공유</td>
+                            <td>문제 해결 및 정보 획득 용이성 측면에서 모두 양호함.</td>
+                        </tr>
+                        <tr>
+                            <td>특장점</td>
+                            <td>높은 시장 점유율, 풍부한 자료</td>
+                            <td>표준 준수, 데이터 무결성, 고급 기능</td>
+                            <td>MySQL 호환성, 빠른 릴리즈 주기, 쉬운 업그레이드</td>
+                            <td>PostgreSQL은 데이터 무결성과 복잡한 요구사항에, MariaDB는 MySQL 경험이 있는 팀이나 빠른 개선을 원할 때 유리할 수 있음.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="php-enhancements" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">3. PHP 기능 강화: 필수 확장 프로그램</h2>
+
+            <div id="php-ext-purpose" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">3.1. PHP 확장 프로그램의 목적</h3>
+                <p class="text-gray-300 leading-relaxed">PHP 확장 프로그램은 PHP의 핵심 기능을 확장하는 컴파일된 라이브러리로, 데이터베이스 연결, 다양한 데이터 형식 처리, 암호화 작업 수행 등 특정 작업을 가능하게 한다.</p>
+            </div>
+
+            <div id="php-ext-list" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">3.2. 필수 및 권장 확장 프로그램</h3>
+                <p class="text-gray-300 leading-relaxed font-semibold mb-2">데이터베이스 연결:</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4 mb-4">
+                    <li><code>php-mysql</code> (MySQL/MariaDB용) 또는 <code>php-pgsql</code> (PostgreSQL용): 선택한 데이터베이스와의 통신을 위해 필수적이다.</li>
+                </ul>
+                <p class="text-gray-300 leading-relaxed font-semibold mb-2">파일 처리 및 정보:</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4 mb-4">
+                    <li><code>php-finfo</code> (Fileinfo): 업로드된 파일의 실제 내용을 확인하여 정확한 MIME 타입을 결정하는 데 매우 중요하다. 이는 사용자가 제공한 확장자나 MIME 타입에 의존하지 않고 파일의 진위 여부를 판별하는 핵심 보안 수단이다. <code>php-finfo</code>의 부재는 악성 파일 업로드 위험을 직접적으로 증가시킨다.</li>
+                    <li><code>php-zip</code>: 애플리케이션이 ZIP 압축 파일을 다루어야 할 경우 (예: 대량 업로드 또는 다운로드) 필요하다.</li>
+                </ul>
+                 <p class="text-gray-300 leading-relaxed font-semibold mb-2">데이터 교환 및 보안:</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4 mb-4">
+                    <li><code>php-json</code>: 웹 API 및 구조화된 메타데이터 저장에 일반적으로 사용되는 JSON 데이터 처리에 필수적이다.</li>
+                    <li><code>php-openssl</code>: HTTPS 통신, 데이터 암호화, 보안 토큰 생성 등에 필요한 암호화 기능을 제공한다. 이미 도메인과 Nginx가 준비되어 있으므로 HTTPS 구현에 OpenSSL은 매우 중요하다.</li>
+                    <li><code>php-mbstring</code>: 파일명, 사용자 정보, 콘텐츠 메타데이터 등에 다국어 문자를 지원해야 하는 애플리케이션의 경우 멀티바이트 문자열 처리를 위해 중요하다. <code>php-mbstring</code>을 설치하지 않으면 다국어 사용자/콘텐츠에 대해 텍스트가 깨지거나 문자열 연산이 잘못될 수 있다.</li>
+                </ul>
+                <p class="text-gray-300 leading-relaxed font-semibold mb-2">이미지 조작 (사이니지 앱에 일반적, 선택 사항):</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4 mb-4">
+                    <li><code>php-gd</code> 또는 <code>php-imagick</code>: 서버에서 이미지 처리(예: 썸네일 생성, 다양한 사이니지 디스플레이용 이미지 크기 조정)를 수행해야 하는 경우 필요하다. 일반적으로 Imagick이 GD보다 강력한 기능을 제공한다. 이러한 라이브러리가 없다면 썸네일 생성이나 해상도별 크기 조정은 클라이언트 측에서 처리하거나 생략해야 하며, 이는 사이니지 시스템에 이상적이지 않을 수 있다.</li>
+                </ul>
+                <p class="text-gray-300 leading-relaxed font-semibold mb-2">커맨드 라인 인터페이스:</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4 mb-4">
+                     <li><code>php-cli</code>: 커맨드 라인에서 PHP 스크립트를 실행할 수 있게 하며, 백그라운드 작업이나 cron 작업(예: 승인 워크플로우 관련 알림, 임시 파일 정리)에 유용하다.</li>
+                </ul>
+            </div>
+            
+            <div id="php-ext-install" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">3.3. Ubuntu에서의 설치</h3>
+                <p class="text-gray-300 leading-relaxed">일반적인 설치 명령어는 <code class="text-green-300">sudo apt install php-[extension-name]</code>이다. 확장 프로그램 설치 후에는 PHP-FPM 서비스를 재시작해야 변경 사항이 적용된다 (예: <code class="text-green-300">sudo systemctl restart phpX.Y-fpm</code>, 여기서 X.Y는 PHP 버전).</p>
+            </div>
+
+            <div id="table-2" class="overflow-x-auto">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">표 2: 필수 PHP 확장 프로그램 및 용도</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>확장 프로그램명</th>
+                            <th>패키지명 (Ubuntu 예시)</th>
+                            <th>목적</th>
+                            <th>중요도</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>php-mysql 또는 php-pgsql</td>
+                            <td>php8.1-mysql 또는 php8.1-pgsql</td>
+                            <td>선택한 데이터베이스와의 연결</td>
+                            <td>필수</td>
+                        </tr>
+                        <tr>
+                            <td>php-finfo</td>
+                            <td>php8.1-finfo</td>
+                            <td>파일 내용 기반 MIME 타입 검증 (보안)</td>
+                            <td>필수</td>
+                        </tr>
+                        <tr>
+                            <td>php-json</td>
+                            <td>php8.1-json</td>
+                            <td>JSON 데이터 인코딩/디코딩</td>
+                            <td>필수</td>
+                        </tr>
+                        <tr>
+                            <td>php-openssl</td>
+                            <td>php8.1-openssl</td>
+                            <td>암호화 기능, HTTPS 지원</td>
+                            <td>필수</td>
+                        </tr>
+                        <tr>
+                            <td>php-mbstring</td>
+                            <td>php8.1-mbstring</td>
+                            <td>멀티바이트 문자열 처리 (다국어 지원)</td>
+                            <td>권장</td>
+                        </tr>
+                        <tr>
+                            <td>php-gd 또는 php-imagick</td>
+                            <td>php8.1-gd 또는 php8.1-imagick</td>
+                            <td>서버 측 이미지 처리 (썸네일, 리사이징 등)</td>
+                            <td>선택 사항</td>
+                        </tr>
+                        <tr>
+                            <td>php-cli</td>
+                            <td>php8.1-cli</td>
+                            <td>커맨드 라인 인터페이스에서 PHP 스크립트 실행</td>
+                            <td>권장</td>
+                        </tr>
+                         <tr>
+                            <td>php-zip</td>
+                            <td>php8.1-zip</td>
+                            <td>ZIP 압축 파일 처리</td>
+                            <td>선택 사항</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="text-sm text-gray-400 mt-2">주: php8.1은 예시이며, 실제 설치된 PHP 버전에 맞춰야 한다.</p>
+            </div>
+        </section>
+        
+        <section id="user-management" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">4. 사용자 계정 관리 및 인증</h2>
+
+            <div id="user-password" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">4.1. 안전한 비밀번호 저장</h3>
+                <p class="text-gray-300 leading-relaxed">비밀번호를 평문으로 저장하는 것은 절대적으로 피해야 한다. PHP의 내장 함수인 <code class="text-green-300">password_hash()</code>를 사용하여 강력한 솔트(salt)가 적용된 해시값을 생성하고, <code class="text-green-300">password_verify()</code>를 사용하여 비밀번호를 검증하는 것이 권장된다. <code class="text-green-300">password_hash()</code> 함수 사용 시 알고리즘 인자로는 <code class="text-green-300">PASSWORD_DEFAULT</code>를 사용하는 것이 좋다. 이는 현재 PHP 버전에서 지원하는 가장 강력한 알고리즘을 자동으로 선택하며, 향후 더 강력한 알고리즘이 기본값으로 변경될 경우에도 코드 수정 없이 대응할 수 있게 해준다. 만약 알고리즘이나 비용 계수(cost factor)가 변경될 경우, <code class="text-green-300">password_needs_rehash()</code> 함수를 사용하여 기존 해시를 업데이트할 수 있다. 데이터베이스가 유출될 경우 평문이나 약하게 해시된 비밀번호는 쉽게 해독될 수 있다. <code class="text-green-300">PASSWORD_DEFAULT</code> (현재 bcrypt)와 같이 의도적으로 느린 알고리즘을 사용하면 공격자가 해시를 무차별 대입하거나 레인보우 테이블을 사용하는 데 필요한 시간과 비용을 크게 증가시켜, 침해 사고 발생 시 대응 시간을 확보하는 데 도움이 된다.</p>
+            </div>
+
+            <div id="user-session" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">4.2. PHP 세션 관리 모범 사례</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>HTTPS 전용 사용:</strong> 세션 쿠키는 가로채기를 방지하기 위해 반드시 HTTPS를 통해서만 전송되어야 한다. 이는 이후 설명될 Let's Encrypt 설정과 직접적으로 연관된다. HttpOnly 및 Secure 쿠키 플래그를 사용하더라도 초기 로그인 페이지나 인증된 페이지가 HTTP를 통해 접근 가능하다면 세션 ID가 평문으로 전송되어 중간자 공격에 의해 탈취될 수 있다. 따라서 애플리케이션의 인증된 부분 전체(이상적으로는 사이트 전체)에 HTTPS를 강제하는 것이 안전한 세션 관리의 전제 조건이다.</li>
+                    <li><strong>세션 ID 재발급:</strong> 로그인 성공 시 또는 사용자 권한 수준 변경 시 <code class="text-green-300">session_regenerate_id(true)</code> 함수를 호출하여 세션 ID를 재발급함으로써 세션 고정(session fixation) 공격을 방지해야 한다. <code class="text-green-300">true</code> 파라미터는 이전 세션 파일을 삭제한다.</li>
+                    <li><strong>강력한 세션 ID:</strong> PHP가 강력하고 무작위적인 세션 ID를 생성하도록 설정되어 있는지 확인해야 한다 (일반적으로 기본 설정이지만 인지하고 있어야 함).</li>
+                    <li><strong>보안 쿠키 속성:</strong> 세션 쿠키에 <code class="text-green-300">HttpOnly</code>와 <code class="text-green-300">Secure</code> 플래그를 설정해야 한다. <code class="text-green-300">HttpOnly</code>는 클라이언트 측 JavaScript에서 세션 쿠키에 접근하는 것을 방지하고, <code class="text-green-300">Secure</code>는 HTTPS를 통해서만 쿠키가 전송되도록 보장한다. 이는 php.ini 파일 (<code class="text-green-300">session.cookie_httponly = 1</code>, <code class="text-green-300">session.cookie_secure = 1</code>) 또는 <code class="text-green-300">session_set_cookie_params()</code> 함수를 통해 설정할 수 있다.</li>
+                    <li><strong>세션 생명주기 관리:</strong> php.ini의 <code class="text-green-300">session.gc_maxlifetime</code> 설정과 쿠키의 만료 시간을 적절히 설정하여 비활성 세션이 자동으로 만료되도록 해야 한다.</li>
+                    <li><strong>로그아웃 시 세션 파기:</strong> 로그아웃 시 <code class="text-green-300">session_unset()</code>, <code class="text-green-300">session_destroy()</code> 함수를 사용하고 세션 쿠키를 명확히 제거하여 세션을 완전히 파기해야 한다. 단순히 <code class="text-green-300">$_SESSION</code> 변수를 비우거나 사용자를 리디렉션하는 것만으로는 충분하지 않다. <code class="text-green-300">session_destroy()</code>가 호출되지 않으면 서버에 세션 파일이 남아있을 수 있고, 클라이언트 측 쿠키가 만료되지 않으면 세션이 잠재적으로 하이재킹되거나 재사용될 수 있다.</li>
+                    <li><strong>세션 데이터 보안 저장:</strong> 기본 파일 기반 세션도 일반적이지만, 보안 강화나 확장성을 위해서는 세션 데이터를 데이터베이스에 저장하는 것을 고려할 수 있다.</li>
+                </ul>
+            </div>
+
+            <div id="user-login-flow" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">4.3. 로그인 프로세스 흐름</h3>
+                <div class="flow-diagram">
+                    <div class="flow-box">1. 사용자: 아이디/비밀번호 제출 (로그인 페이지)</div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-box">2. 서버: 입력값 유효성 검사</div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-box">3. 서버: DB에서 사용자 정보 조회</div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-box">4. 서버: <code class="text-xs">password_verify()</code>로 비밀번호 검증</div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-box">5. 서버 (유효 시): 세션 ID 재발급, <code class="text-xs">$_SESSION</code>에 사용자 정보 저장</div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-box">6. 서버: 관리자 대시보드로 리디렉션</div>
+                </div>
+            </div>
+
+            <div id="user-registration" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">4.4. 사용자 등록 및 관리</h3>
+                 <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li>입력값 유효성 검사를 포함한 안전한 등록 양식을 구현한다.</li>
+                    <li>비밀번호는 <code class="text-green-300">password_hash()</code>를 사용하여 해시한 후 저장한다.</li>
+                    <li>관리자 인터페이스를 통해 사용자 정보에 대한 CRUD(생성, 읽기, 수정, 삭제) 기능을 제공한다.</li>
+                </ul>
+            </div>
+
+            <div id="table-3" class="overflow-x-auto">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">표 3: 세션 보안 설정 체크리스트</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>설정 항목</th>
+                            <th>PHP 지시어/함수</th>
+                            <th>권장 값/관행</th>
+                            <th>보안적 의미</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>HTTPS 전용</td>
+                            <td>웹 서버 설정 (Nginx), session.cookie_secure = 1</td>
+                            <td>전체 사이트 HTTPS 강제, 쿠키에 Secure 플래그 설정</td>
+                            <td>세션 ID 및 데이터 전송 중 가로채기 방지</td>
+                        </tr>
+                        <tr>
+                            <td>세션 ID 재발급</td>
+                            <td>session_regenerate_id(true)</td>
+                            <td>로그인 성공 시, 권한 변경 시 호출</td>
+                            <td>세션 고정 공격 방지</td>
+                        </tr>
+                        <tr>
+                            <td>HttpOnly 플래그</td>
+                            <td>session.cookie_httponly = 1</td>
+                            <td>true (활성화)</td>
+                            <td>클라이언트 측 스크립트(XSS)에 의한 세션 쿠키 탈취 방지</td>
+                        </tr>
+                        <tr>
+                            <td>Secure 플래그</td>
+                            <td>session.cookie_secure = 1</td>
+                            <td>true (활성화, HTTPS 환경에서만)</td>
+                            <td>HTTP를 통한 세션 쿠키 전송 방지</td>
+                        </tr>
+                        <tr>
+                            <td>세션 생명주기</td>
+                            <td>session.gc_maxlifetime, session_set_cookie_params()</td>
+                            <td>애플리케이션 특성에 맞는 적절한 타임아웃 설정 (예: 1440초 - 24분)</td>
+                            <td>비활성 세션 탈취 위험 감소</td>
+                        </tr>
+                        <tr>
+                            <td>로그아웃 절차</td>
+                            <td>session_unset(), session_destroy(), 쿠키 만료 처리</td>
+                            <td>모든 세션 데이터 제거 및 서버/클라이언트 측 세션 정보 완전 파기</td>
+                            <td>로그아웃 후 세션 재사용 또는 정보 노출 방지</td>
+                        </tr>
+                        <tr>
+                            <td>세션 ID 엔트로피</td>
+                            <td>session.sid_length, session.sid_bits_per_character</td>
+                            <td>PHP 기본값 권장 (충분히 강력함)</td>
+                            <td>세션 ID 추측 난이도 증가</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="file-handling" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">5. 안전한 파일 처리: 업로드, 다운로드 및 저장</h2>
+
+            <div id="file-upload" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">5.1. 안전한 파일 업로드 - 다층적 접근 방식</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-3">
+                    <li><strong>클라이언트 측 유효성 검사 (참고용):</strong> 파일 형식이나 크기에 대한 클라이언트 측 검사(예: JavaScript 사용)는 사용자 경험(UX)을 향상시킬 수 있지만, 쉽게 우회될 수 있으므로 보안 수단으로 간주해서는 안 된다.</li>
+                    <li><strong>서버 측 유효성 검사 (필수):</strong>
+                        <ul class="list-circle list-inside ml-4 mt-2 space-y-1 text-gray-400">
+                            <li>파일 형식 화이트리스트: 블랙리스트 방식 대신, 허용된 파일 확장자 목록(예: 사이니지용 .jpg, .png, .mp4, .pdf)을 엄격하게 정의해야 한다. 이는 알려지지 않은 모든 잠재적 악성 확장자를 나열하려는 시도보다 훨씬 안전하다.</li>
+                            <li>MIME 타입 검증: PHP 확장 프로그램 섹션에서 언급된 <code>php-finfo</code>를 사용하여 파일 확장자뿐만 아니라 파일의 실제 내용을 검증해야 한다. 이는 공격자가 .php 파일을 .jpg로 이름을 바꿔 업로드하는 것을 방지하는 데 도움이 된다.</li>
+                            <li>파일 크기 제한: 서비스 거부(DoS) 공격이나 디스크 공간 고갈을 방지하기 위해 php.ini (<code>upload_max_filesize</code>, <code>post_max_size</code>)와 PHP 스크립트 양쪽에서 엄격한 파일 크기 제한을 적용해야 한다.</li>
+                        </ul>
+                    </li>
+                    <li><strong>파일명 정제:</strong>
+                        <ul class="list-circle list-inside ml-4 mt-2 space-y-1 text-gray-400">
+                            <li>디렉토리 탐색(directory traversal) 공격 및 기타 악용을 방지하기 위해 파일명에서 특수 문자, 경로 탐색 시퀀스(../), 널 바이트 등을 제거하거나 대체해야 한다.</li>
+                            <li>덮어쓰기를 방지하고 공격자가 파일 위치를 추측하기 어렵게 만들기 위해 저장되는 파일에는 새롭고, 고유하며, 무작위적인 이름(예: UUID 또는 파일 내용 해시 + 타임스탬프)을 생성해야 한다. 원본 파일명은 필요한 경우 데이터베이스에 저장한다.</li>
+                        </ul>
+                        <p class="text-gray-400 ml-4 mt-2">파일 확장자 화이트리스트만으로는 충분하지 않다. 공격자는 <code>shell.php.jpg</code>와 같은 파일을 업로드하여 .jpg 화이트리스트를 통과할 수 있다. <code>php-finfo</code>를 사용한 MIME 타입 검증은 해당 파일이 실제 JPEG가 아님을 밝혀낼 수 있다. 저장 파일명을 무작위화하고(예: <code>uuid.dat</code>) 모든 확장자를 제거하면 악성 파일이 시스템에 침투하더라도 서버는 파일명만으로는 해당 파일을 실행하는 방법을 알 수 없게 된다. 원본 파일명과 실제 MIME 타입은 올바른 헤더와 함께 서비스를 제공하기 위해 데이터베이스에 저장된다. 이러한 계층적 접근 방식은 업로드 프로세스를 크게 강화한다.</p>
+                    </li>
+                    <li><strong>안전한 저장 위치:</strong>
+                        <ul class="list-circle list-inside ml-4 mt-2 space-y-1 text-gray-400">
+                            <li>업로드된 파일은 웹 문서 루트 디렉토리(예: <code>/var/www/html</code>) 외부에 저장해야 한다. 이는 매우 중요한 보안 조치이다. 파일이 웹 루트 내에 있으면 서버 설정 오류로 인해 파일이 직접 접근되거나 웹 서버에 의해 실행될 수 있다. <code>/var/signage_uploads/</code>와 같은 별도의 디렉토리가 적절하다. 웹 루트 외부에 파일을 저장하는 것은 직접적인 무단 접근 및 실행을 방지하는 가장 효과적인 단일 아키텍처 결정이다. 업로드된 파일, 특히 잠재적으로 실행 가능한 확장자를 가진 파일(이름이 변경된 경우라도)이 Nginx에 의해 직접 제공되는 디렉토리(예: <code>/var/www/html</code> 아래)에 있는 경우, Nginx 설정 오류(예: 업로드 폴더에서 실수로 PHP 실행 허용)나 공격자가 파일명을 추측할 수 있는 취약점으로 인해 악성 코드가 직접 실행될 수 있다. 파일을 웹 루트 외부로 옮기면 Nginx가 직접 파일을 제공할 수 없게 된다. 접근은 반드시 인증 및 권한 부여를 시행할 수 있는 애플리케이션 스크립트(PHP)를 통해 중재되어야 한다.</li>
+                        </ul>
+                    </li>
+                     <li><strong>안전한 파일 권한:</strong>
+                        <ul class="list-circle list-inside ml-4 mt-2 space-y-1 text-gray-400">
+                            <li>업로드 디렉토리에 제한적인 권한을 설정해야 한다 (예: <code>0750</code> 또는 Nginx/PHP-FPM이 동일 그룹 내 다른 사용자로 실행되는 경우 <code>0770</code>. 웹 서버 프로세스는 쓰기 가능하지만 실행 불가능하도록 하고, 다른 사용자는 접근 권한이 없도록 한다).</li>
+                            <li>업로드된 파일의 권한은 실행 불가능하도록 설정한다 (예: <code>0640</code> 또는 <code>0660</code>).</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div id="file-download" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">5.2. 안전한 파일 다운로드</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>PHP 중재 접근:</strong> 웹 루트 외부에 저장된 파일은 직접 다운로드할 수 없다. PHP 스크립트가 중재자 역할을 해야 한다. PHP 스크립트는 먼저 인증(사용자가 로그인했는지?)과 권한 부여(이 사용자가 이 특정 파일을 다운로드할 권한이 있는지, 승인 상태에 따라 결정될 수 있음)를 수행해야 한다.</li>
+                    <li><strong>Nginx X-Accel-Redirect (성능 및 보안을 위해 강력히 권장):</strong>
+                        <p class="text-gray-400 ml-4 mt-1">개념: PHP가 다운로드를 인증하고 권한을 부여한 후, PHP가 대용량 파일을 메모리로 읽어 스트리밍하는 대신(비효율적이고 리소스 집약적임), Nginx에 특별한 <code>X-Accel-Redirect</code> 헤더를 전송할 수 있다. 이 헤더는 Nginx에게 내부 위치에서 특정 파일을 제공하도록 지시한다. PHP는 로직 처리(인증, 권한 부여, 승인 상태 확인)에는 뛰어나지만, Nginx에 비해 대용량 정적 파일 제공에는 상대적으로 비효율적이다. PHP가 대용량 파일을 읽고 출력하면 다운로드 시간 동안 PHP-FPM 워커를 점유하게 된다. <code>X-Accel-Redirect</code>는 PHP가 보안 결정을 내린 후 파일 전송이라는 무거운 작업을 Nginx에 위임하도록 하여, 특히 동시 다운로드 시 서버 리소스 활용도를 높이고 클라이언트에게 더 빠른 다운로드를 제공한다.</p>
+                        <p class="text-gray-400 ml-4 mt-2 font-semibold">Nginx 설정:</p>
+                        <p class="text-gray-400 ml-6">Nginx 설정 파일에 URI 접두사(예: <code>/internal_signage_files/</code>)를 파일이 실제로 저장된 디렉토리(웹 루트 외부)에 매핑하는 <code>internal</code> 로케이션 블록을 <code>alias</code> 지시어를 사용하여 정의한다.</p>
+                        <pre class="ml-6 mt-1"><code class="language-nginx">location /internal_signage_files/ {
+    internal; # 외부에서 직접 접근 불가
+    alias /var/signage_uploads/; # 실제 파일 저장 경로
+}</code></pre>
+                        <p class="text-gray-400 ml-4 mt-2 font-semibold">PHP 스크립트 예시:</p>
+                        <pre class="ml-6 mt-1"><code class="language-php">&lt;?php
+// 사용자 인증 및 파일 접근 권한 확인 후
+$stored_filename = "unique_random_filename.mp4"; // DB에서 조회
+$original_filename = "original_video_name.mp4"; // DB에서 조회
+$file_mime_type = "video/mp4"; // DB에서 조회
+
+$filePath = '/internal_signage_files/' . $stored_filename;
+
+header('X-Accel-Redirect: ' . $filePath);
+header('Content-Type: ' . $file_mime_type);
+header('Content-Disposition: attachment; filename="' . $original_filename . '"');
+exit;
+?&gt;</code></pre>
+                        <p class="text-gray-400 ml-4 mt-2">이점: Nginx가 파일 스트리밍을 효율적으로 처리하여 PHP 프로세스를 확보한다. 파일은 Nginx 로케이션이 <code>internal</code>이므로 보호된 상태로 유지된다.</p>
+                    </li>
+                    <li><strong>대안 (덜 효율적): PHP readfile():</strong> <code>X-Accel-Redirect</code>를 사용하지 않는 경우, PHP는 <code>readfile()</code> 함수를 사용하여 파일을 스트리밍할 수 있지만, 대용량 파일에는 성능이 저하된다. 적절한 헤더(<code>Content-Type</code>, <code>Content-Disposition</code>, <code>Content-Length</code>) 설정이 필수적이다.</li>
+                </ul>
+            </div>
+            
+            <div id="table-4" class="overflow-x-auto">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">표 4: 파일 업로드 보안 모범 사례 체크리스트</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>실천 항목</th>
+                            <th>구현 세부 사항</th>
+                            <th>중요성</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>서버 측 유효성 검사 (타입, MIME, 크기)</td>
+                            <td>확장자 화이트리스트, php-finfo로 MIME 타입 검증, php.ini 및 스크립트에서 크기 제한</td>
+                            <td>악성 파일 업로드 및 DoS 공격 방지</td>
+                        </tr>
+                        <tr>
+                            <td>파일명 정제 및 무작위화</td>
+                            <td>특수 문자 제거, 경로 탐색 방지, 저장 시 UUID 또는 해시 기반 새 이름 생성</td>
+                            <td>디렉토리 탐색, 파일 덮어쓰기, 예측 가능한 URL 방지</td>
+                        </tr>
+                        <tr>
+                            <td>웹 루트 외부 저장</td>
+                            <td>업로드 디렉토리를 /var/www/html 외부 (예: /var/signage_uploads/)에 위치</td>
+                            <td>웹 서버를 통한 직접 파일 접근 및 실행 방지</td>
+                        </tr>
+                        <tr>
+                            <td>안전한 파일 권한</td>
+                            <td>업로드 디렉토리(예: 0750), 파일(예: 0640)에 실행 권한 없이 최소 권한 부여</td>
+                            <td>무단 파일 실행 및 수정 방지</td>
+                        </tr>
+                        <tr>
+                            <td>php-finfo 사용</td>
+                            <td>파일 내용(매직 바이트)을 분석하여 실제 MIME 타입 확인</td>
+                            <td>위장된 악성 파일(예: malware.php.jpg) 탐지</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="approval-workflow" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">6. 승인 워크플로우 구현</h2>
+
+            <div id="approval-overview" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">6.1. 개념적 개요</h3>
+                <p class="text-gray-300 leading-relaxed">승인 워크플로우는 디지털 사이니지에 콘텐츠가 표시되기 전에 품질, 규정 준수 또는 적절성을 보장하기 위해 필요하다. 기본적인 상태는 'Pending'(대기), 'Approved'(승인), 'Rejected'(거부)로 나눌 수 있으며, 'Uploader'(파일 제출자)와 'Approver'(검토 및 상태 변경자) 역할이 존재한다.</p>
+                <div class="flow-diagram mt-4">
+                    <div class="flow-box">Uploader: 파일 제출</div>
+                    <div class="flow-arrow" data-label="파일 상태: Pending"></div>
+                    <div class="flow-box">Approver: 파일 검토</div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-horizontal-container">
+                        <div class="flex flex-col items-center">
+                             <div class="flow-box">결정: 승인</div>
+                             <div class="flow-arrow" data-label="파일 상태: Approved"></div>
+                             <div class="flow-box">콘텐츠 게시 가능</div>
+                        </div>
+                        <div class="flow-arrow-right mx-4 hidden md:block" data-label="또는"></div>
+                         <div class="md:hidden flow-arrow my-2" data-label="또는"></div>
+                        <div class="flex flex-col items-center">
+                            <div class="flow-box">결정: 거부</div>
+                            <div class="flow-arrow" data-label="파일 상태: Rejected"></div>
+                            <div class="flow-box">Uploader에게 알림/수정 요청</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="approval-db" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">6.2. 데이터베이스 연동</h3>
+                <p class="text-gray-300 leading-relaxed">섹션 2에서 정의한 <code class="text-green-300">Approval_Workflow</code> 테이블 스키마를 참조한다. 이 테이블은 파일과 해당 파일의 승인 상태, 승인자, 타임스탬프를 연결하여 감사 추적 기능을 제공한다.</p>
+            </div>
+
+            <div id="approval-php-logic" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">6.3. PHP 기반 로직 (프레임워크 미사용 시)</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>상태 관리:</strong> PHP 스크립트는 <code class="text-green-300">Approval_Workflow</code> 테이블의 <code class="text-green-300">status</code> 필드를 관리한다.</li>
+                    <li><strong>사용자 인터페이스 (관리자 패널):</strong>
+                        <ul class="list-circle list-inside ml-4 mt-1 space-y-1 text-gray-400">
+                            <li>관리자 패널 내에 승인 대기 중인 파일 목록을 표시하는 섹션을 마련한다.</li>
+                            <li>승인자는 파일 세부 정보(가능하고 안전하다면 미리보기 포함)를 볼 수 있어야 한다.</li>
+                            <li>파일을 '승인' 또는 '거부'하는 버튼을 제공한다.</li>
+                            <li>거부 시에는 사유를 입력할 수 있는 코멘트 필드를 제공한다.</li>
+                        </ul>
+                    </li>
+                    <li><strong>역할 기반 접근 제어 (RBAC):</strong> PHP 애플리케이션은 승인 작업을 허용하기 전에 사용자 역할(<code class="text-green-300">Users</code> 테이블 또는 세션에서 가져옴)을 확인해야 한다. 'Approver' 역할을 가진 사용자만 승인 기능을 보거나 사용할 수 있어야 한다. 승인 워크플로우는 사용자 역할 및 권한과 본질적으로 연결되어 있다. 효과적인 승인 시스템은 누가 파일을 제출할 수 있고 누가 승인할 수 있는지 명확하게 정의해야 하며, 이는 RBAC 시스템을 필요로 한다.</li>
+                    <li><strong>알림 (선택 사항이지만 권장):</strong> 파일 상태가 변경될 때 업로더에게, 또는 새 파일 검토가 필요할 때 승인자에게 이메일 알림을 보내는 것을 고려할 수 있다 (PHP의 <code class="text-green-300">mail()</code> 함수 또는 PHPMailer와 같은 라이브러리 사용).</li>
+                </ul>
+            </div>
+            
+            <div id="approval-framework" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">6.4. PHP 프레임워크 활용 (확장성/추가 기능 고려 시)</h3>
+                <p class="text-gray-300 leading-relaxed mb-2"><strong>간략 소개:</strong> Laravel이나 Symfony와 같은 프레임워크는 워크플로우 구현을 단순화할 수 있다.</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>Laravel:</strong> <code class="text-green-300">ringlesoft/laravel-process-approval</code>과 같은 패키지는 다단계 승인, 역할 통합, 이벤트 알림 등 강력하고 설정 가능한 승인 워크플로우 기능을 즉시 제공한다. 승인 프로세스가 복잡하거나 향후 복잡해질 가능성이 있다면 상당한 시간을 절약할 수 있다. 단순한 단일 단계 승인(승인자 1명, 승인/거부)의 경우 데이터베이스 스키마에 연결된 맞춤형 PHP 로직으로도 충분히 구현 가능하지만, 다단계 승인, 파일 유형별 다른 승인자, 조건부 로직 또는 상세한 감사 추적이 필요한 경우 전용 워크플로우 패키지나 Symfony와 같은 강력한 프레임워크 기반 구축이 훨씬 효율적이고 유지 관리가 용이하다.</li>
+                    <li><strong>Symfony:</strong> 컴포넌트 기반 특성과 강력한 보안 기능 덕분에 맞춤형 복잡한 워크플로우 구축에 적합하다.</li>
+                    <li><strong>일반 워크플로우 라이브러리:</strong> 일부 일반 PHP 워크플로우 라이브러리도 존재하지만, 프레임워크별 패키지나 맞춤 코드가 더 통합적인 경우가 많다.</li>
+                </ul>
+            </div>
+
+            <div id="approval-uiux" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">6.5. 승인을 위한 관리자 대시보드 UI/UX</h3>
+                <p class="text-gray-300 leading-relaxed">관리자 UI는 대기 중인 파일, 업로더, 업로드 시점을 명확하게 표시해야 하며, 승인/거부를 위한 간편한 작업을 제공하고 승인/거부된 파일의 이력을 보여주어야 한다. 파일의 "승인됨" 상태는 해당 파일이 사이니지 클라이언트를 통해 다운로드되거나 표시될 수 있는지 여부에 직접적인 영향을 미친다. 안드로이드 클라이언트 애플리케이션은 표시할 파일 목록을 가져올 때(서버의 API 엔드포인트를 통해) <code class="text-green-300">Approval_Workflow</code> 테이블의 <code class="text-green-300">status</code>를 기준으로 파일을 필터링해야 한다. '승인됨'으로 표시된 파일만 사이니지 클라이언트에 제공되어야 한다. 마찬가지로, 섹션 5의 보안 다운로드 메커니즘도 정책에 따라 인증된 관리자 사용자에게라도 다운로드를 허용하기 전에 이 상태를 확인해야 한다.</p>
+            </div>
+
+            <div id="table-5" class="overflow-x-auto">
+                 <h3 class="text-2xl font-semibold text-blue-300 mb-3">표 5: 승인 워크플로우 로직 구성 요소</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>구성 요소</th>
+                            <th>설명</th>
+                            <th>주요 PHP/DB 요소</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>파일 제출</td>
+                            <td>사용자가 파일을 시스템에 업로드하고 승인 대기 상태로 설정</td>
+                            <td>Files 테이블에 레코드 생성, Approval_Workflow 테이블에 'pending' 상태로 레코드 생성</td>
+                        </tr>
+                        <tr>
+                            <td>대기열 표시</td>
+                            <td>관리자(승인자)에게 승인 대기 중인 파일 목록 표시</td>
+                            <td>Approval_Workflow 테이블에서 'pending' 상태인 파일 조회 및 표시</td>
+                        </tr>
+                        <tr>
+                            <td>승인 조치 (승인/거부)</td>
+                            <td>승인자가 파일을 검토하고 승인 또는 거부 결정을 내림</td>
+                            <td>사용자 입력(버튼 클릭), 역할 기반 접근 제어(RBAC) 확인</td>
+                        </tr>
+                        <tr>
+                            <td>DB 상태 업데이트</td>
+                            <td>승인 조치에 따라 Approval_Workflow 테이블의 상태, 승인자, 타임스탬프 업데이트</td>
+                            <td>UPDATE SQL 쿼리 실행</td>
+                        </tr>
+                        <tr>
+                            <td>알림 (선택)</td>
+                            <td>파일 상태 변경 시 업로더 또는 다음 승인자에게 알림 발송</td>
+                            <td>PHP mail() 함수 또는 이메일 라이브러리 사용</td>
+                        </tr>
+                        <tr>
+                            <td>역할 검사</td>
+                            <td>특정 작업을 수행하려는 사용자가 적절한 역할을 가지고 있는지 확인</td>
+                            <td>Users 테이블의 role 필드 또는 세션 정보 확인</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <section id="security-hardening" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">7. 서버 및 애플리케이션 보안 강화</h2>
+
+            <div id="security-https" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">7.1. HTTPS를 통한 웹 트래픽 보안 (Let's Encrypt)</h3>
+                <p class="text-gray-300 leading-relaxed mb-2"><strong>중요성:</strong> 클라이언트(안드로이드 앱/관리자 브라우저)와 서버 간에 전송되는 데이터를 암호화하여 로그인 정보, 세션 쿠키, 파일 데이터를 보호한다. 보안 및 사용자 신뢰에 필수적이다. HTTPS가 없다면 로그인 정보, 세션 ID, 심지어 파일 내용(적절히 X-Accel-Redirect를 사용하지 않는 경우)과 같은 민감한 데이터가 평문으로 전송되어 중간자 공격에 취약해진다. 방화벽 규칙(UFW)과 WAF(ModSecurity)는 보호하거나 검사하는 데이터가 서버까지 비밀로 유지된다는 가정 하에 작동한다. 전송 계층이 안전하지 않으면 다른 보안 도구의 효과가 심각하게 저하된다.</p>
+                <p class="text-gray-300 leading-relaxed mb-2"><strong>Certbot 및 Nginx:</strong> Certbot을 사용하여 Nginx 서버용 Let's Encrypt의 무료 SSL/TLS 인증서를 자동으로 발급받고 갱신한다.</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4">
+                    <li><strong>설치:</strong> <code class="text-green-300">sudo apt install certbot python3-certbot-nginx</code></li>
+                    <li><strong>인증서 발급:</strong> <code class="text-green-300">sudo certbot --nginx -d your_domain.com</code>. Certbot이 HTTPS를 위해 Nginx 설정을 수정한다.</li>
+                    <li><strong>자동 갱신:</strong> Certbot은 자동 갱신을 위해 cron 작업/systemd 타이머를 설정한다. <code class="text-green-300">sudo certbot renew --dry-run</code>으로 확인할 수 있다.</li>
+                </ul>
+            </div>
+
+            <div id="security-ufw" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">7.2. UFW (Uncomplicated Firewall) 설정</h3>
+                <p class="text-gray-300 leading-relaxed mb-2"><strong>목적:</strong> 서버로 들어오고 나가는 네트워크 트래픽을 제어하는 호스트 기반 방화벽이다.</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4">
+                    <li><strong>기본 정책:</strong> 기본 수신 정책을 <code>deny</code>로, 발신 정책을 <code>allow</code>로 설정한다.</li>
+                    <li><strong>필수 서비스 허용:</strong>
+                        <ul class="list-circle list-inside ml-4 mt-1 space-y-1 text-gray-400">
+                            <li><code class="text-green-300">sudo ufw allow ssh</code> (또는 사용자 지정 SSH 포트)</li>
+                            <li><code class="text-green-300">sudo ufw allow http</code> (또는 'Nginx HTTP')</li>
+                            <li><code class="text-green-300">sudo ufw allow https</code> (또는 'Nginx HTTPS' / 'Nginx Full')</li>
+                        </ul>
+                    </li>
+                    <li><strong>UFW 활성화:</strong> <code class="text-green-300">sudo ufw enable</code>.</li>
+                </ul>
+            </div>
+
+            <div id="security-waf" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">7.3. 웹 애플리케이션 방화벽 (WAF)</h3>
+                <p class="text-gray-300 leading-relaxed mb-2"><strong>목적:</strong> HTTP/S 트래픽을 검사하여 일반적인 웹 애플리케이션 공격(SQL 인젝션, XSS, RFI 등)으로부터 보호한다. 개발자가 안전한 코드를 작성하려 노력하더라도 취약점(예: 처리되지 않은 SQL 인젝션 벡터)은 여전히 존재할 수 있다. OWASP CRS와 같은 포괄적인 규칙 세트를 사용하는 WAF는 많은 일반적인 공격 패턴을 PHP 애플리케이션에 도달하기 전에 탐지하고 차단할 수 있다. 이는 특히 제로데이 공격이나 취약점 공개와 맞춤형 PHP 코드에 패치가 적용될 수 있는 시간 사이의 기간 동안 중요한 방어 계층을 제공한다.</p>
+                <p class="text-gray-300 leading-relaxed mb-2"><strong>Nginx와 ModSecurity:</strong></p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4">
+                    <li><strong>ModSecurity:</strong> 오픈소스 WAF 엔진.</li>
+                    <li><strong>설치:</strong> ModSecurity 라이브러리 및 Nginx 커넥터 모듈 설치가 필요하며, 종종 소스에서 컴파일하거나 특정 저장소를 사용해야 하므로 복잡할 수 있다.</li>
+                    <li><strong>OWASP Core Rule Set (CRS):</strong> ModSecurity를 위한 무료 오픈소스 일반 공격 탐지 규칙 세트. 강력히 권장된다.
+                        <ul class="list-circle list-inside ml-4 mt-1 space-y-1 text-gray-400">
+                            <li>GitHub에서 CRS 다운로드.</li>
+                            <li>ModSecurity가 <code>crs-setup.conf.example</code> (이름을 <code>crs-setup.conf</code>로 변경) 및 규칙 파일을 로드하도록 설정.</li>
+                            <li>필요에 따라 편집증 수준(paranoia level)을 조정하고 오탐(false positive)을 처리한다.</li>
+                        </ul>
+                    </li>
+                    <li><strong>기타 Nginx WAF 옵션:</strong> Nginx는 NGINX App Protect와 같은 상용 WAF 솔루션을 제공하며, 클라우드 제공업체도 WAF 서비스를 제공하지만, ModSecurity와 OWASP CRS는 강력한 오픈소스 출발점이다.</li>
+                </ul>
+                <p class="text-gray-300 leading-relaxed mt-3">UFW와 ModSecurity는 서로 다른 공격 벡터를 처리하며 상호 보완적이다. UFW는 네트워크 계층(L3/L4)에서 작동하여 IP 주소와 포트를 기반으로 접근을 제어하고 불필요한 서비스 노출을 방지한다. 반면 ModSecurity는 애플리케이션 계층(L7)에서 작동하여 HTTP 요청 및 응답 내용을 검사하여 악성 페이로드를 찾는다. UFW는 불필요한 포트로의 연결 시도를 차단할 수 있지만, ModSecurity는 포트 443을 통한 합법적인 HTTPS 연결을 통해 시도되는 SQL 인젝션을 차단할 수 있다. 심층 방어 전략에는 두 가지 모두 필요하다.</p>
+            </div>
+
+            <div id="security-updates" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">7.4. 정기적인 시스템 업데이트</h3>
+                <p class="text-gray-300 leading-relaxed">Ubuntu 패키지(Nginx, PHP, 데이터베이스 포함)를 최신 상태로 유지하는 것의 중요성을 강조한다: <code class="text-green-300">sudo apt update && sudo apt upgrade</code>.</p>
+            </div>
+
+            <div id="table-6" class="overflow-x-auto">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">표 6: 보안 계층 비교</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>보안 계층</th>
+                            <th>도구 예시</th>
+                            <th>보호 초점</th>
+                            <th>주요 이점</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>HTTPS (전송 계층)</td>
+                            <td>Let's Encrypt, Nginx SSL 설정</td>
+                            <td>전송 중 데이터 암호화</td>
+                            <td>데이터 가로채기 방지, 사용자 신뢰도 향상</td>
+                        </tr>
+                        <tr>
+                            <td>UFW (네트워크 방화벽)</td>
+                            <td>ufw 명령어</td>
+                            <td>IP 주소 및 포트 기반 접근 제어</td>
+                            <td>불필요한 서비스 노출 차단, 네트워크 수준 공격 방어</td>
+                        </tr>
+                        <tr>
+                            <td>WAF (애플리케이션 방화벽)</td>
+                            <td>ModSecurity + OWASP CRS</td>
+                            <td>HTTP/S 트래픽 내용 검사, 웹 공격 방어</td>
+                            <td>SQL 인젝션, XSS 등 애플리케이션 취약점 악용 시도 차단, 제로데이 공격 방어</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="logging-monitoring" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">8. 로깅 및 모니터링</h2>
+
+            <div id="log-nginx" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">8.1. Nginx 로깅</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>Access Logs (접근 로그):</strong> Nginx 서버에 대한 모든 요청을 기록한다. 기본 위치는 종종 <code>/var/log/nginx/access.log</code>이다. <code>nginx.conf</code> 또는 서버 블록의 <code>access_log</code> 지시어로 설정한다.</li>
+                    <li><strong>Error Logs (오류 로그):</strong> Nginx 오류 및 진단 정보를 기록한다. 기본 위치는 종종 <code>/var/log/nginx/error.log</code>이다. <code>error_log</code> 지시어로 설정하며, 로그 수준(예: warn, error, crit)을 지정할 수 있다.</li>
+                    <li><strong>Custom Log Formats (사용자 정의 로그 형식):</strong> Nginx는 <code>log_format</code>을 사용하여 <code>$request_time</code>, <code>$upstream_response_time</code> 등 특정 정보를 포함하는 사용자 정의 로그 형식을 정의할 수 있도록 허용한다.</li>
+                </ul>
+            </div>
+
+            <div id="log-phpfpm" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">8.2. PHP-FPM 로깅</h3>
+                 <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>Error Logging (오류 로깅):</strong> PHP-FPM은 PHP 스크립트에서 발생하는 오류를 기록한다. 주 PHP 오류 로그 위치는 php.ini의 <code>error_log</code>에 의해 설정된다.
+                        <ul class="list-circle list-inside ml-4 mt-1 space-y-1 text-gray-400">
+                            <li>PHP-FPM의 경우, 풀(pool)별 오류 로그는 풀 설정 파일(예: <code>/etc/php/X.Y/fpm/pool.d/www.conf</code>)에서 설정할 수 있다. <code>php_admin_value[error_log]</code> 및 <code>php_admin_flag[log_errors]</code>와 같은 지시어를 사용할 수 있다.</li>
+                            <li>FPM 풀 설정에서 <code>catch_workers_output = yes</code>는 워커의 stdout/stderr(예: 스크립트의 echo, var_dump 등, 억제되지 않은 경우)를 주 FPM 오류 로그로 리디렉션하여 디버깅에 유용할 수 있다.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Slow Log (느린 요청 로그):</strong> PHP-FPM은 특정 실행 시간을 초과하는 요청을 기록하여(<code>request_slowlog_timeout</code>), 성능 병목 현상을 식별하는 데 도움을 줄 수 있다. Nginx 로그는 느린 <code>$request_time</code>을 보여줄 수 있지만, PHP 내에서 요청이 왜 느렸는지 정확히 지적하지는 못한다. PHP-FPM의 slowlog는 정의된 시간 초과를 초과하는 요청에 대한 PHP 백트레이스를 제공하여 개발자가 병목 현상을 일으키는 특정 PHP 함수, 데이터베이스 쿼리 또는 외부 API 호출을 직접 식별하는 데 도움을 준다.</li>
+                </ul>
+            </div>
+
+            <div id="log-journald" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">8.3. Ubuntu 시스템 로그 (journald)</h3>
+                <p class="text-gray-300 leading-relaxed mb-2">현대 Ubuntu는 중앙 집중식 로깅을 위해 systemd-journald를 사용한다. systemd 서비스로 실행되는 Nginx 및 PHP-FPM 서비스도 표준 출력 및 오류 스트림을 저널로 보낸다. <code>/var/log/nginx/error.log</code> 및 <code>/var/log/phpX.Y-fpm.log</code>와 같은 개별 파일을 즉시 추적하는 대신, <code class="text-green-300">journalctl -u &lt;service_name&gt;</code>은 systemd 관리 서비스의 가장 관련성 높은 시작 오류 또는 중요한 운영 메시지를 포착하는 경우가 많다. 이는 서비스 시작 실패 또는 오작동 원인을 진단하는 데 더 빠를 수 있으며, 서비스 자체에 문제가 있는 경우 기록되지 않을 수 있는 애플리케이션별 로그 파일을 살펴보기 전에 유용하다.</p>
+                <p class="text-gray-300 leading-relaxed"><code>journalctl</code>을 사용하여 로그를 볼 수 있다:</p>
+                <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4">
+                    <li><code class="text-green-300">journalctl -u nginx.service</code> (Nginx용)</li>
+                    <li><code class="text-green-300">journalctl -u phpX.Y-fpm.service</code> (PHP-FPM용)</li>
+                    <li><code>-f</code> (실시간 추적), <code>--since</code>, <code>--until</code>과 같은 플래그가 유용하다.</li>
+                </ul>
+            </div>
+
+            <div id="log-tools" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">8.4. 로그 분석 도구</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>GoAccess:</strong> 터미널에서 실행되거나 HTML 보고서를 생성하는 실시간 웹 로그 분석기. 빠른 Nginx 접근 로그 분석에 좋다.</li>
+                    <li><strong>ELK Stack (Elasticsearch, Logstash, Kibana) / Sematext Logs / Datadog:</strong> 여러 소스의 로그를 집계하고 시각화하기 위한 고급 중앙 집중식 로깅 및 분석 솔루션. 초기 단일 서버에는 과할 수 있지만 향후 확장을 위해 알아두면 좋다.</li>
+                </ul>
+            </div>
+
+            <div id="log-monitoring-tools" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">8.5. 기본 시스템 모니터링 도구</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>htop:</strong> 대화형 프로세스 뷰어로, 프로세스별 실시간 CPU/메모리 사용량을 확인하는 데 유용하다. <code class="text-green-300">sudo apt install htop</code>으로 설치한다.</li>
+                    <li><strong>atop:</strong> 장기 분석을 위해 성능 데이터를 기록할 수도 있는 고급 시스템 및 프로세스 모니터. <code class="text-green-300">sudo apt install atop</code>으로 설치한다.</li>
+                    <li><strong>Netdata:</strong> 웹 기반 대시보드를 갖춘 실시간 성능 모니터링 도구. CPU, 메모리, 디스크, 네트워크, Nginx, PHP 등에 대한 상세 지표를 제공한다. 일반적으로 웹사이트에서 제공하는 한 줄 스크립트나 <code class="text-green-300">apt install netdata</code>를 통해 설치한다. 원격으로 대시보드에 접근하려면 bind socket to IP를 설정하고 UFW에서 포트 19999를 열어야 한다.</li>
+                </ul>
+                <p class="text-gray-300 leading-relaxed mt-3">효과적인 모니터링은 여러 도구의 지표를 상호 연관시켜야 한다 (예: 시스템 부하를 위한 atop, 요청 패턴을 위한 Nginx 로그, 애플리케이션 문제를 위한 PHP 느린 로그). 느린 사용자 경험은 높은 서버 CPU 부하(atop/htop에서 확인 가능), Nginx 설정 문제(Nginx 오류 로그에서 확인 가능), 또는 비효율적인 PHP 코드(PHP 느린 로그로 식별 가능) 때문일 수 있다. 단일 로그나 도구만으로는 전체 상황을 파악할 수 없다. 시스템 리소스 사용률(atop), 웹 서버 요청 처리(Nginx 접근/오류 로그), 애플리케이션 성능(PHP-FPM 오류/느린 로그)을 함께 살펴보는 것이 복잡한 문제를 진단하는 핵심이다. Netdata는 이러한 정보 중 일부를 통합하려고 시도한다.</p>
+            </div>
+
+            <div id="table-7" class="overflow-x-auto">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">표 7: 로깅 및 모니터링 도구 개요</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>도구/로그 유형</th>
+                            <th>목적</th>
+                            <th>주요 명령어/설정</th>
+                            <th>일반적인 사용 사례</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Nginx 접근 로그</td>
+                            <td>모든 웹 요청 기록</td>
+                            <td>/var/log/nginx/access.log, access_log 지시어 (nginx.conf)</td>
+                            <td>트래픽 분석, 사용자 행동 추적, 4xx/5xx 오류 식별</td>
+                        </tr>
+                        <tr>
+                            <td>Nginx 오류 로그</td>
+                            <td>Nginx 서버 오류 및 진단 정보 기록</td>
+                            <td>/var/log/nginx/error.log, error_log 지시어, 로그 레벨 설정</td>
+                            <td>Nginx 설정 오류, 연결 문제, 업스트림 오류 진단</td>
+                        </tr>
+                        <tr>
+                            <td>PHP-FPM 오류 로그</td>
+                            <td>PHP 스크립트 실행 중 발생한 오류 기록</td>
+                            <td>php.ini의 error_log, FPM 풀 설정의 php_admin_value[error_log]</td>
+                            <td>PHP 코드 버그, 경고, 치명적 오류 식별</td>
+                        </tr>
+                        <tr>
+                            <td>PHP-FPM 느린 로그</td>
+                            <td>설정된 시간 이상 소요된 PHP 요청 기록</td>
+                            <td>FPM 풀 설정의 request_slowlog_timeout, slowlog</td>
+                            <td>PHP 애플리케이션 성능 병목 구간(느린 함수, DB 쿼리) 식별</td>
+                        </tr>
+                        <tr>
+                            <td>journalctl</td>
+                            <td>systemd 서비스(Nginx, PHP-FPM 등)의 중앙 집중식 로그 뷰어</td>
+                            <td>journalctl -u &lt;service_name&gt;, -f, --since</td>
+                            <td>서비스 시작/중지 문제, 시스템 수준 이벤트 확인</td>
+                        </tr>
+                        <tr>
+                            <td>htop</td>
+                            <td>실시간 대화형 프로세스 및 시스템 리소스 모니터</td>
+                            <td>htop 실행</td>
+                            <td>현재 CPU/메모리 사용량 과다 프로세스 즉시 확인</td>
+                        </tr>
+                        <tr>
+                            <td>atop</td>
+                            <td>고급 시스템 및 프로세스 모니터, 과거 성능 데이터 로깅 가능</td>
+                            <td>atop 실행, 로그 파일 분석</td>
+                            <td>실시간 모니터링 및 과거 특정 시점의 시스템 상태 분석</td>
+                        </tr>
+                        <tr>
+                            <td>Netdata</td>
+                            <td>실시간 종합 시스템/애플리케이션 성능 모니터링 웹 대시보드</td>
+                            <td>설치 후 웹 브라우저로 http://&lt;서버IP&gt;:19999 접속</td>
+                            <td>시스템 전반의 다양한 성능 지표(CPU, 메모리, 디스크, 네트워크, Nginx, PHP) 시각화</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="framework-considerations" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">9. PHP 프레임워크 및 템플릿 엔진 고려 사항 (관리자 대시보드용)</h2>
+
+            <div id="fw-context" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">9.1. 컨텍스트</h3>
+                <p class="text-gray-300 leading-relaxed">사용자는 PHP 로그인 페이지를 가지고 있지만, 사용자 관리, 파일 업로드, 승인 워크플로우를 위한 모든 기능을 갖춘 관리자 패널을 순수 PHP로 처음부터 개발하는 것은 시간이 많이 걸리고 오류가 발생하기 쉽다. PHP 프레임워크를 사용하면 이러한 개발 과정을 크게 단축할 수 있다. Laravel이나 Symfony와 같은 프레임워크는 라우팅, 데이터베이스 상호작용(ORM), 사용자 인증, 입력 유효성 검사, CSRF 보호와 같은 일반적인 작업에 대해 미리 만들어진 솔루션이나 잘 정의된 패턴을 제공한다. 이러한 기능을 순수 PHP로 견고하게 구현하는 것은 상당한 노력이 필요하며 오류 발생 가능성이 높다.</p>
+            </div>
+
+            <div id="fw-overview" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">9.2. PHP 프레임워크 개요</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>Laravel:</strong> 우아한 구문, 풍부한 기능(Eloquent ORM, Blade 템플릿 엔진, Artisan CLI, 내장 인증), 방대한 생태계로 유명하다. Laravel Nova는 프리미엄 관리자 패널 패키지이며, 다양한 무료 관리자 템플릿도 이용 가능하다.</li>
+                    <li><strong>Symfony:</strong> 매우 모듈화되어 있고 유연하여 복잡하고 대규모 애플리케이션에 적합하다. Twig 템플릿 엔진을 사용한다. 관리자 템플릿 옵션도 있다.</li>
+                    <li><strong>CodeIgniter:</strong> 가볍고 빠르며 학습 곡선이 비교적 단순하여 소규모 프로젝트에 적합하다. 관리자 템플릿을 사용할 수 있다.</li>
+                </ul>
+                <p class="text-gray-300 leading-relaxed mt-2"><strong>프레임워크 사용 이유:</strong> MVC 아키텍처, 보안 기능, 데이터베이스 상호작용을 위한 ORM, 라우팅, 템플릿, 커뮤니티 지원 등은 관리자 대시보드 개발을 단순화한다.</p>
+            </div>
+
+            <div id="fw-template-engines" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">9.3. UI를 위한 템플릿 엔진</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>Blade (Laravel):</strong> 단순하고 강력하며, 템플릿 내에 순수 PHP 코드 사용을 허용한다. 템플릿 상속, 섹션, 컴포넌트 기능을 제공한다.</li>
+                    <li><strong>Twig (Symfony, 독립형):</strong> 빠르고 안전하며(샌드박스 모드), 유연하다. 간결한 구문, 템플릿 상속, 필터, 함수를 제공한다.</li>
+                </ul>
+                <p class="text-gray-300 leading-relaxed mt-2"><strong>비교 (Blade vs. Twig):</strong> 둘 다 훌륭하다. Blade는 Laravel과 긴밀하게 통합되어 있다. Twig는 프레임워크에 덜 종속적이며 로직과 표현의 분리가 약간 더 엄격하다는 평가를 받는다. Blade와 Twig 같은 템플릿 엔진은 HTML에 내장된 원시 PHP보다 깔끔한 구문으로 템플릿 상속, 루프, 조건문과 같은 기능을 제공하여 관리자 패널 뷰의 코드 가독성과 유지보수성을 향상시킨다.</p>
+            </div>
+
+            <div id="fw-recommendations" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">9.4. 권장 사항</h3>
+                <p class="text-gray-300 leading-relaxed">기능이 풍부한 관리자 패널을 신속하게 개발하려면, 광범위한 내장 기능, 일반적인 웹 작업에 대한 사용 편의성, 사용 가능한 관리자 패널 도구/템플릿으로 인해 Laravel 이 종종 강력한 선택이 된다. 만약 사용자가 더 최소한의 접근 방식을 선호하거나 기존 PHP 코드를 기반으로 구축하려는 경우, MVC와 유사한 패턴, 라우팅 및 보안 기능을 수동으로 구현해야 하며 이는 더 복잡하다. Laravel, Symfony, CodeIgniter와 같은 프레임워크에는 다양한 무료 및 프리미엄 관리자 템플릿이 있다. 이러한 템플릿은 바로 사용할 수 있는 UI 구성 요소, 레이아웃, 종종 사전 통합된 인증 뷰를 제공하여 개발자가 프론트엔드 디자인이나 상용구 코드보다는 사용자, 파일 및 승인 관리를 위한 특정 백엔드 로직에 집중할 수 있도록 한다.</p>
+            </div>
+
+            <div id="table-8" class="overflow-x-auto">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">표 8: 관리자 대시보드용 PHP 프레임워크 비교</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>기능</th>
+                            <th>Laravel</th>
+                            <th>Symfony</th>
+                            <th>CodeIgniter</th>
+                            <th>관리자 패널 관련성</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>학습 곡선</td>
+                            <td>보통</td>
+                            <td>다소 높음</td>
+                            <td>낮음</td>
+                            <td>Laravel과 CodeIgniter는 Symfony보다 빠르게 시작 가능.</td>
+                        </tr>
+                        <tr>
+                            <td>내장 인증</td>
+                            <td>제공 (Laravel Breeze/Jetstream 등)</td>
+                            <td>Security 컴포넌트 제공, 설정 필요</td>
+                            <td>기본 제공 미흡, 라이브러리 필요</td>
+                            <td>Laravel은 사용자 인증 기능 구현에 유리.</td>
+                        </tr>
+                        <tr>
+                            <td>ORM</td>
+                            <td>Eloquent (사용 용이)</td>
+                            <td>Doctrine (강력함)</td>
+                            <td>기본 제공 미흡, 라이브러리/직접 구현</td>
+                            <td>Eloquent는 DB 작업 단순화에 도움. Doctrine은 복잡한 DB 로직에 유리.</td>
+                        </tr>
+                        <tr>
+                            <td>템플릿 엔진</td>
+                            <td>Blade</td>
+                            <td>Twig</td>
+                            <td>PHP 자체 또는 서드파티</td>
+                            <td>Blade와 Twig 모두 강력한 UI 개발 지원.</td>
+                        </tr>
+                        <tr>
+                            <td>관리자 패널 패키지/템플릿</td>
+                            <td>풍부함 (예: Laravel Nova, 다수 무료/유료 템플릿)</td>
+                            <td>존재함 (예: EasyAdminBundle, 유료 템플릿)</td>
+                            <td>존재함 (유료 템플릿 위주)</td>
+                            <td>Laravel 생태계가 관리자 UI 개발에 가장 활발.</td>
+                        </tr>
+                        <tr>
+                            <td>보안 기능</td>
+                            <td>CSRF 보호, XSS 필터링, 암호화 등 내장</td>
+                            <td>강력한 Security 컴포넌트, 역할 기반 접근 제어 등</td>
+                            <td>기본적인 보안 기능 제공, 추가 구현 필요</td>
+                            <td>Laravel과 Symfony는 보안 기능이 잘 갖춰져 있어 관리자 패널 보안에 유리.</td>
+                        </tr>
+                        <tr>
+                            <td>커뮤니티</td>
+                            <td>매우 크고 활발함</td>
+                            <td>크고 전문적임</td>
+                            <td>상대적으로 작으나 꾸준함</td>
+                            <td>문제 해결 및 정보 획득 용이성.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="summary" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">10. 요약 및 권장 사항</h2>
+
+            <div id="summary-tools" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">10.1. 필수 도구 요약</h3>
+                <p class="text-gray-300 leading-relaxed">본 보고서에서 논의된 핵심 구성 요소는 다음과 같다: 선택한 유형의 데이터베이스(MySQL/MariaDB/PostgreSQL), 주요 PHP 확장 프로그램, 특정 설정(X-Accel-Redirect, HTTPS)을 갖춘 Nginx, UFW, ModSecurity+OWASP CRS, 로깅 도구 및 모니터링 도구.</p>
+            </div>
+
+            <div id="summary-plan" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">10.2. 우선순위 실행 계획</h3>
+                <ol class="list-decimal list-inside text-gray-300 space-y-2">
+                    <li>데이터베이스 설정: 데이터베이스 유형 선택, 설치 및 구성. 초기 스키마 설계.</li>
+                    <li>PHP 확장 프로그램 설치: 모든 필수 확장 프로그램(php-DB_DRIVER, php-finfo, php-json, php-openssl 등) 설치.</li>
+                    <li>사용자 인증 구현: 안전한 비밀번호 해싱 및 세션 관리 구현.</li>
+                    <li>안전한 파일 업로드 구현: 모든 서버 측 유효성 검사, 웹 루트 외부 저장, 권한 설정 구현.</li>
+                    <li>안전한 파일 다운로드 구현: Nginx X-Accel-Redirect 및 PHP 다운로드 스크립트 구성.</li>
+                    <li>승인 워크플로우 설계 및 구현: 데이터베이스 변경 사항 및 PHP 로직 설계 및 구현.</li>
+                    <li>보안 강화: HTTPS (Let's Encrypt), UFW, 그 다음 ModSecurity 구성.</li>
+                    <li>로깅 및 모니터링 설정: Nginx/PHP-FPM 로그 구성, 기본 모니터링 도구 설치.</li>
+                </ol>
+            </div>
+
+            <div id="summary-final" class="mb-6">
+                <h3 class="text-2xl font-semibold text-blue-300 mb-3">10.3. 최종 고려 사항</h3>
+                <ul class="list-disc list-inside text-gray-300 space-y-2">
+                    <li><strong>확장성:</strong> 데이터베이스 선택, X-Accel-Redirect 사용 등은 향후 확장성에 영향을 미칠 수 있음을 인지해야 한다.</li>
+                    <li><strong>유지보수:</strong> 정기적인 업데이트, 로그 검토, 보안 감사의 중요성을 강조한다.</li>
+                    <li><strong>백업 전략:</strong> 명시적으로 요청되지는 않았지만, 데이터베이스와 업로드된 파일의 백업 중요성을 간략히 언급한다. 이는 데이터 관리의 중요한 3차적 영향이다.</li>
+                </ul>
+                <p class="text-gray-300 leading-relaxed mt-3">본 보고서가 제시하는 도구와 구성을 통해 사용자는 안드로이드 사이니지 애플리케이션을 위한 안정적이고 안전하며 기능이 풍부한 Ubuntu 서버 환경을 구축할 수 있을 것이다. 각 단계는 신중한 계획과 테스트를 거쳐 구현되어야 한다.</p>
+            </div>
+        </section>
+
+        <section id="references" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold text-blue-400 mb-6 border-b border-gray-700 pb-2">참고 자료</h2>
+            <p class="text-gray-300 mb-4">본 가이드에서 언급된 기술 및 패키지에 대한 공식 문서 및 유용한 자료들입니다.</p>
+            <ul class="list-decimal list-inside text-gray-300 space-y-2 text-sm">
+                <li><a href="https://ubuntu.com/server/docs/introduction-to-databases" target="_blank" class="text-blue-400 hover:underline">Introduction to databases - Ubuntu Server documentation</a></li>
+                <li><a href="https://ubuntu.com/server/docs/install-and-configure-a-mysql-server" target="_blank" class="text-blue-400 hover:underline">Install and configure a MySQL server - Ubuntu Server documentation</a></li>
+                <li><a href="https://ubuntu.com/server/docs/how-to-install-and-configure-php" target="_blank" class="text-blue-400 hover:underline">How to install and configure PHP - Ubuntu Server documentation</a></li>
+                <li><a href="https://docs.vultr.com/how-to-install-apache-mysql-php-lamp-stack-on-ubuntu-24-04" target="_blank" class="text-blue-400 hover:underline">How to Install Apache, MySQL, PHP (LAMP Stack) on Ubuntu 24.04 - Vultr Docs</a></li>
+                <li><a href="https://aws.amazon.com/compare/the-difference-between-mariadb-and-postgresql/" target="_blank" class="text-blue-400 hover:underline">MariaDB vs PostgreSQL - Difference Between Open-Source ... - AWS</a></li>
+                <li><a href="https://ubuntu.com/server/docs/install-and-configure-postgresql" target="_blank" class="text-blue-400 hover:underline">Install and configure PostgreSQL - Ubuntu Server documentation</a></li>
+                <li><a href="https://my.cloudfanatic.net/index.php/knowledgebase/68/Install-PostgreSQL-on-Ubuntu-20.04.html" target="_blank" class="text-blue-400 hover:underline">Install PostgreSQL on Ubuntu 20.04 - Cloudfanatic</a></li>
+                <li><a href="https://phoenixnap.com/kb/how-to-install-mariadb-ubuntu" target="_blank" class="text-blue-400 hover:underline">How to Install MariaDB on Ubuntu {+ Basic Configuration} - phoenixNAP</a></li>
+                <li><a href="https://www.reddit.com/r/learnprogramming/comments/1aoto65/which_databse_is_better_for_a_simple_website/" target="_blank" class="text-blue-400 hover:underline">Which databse is better for a simple website, PostgreSQL or MySQL? - Reddit</a></li>
+                <li><a href="https://hostman.com/tutorials/installing-mariadb-on-ubuntu-22-04/" target="_blank" class="text-blue-400 hover:underline">How to Install MariaDB on Ubuntu 22.04 | Guide by Hostman</a></li>
+                <li><a href="https://datatas.com/how-to-use-php-for-document-management-systems/" target="_blank" class="text-blue-400 hover:underline">How to Use PHP for Document Management Systems - Datatas</a></li>
+                <li><a href="https://www.sitepoint.com/community/t/application-to-handle-form-approval/58073" target="_blank" class="text-blue-400 hover:underline">Application to handle form approval - PHP - SitePoint Forums</a></li>
+                <li><a href="https://www.domainindia.com/login/knowledgebase/405/PHP-Extensions-and-Their-Crucial-Role-in-Web-Development.html" target="_blank" class="text-blue-400 hover:underline">PHP Extensions and Their Crucial Role in Web Development - Domain India</a></li>
+                <li><a href="https://inspector.dev/ultimate-guide-to-php-file-upload-security/" target="_blank" class="text-blue-400 hover:underline">Ultimate Guide to PHP File Upload Security - Inspector.dev</a></li>
+                <li><a href="https://www.vaadata.com/blog/file-upload-vulnerabilities-and-security-best-practices/" target="_blank" class="text-blue-400 hover:underline">File Upload Vulnerabilities and Security Best Practices - Vaadata</a></li>
+                <li><a href="https://www.php.net/manual/en/book.password.php" target="_blank" class="text-blue-400 hover:underline">Password Hashing - Manual - PHP</a></li>
+                <li><a href="https://hostadvice.com/blog/web-hosting/php/php-session-security/" target="_blank" class="text-blue-400 hover:underline">PHP Session Security: Preventing Session Hijacking - HostAdvice</a></li>
+                <li><a href="https://stackoverflow.com/questions/31516918/nginx-and-php-how-do-you-only-allow-a-file-download-under-a-certain-condition" target="_blank" class="text-blue-400 hover:underline">Nginx and PHP: How do you only allow a file download... - Stack Overflow</a></li>
+                <li><a href="https://gist.github.com/dnozay/9263794" target="_blank" class="text-blue-400 hover:underline">nginx + php-fpm + x-accel-redirect + ldap - GitHub Gist</a></li>
+                <li><a href="https://docs.nginx.com/nginx/admin-guide/web-server/serving-static-content/" target="_blank" class="text-blue-400 hover:underline">Serve Static Content | NGINX Documentation</a></li>
+                <li><a href="https://serverfault.com/questions/950910/nginx-cant-map-url-to-directory-outside-of-the-root" target="_blank" class="text-blue-400 hover:underline">Nginx can't map URL to directory outside of the root - Server Fault</a></li>
+                <li><a href="https://serverfault.com/questions/475377/nginx-redirection-cycle-with-x-accel-redirect" target="_blank" class="text-blue-400 hover:underline">nginx redirection cycle with X-Accel-Redirect - Server Fault</a></li>
+                <li><a href="https://github.com/ringlesoft/laravel-process-approval" target="_blank" class="text-blue-400 hover:underline">ringlesoft/laravel-process-approval - GitHub</a></li>
+                <li><a href="https://www.differenzsystem.com/blog/laravel-vs-other-php-frameworks/" target="_blank" class="text-blue-400 hover:underline">Laravel vs other PHP frameworks - Differenz System</a></li>
+                <li><a href="https://wirefuture.com/post/php-framework-laravel-vs-symfony-vs-codeigniter" target="_blank" class="text-blue-400 hover:underline">PHP Framework: Laravel vs. Symfony vs. CodeIgniter - WireFuture</a></li>
+                <li><a href="https://www.technource.com/blog/exploring-php-frameworks-comparing-laravel-symfony-and-codeigniter/" target="_blank" class="text-blue-400 hover:underline">Exploring PHP Frameworks: Laravel, Symfony & CodeIgniter - Technource</a></li>
+                <li><a href="https://sourceforge.net/directory/workflow-management/php/" target="_blank" class="text-blue-400 hover:underline">Open Source PHP Workflow Management Software - SourceForge</a></li>
+                <li><a href="https://www.kamatera.com/knowledgebase/how-to-secure-nginx-with-lets-encrypt/" target="_blank" class="text-blue-400 hover:underline">How to Secure NGINX With Let's Encrypt on Ubuntu 22.04 | Kamatera</a></li>
+                <li><a href="https://phoenixnap.com/kb/letsencrypt-nginx" target="_blank" class="text-blue-400 hover:underline">How to Secure Nginx with Let's Encrypt on Ubuntu - phoenixNAP</a></li>
+                <li><a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu" target="_blank" class="text-blue-400 hover:underline">How to Set Up a Firewall with UFW on Ubuntu | DigitalOcean</a></li>
+                <li><a href="https://www.vps-mart.com/blog/how-to-configure-firewall-with-ufw-on-ubuntu" target="_blank" class="text-blue-400 hover:underline">How To Install and Config UFW Firewall on Ubuntu 22.04 - VPS Mart</a></li>
+                <li><a href="https://coreruleset.org/docs/1-getting-started/1-1-crs-installation/" target="_blank" class="text-blue-400 hover:underline">CRS Installation :: CRS Documentation - OWASP CRS Project</a></li>
+                <li><a href="https://github.com/k4t3pr0/Nginx-With-ModSecurity" target="_blank" class="text-blue-400 hover:underline">Securing Nginx With ModSecurity - GitHub</a></li>
+                <li><a href="https://www.webhi.com/how-to/how-to-install-modsecurity-in-nginx-on-ubuntu-18-04-20-4-22-04-debian/" target="_blank" class="text-blue-400 hover:underline">How to Install ModSecurity in Nginx on Ubuntu - WebHi</a></li>
+                <li><a href="https://www.gartner.com/reviews/market/cloud-web-application-and-api-protection/vendor/f5/product/nginx-app-protect-waf/alternatives" target="_blank" class="text-blue-400 hover:underline">Top NGINX App Protect WAF Competitors & Alternatives | Gartner</a></li>
+                <li><a href="https://docs.nginx.com/nginx-app-protect-waf/v5/admin-guide/overview/" target="_blank" class="text-blue-400 hover:underline">NGINX App Protect WAF Administration Guide</a></li>
+                <li><a href="https://sematext.com/blog/nginx-logs/" target="_blank" class="text-blue-400 hover:underline">How to Check & Configure NGINX Access & Error Logs - Sematext</a></li>
+                <li><a href="https://docs.nginx.com/nginx/admin-guide/monitoring/logging/" target="_blank" class="text-blue-400 hover:underline">Configuring Logging | NGINX Documentation</a></li>
+                <li><a href="https://last9.io/blog/nginx-log-monitoring/" target="_blank" class="text-blue-400 hover:underline">NGINX Log Monitoring: What It Is, How to Get Started - Last9</a></li>
+                <li><a href="https://www.php.net/manual/en/install.fpm.configuration.php" target="_blank" class="text-blue-400 hover:underline">Configuration - Manual - PHP</a></li>
+                <li><a href="https://github.com/rlerdorf/php7dev/issues/48" target="_blank" class="text-blue-400 hover:underline">Where is php-fpm log file? Or how to activate it? - GitHub</a></li>
+                <li><a href="https://www.loggly.com/ultimate-guide/using-journalctl/" target="_blank" class="text-blue-400 hover:underline">Using journalctl - The Ultimate Guide To Logging - Loggly</a></li>
+                <li><a href="https://sematext.com/blog/nginx-log-analyzers/" target="_blank" class="text-blue-400 hover:underline">Top 7 NGINX Log Analyzer Tools [Comparison] - Sematext</a></li>
+                <li><a href="https://ioflood.com/blog/install-atop-command-linux/" target="_blank" class="text-blue-400 hover:underline">How to Install and Use 'Atop' | Linux System Monitoring - IOFLOOD</a></li>
+                <li><a href="https://blog.racknerd.com/how-to-install-atop-on-ubuntu-20-04/" target="_blank" class="text-blue-400 hover:underline">How to Install ATop on Ubuntu 20.04 - RackNerd Blog</a></li>
+                <li><a href="https://learn.netdata.cloud/docs/netdata-agent/installation/" target="_blank" class="text-blue-400 hover:underline">Netdata Agent Installation</a></li>
+                <li><a href="https://wiki.crowncloud.net/?How_to_Install_netdata_monitoring_tool_on_ubuntu_23_04" target="_blank" class="text-blue-400 hover:underline">How To Install Netdata Monitoring Tool On Ubuntu - CrownCloud Wiki</a></li>
+                <li><a href="https://uibakery.io/blog/best-laravel-admin-templates" target="_blank" class="text-blue-400 hover:underline">Best Laravel Admin Templates | UI Bakery Blog</a></li>
+                <li><a href="https://wrapbootstrap.com/theme/velex-symfony-admin-dashboard-template-WB015536L" target="_blank" class="text-blue-400 hover:underline">Velex - Symfony 7 Admin & Dashboard Template - WrapBootstrap</a></li>
+                <li><a href="https://coderthemes.com/hyper-admin/symfony.html" target="_blank" class="text-blue-400 hover:underline">Hyper - Symfony Responsive Admin Dashboard Template - Coderthemes</a></li>
+                <li><a href="https://themeselection.com/codeigniter-admin-template/" target="_blank" class="text-blue-400 hover:underline">Top 10+Codeigniter Admin Template Free - ThemeSelection</a></li>
+                <li><a href="https://themesbrand.com/borex-codeigniter/" target="_blank" class="text-blue-400 hover:underline">Borex - CodeIgniter Admin & Dashboard Template - Themesbrand</a></li>
+                <li><a href="https://laravel.com/docs/12.x/blade" target="_blank" class="text-blue-400 hover:underline">Blade Templates - Laravel - The PHP Framework For Web Artisans</a></li>
+                <li><a href="https://dev.to/mikevarenek/laravel-blade-templating-engine-2l5k" target="_blank" class="text-blue-400 hover:underline">Laravel Blade Templating Engine - DEV Community</a></li>
+                <li><a href="https://www.clariontech.com/blog/how-to-use-templating-in-php-frameworks-for-business-projects" target="_blank" class="text-blue-400 hover:underline">How to Use Templating in PHP Frameworks - Clarion Technologies</a></li>
+                <li><a href="https://twig.symfony.com/" target="_blank" class="text-blue-400 hover:underline">Twig - The flexible, fast, and secure PHP template engine</a></li>
+                <li><a href="https://www.drupal.org/docs/develop/theming-drupal/twig-in-drupal" target="_blank" class="text-blue-400 hover:underline">Twig in Drupal | Theming Drupal</a></li>
+                <li><a href="https://important-tips-for-laravel-blogs.quora.com/Comparing-Blade-and-Twig-templates-in-Laravel" target="_blank" class="text-blue-400 hover:underline">Comparing Blade and Twig templates in Laravel - Quora</a></li>
+                <li><a href="https://lemon.io/answers/twig/what-is-the-difference-between-twig-and-blade-laravels-templating-engine/" target="_blank" class="text-blue-400 hover:underline">What is the difference between Twig and Blade? - Lemon.io</a></li>
+            </ul>
+        </section>
+
+    </main>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetElement = document.querySelector(this.getAttribute('href'));
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Mobile navigation toggle
+        const menuButton = document.getElementById('menuButton');
+        const closeMenuButton = document.getElementById('closeMenuButton');
+        const mobileNav = document.getElementById('mobileNav');
+        const mainContentForMobile = document.querySelector('.content-area');
+
+        menuButton.addEventListener('click', () => {
+            mobileNav.classList.remove('hidden');
+            // Optional: Prevent body scroll when mobile nav is open
+            document.body.style.overflow = 'hidden'; 
+        });
+        
+        function closeMobileNav() {
+            mobileNav.classList.add('hidden');
+             // Optional: Restore body scroll
+            document.body.style.overflow = '';
+        }
+        closeMenuButton.addEventListener('click', closeMobileNav);
+        // Close mobile nav if a link is clicked (for SPA behavior)
+        mobileNav.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', closeMobileNav);
+        });
+
+
+        // Highlight active section in sidebar (for desktop)
+        const sections = document.querySelectorAll('main section');
+        const navLinks = document.querySelectorAll('.sidebar nav ul li a'); // More specific selector for direct links
+        const subNavLinks = document.querySelectorAll('.sidebar nav ul ul li a'); // For sub-links
+
+        function highlightNav() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                // Adjust offset for fixed header or other elements if necessary
+                // A common offset is around 100-150px to trigger highlighting a bit earlier
+                const activationOffset = 150; 
+                if (pageYOffset >= sectionTop - activationOffset) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('bg-gray-700', 'text-blue-300');
+                link.classList.add('text-gray-300'); // Reset to default
+                // Check if the link's href matches the current section ID
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('bg-gray-700', 'text-blue-300');
+                    link.classList.remove('text-gray-300');
+                }
+            });
+            subNavLinks.forEach(link => {
+                link.classList.remove('bg-gray-700', 'text-blue-300');
+                link.classList.add('text-gray-400'); // Reset to default for sublinks
+                 if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('bg-gray-700', 'text-blue-300');
+                    link.classList.remove('text-gray-400');
+                    // Also highlight parent
+                    const parentLi = link.closest('ul.ml-4')?.closest('li');
+                    if(parentLi){
+                        const parentAnchor = parentLi.querySelector('a');
+                        if(parentAnchor){
+                             parentAnchor.classList.add('bg-gray-700', 'text-blue-300');
+                             parentAnchor.classList.remove('text-gray-300');
+                        }
+                    }
+                }
+            });
+        }
+        window.addEventListener('scroll', highlightNav);
+        window.addEventListener('load', highlightNav); // Highlight on page load as well
+
+    </script>
+</body>
+</html>
