@@ -1,0 +1,2776 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React 시작하기 가이드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            background-color: #111827; /* bg-gray-900 */
+            color: #d1d5db; /* text-gray-300 */
+        }
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937; /* bg-gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151; /* bg-gray-700 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563; /* bg-gray-600 */
+        }
+
+        /* Code block styling */
+        pre {
+            background-color: #0f172a; /* bg-slate-900 */
+            color: #cbd5e1; /* text-slate-300 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.875rem; /* text-sm */
+            border: 1px solid #374151; /* border-gray-700 */
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.875rem; /* text-sm */
+        }
+        /* Inline code specific styling */
+        p > code, li > code, th > code, td > code, h4 > code {
+            color: #93c5fd; /* text-blue-300 for inline code */
+            background-color: #1e293b; /* bg-slate-800 for a subtle background */
+            padding: 0.125rem 0.25rem; /* px-1 py-0.5 */
+            border-radius: 0.25rem; /* rounded-sm */
+        }
+        pre code {
+            color: #cbd5e1; /* Reset for code within pre */
+            background-color: transparent;
+            padding: 0;
+        }
+
+        /* Diagram Styling */
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem; 
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background-color: #1f2937; /* bg-gray-800 */
+            border-radius: 0.75rem;
+            border: 1px solid #374151; /* border-gray-700 */
+        }
+
+        .flow-box {
+            background-color: #374151; /* bg-gray-700 */
+            color: #e5e7eb; /* text-gray-200 */
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-weight: 500;
+            min-width: 150px; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .flow-arrow {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent; 
+            border-right: 8px solid transparent;
+            border-top: 16px solid #60a5fa; /* blue-400 */
+            position: relative;
+            margin-top: 0.5rem; 
+            margin-bottom: 0.5rem;
+        }
+         .flow-arrow::after {
+            content: attr(data-label);
+            position: absolute;
+            top: -20px; 
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            color: #9ca3af; /* text-gray-400 */
+            font-size: 0.75rem; /* text-xs */
+            white-space: nowrap;
+            background-color: #1f2937; /* bg-gray-800 */
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+        }
+
+        .flow-horizontal-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .flow-arrow-right {
+            width: 16px; 
+            height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-left: 16px solid #60a5fa; /* blue-400 */
+            position: relative;
+        }
+        .flow-arrow-right::after {
+            content: attr(data-label);
+            position: absolute;
+            top: -10px; 
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            color: #9ca3af; /* text-gray-400 */
+            font-size: 0.75rem; /* text-xs */
+            white-space: nowrap;
+            background-color: #1f2937;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            color: #d1d5db; /* text-gray-300 */
+        }
+        th, td {
+            border: 1px solid #374151; /* border-gray-700 */
+            padding: 0.75rem 1rem; /* p-3 */
+            text-align: left;
+        }
+        th {
+            background-color: #1f2937; /* bg-gray-800 */
+            font-weight: 600;
+            color: #9ca3af; /* text-gray-400 */
+        }
+        tbody tr:nth-child(even) {
+            background-color: #161e2b; /* Slightly darker for striping */
+        }
+        tbody tr:hover {
+            background-color: #2c3646; /* bg-gray-700 on hover */
+        }
+        
+        .content-area h2 {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+            color: #60a5fa; /* text-blue-400 */
+            margin-bottom: 1.5rem; /* mb-6 */
+            border-bottom-width: 1px;
+            border-color: #374151; /* border-gray-700 */
+            padding-bottom: 0.5rem; /* pb-2 */
+        }
+        .content-area h3 {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 600; /* font-semibold */
+            color: #93c5fd; /* text-blue-300 */
+            margin-bottom: 0.75rem; /* mb-3 */
+            margin-top: 1.5rem; /* mt-6 */
+        }
+         .content-area h4 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            color: #bfdbfe; /* text-blue-200 */
+            margin-bottom: 0.5rem; /* mb-2 */
+            margin-top: 1rem; /* mt-4 */
+        }
+        .content-area p {
+            line-height: 1.625; /* leading-relaxed */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .content-area ul, .content-area ol {
+            list-style-position: inside;
+            margin-left: 1rem; /* ml-4 */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .content-area ul li, .content-area ol li {
+            margin-bottom: 0.5rem; /* space-y-2 equivalent */
+        }
+        .content-area ul { list-style-type: disc; }
+        .content-area ol { list-style-type: decimal; }
+        .content-area strong { font-weight: 600; color: #e5e7eb; /* text-gray-200 */ }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .content-area {
+                margin-left: 0;
+            }
+            .menu-button {
+                display: block;
+            }
+            .mobile-nav {
+                display: flex; /* Will be toggled by JS */
+            }
+            .flow-horizontal-container {
+                flex-direction: column;
+            }
+            .flow-arrow-right { 
+                transform: rotate(90deg);
+                margin-top: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+             .flow-arrow-right::after {
+                transform: translateX(-50%) translateY(0%) rotate(-90deg) translateX(50%) translateY(-8px) ;
+                top: auto;
+                left: -15px; 
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <button id="menuButton" class="menu-button fixed top-4 left-4 z-50 p-3 bg-gray-800 text-gray-100 rounded-lg shadow-lg md:hidden">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+
+    <div id="mobileNav" class="mobile-nav fixed inset-0 bg-gray-900 bg-opacity-95 z-40 flex-col items-center justify-center space-y-4 hidden md:hidden overflow-y-auto py-8">
+        <button id="closeMenuButton" class="absolute top-4 right-4 p-3 bg-gray-800 text-gray-100 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <nav class="text-center">
+            <ul class="space-y-3" id="mobile-nav-links">
+                </ul>
+        </nav>
+    </div>
+
+    <aside class="sidebar fixed top-0 left-0 h-full w-72 bg-gray-800 p-6 shadow-lg hidden md:block overflow-y-auto rounded-r-lg">
+        <h2 class="text-2xl font-bold text-blue-400 mb-6">목차</h2>
+        <nav>
+            <ul class="space-y-2" id="sidebar-nav-links">
+                </ul>
+        </nav>
+    </aside>
+
+    <main class="content-area md:ml-72 p-6 md:p-8">
+        <h1 class="text-4xl font-extrabold text-blue-300 mb-10 text-center md:text-left">React 시작하기: Ubuntu 서버, Nginx, PostgreSQL 연동을 포함한 종합 가이드</h1>
+
+        <div id="document-content-container">
+
+            <section id="s1" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>1. React 소개</h2>
+                
+                <div id="s1-1">
+                    <h3>1.1. React란 무엇인가?</h3>
+                    <p>React는 사용자 인터페이스(UI) 구축을 위한 선언적이고 효율적이며 유연한 JavaScript 라이브러리입니다. "컴포넌트"라고 불리는 작고 고립된 코드 조각을 사용하여 복잡한 UI를 구성할 수 있게 해줍니다. React는 Facebook과 개별 개발자 및 기업 커뮤니티에 의해 유지 관리됩니다.</p>
+                    <p>React는 웹 및 모바일 애플리케이션의 뷰 계층을 처리하는 데 사용됩니다. 즉, 사용자가 화면에서 보고 상호 작용하는 모든 것을 만드는 데 중점을 둡니다. React는 단일 페이지 애플리케이션(SPA) 개발에 널리 사용되며, 여기서 콘텐츠는 페이지를 새로고침하지 않고 동적으로 업데이트됩니다.</p>
+                </div>
+
+                <div id="s1-2">
+                    <h3>1.2. 왜 React를 사용하는가? (장점 및 사용 사례)</h3>
+                    <p>React를 사용하는 주된 이점은 다음과 같습니다:</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2 mb-4">
+                        <li><strong>컴포넌트 기반 아키텍처:</strong> UI를 독립적이고 재사용 가능한 조각으로 나눌 수 있어 개발 및 유지 관리가 용이합니다. 이러한 컴포넌트는 애플리케이션의 다른 부분에 원활하게 통합되어 일관성과 효율성을 증진합니다.</li>
+                        <li><strong>Virtual DOM (가상 DOM):</strong> React는 실제 DOM의 가상 표현을 메모리에 유지합니다. UI 상태가 변경되면 가상 DOM이 먼저 업데이트되고, React는 실제 DOM과의 차이점을 계산하여 최소한의 변경만 실제 DOM에 적용합니다. 이 과정(조정, Reconciliation)은 애플리케이션 성능을 크게 향상시킵니다.</li>
+                        <li><strong>선언적 프로그래밍:</strong> React에서는 UI가 특정 상태일 때 어떻게 보여야 하는지만 기술하면, React가 해당 상태에 맞게 DOM을 업데이트합니다. 이는 코드를 더 예측 가능하고 디버깅하기 쉽게 만듭니다.</li>
+                        <li><strong>JSX (JavaScript XML):</strong> JavaScript 코드 내에서 HTML과 유사한 구문을 작성할 수 있게 해주는 확장 기능입니다. JSX는 컴포넌트 구조를 시각적으로 표현하고 코드를 더 읽기 쉽게 만듭니다.</li>
+                        <li><strong>강력한 커뮤니티 지원:</strong> 방대한 온라인 튜토리얼, 포럼, 라이브러리 생태계를 통해 개발자들이 쉽게 배우고 문제를 해결할 수 있습니다.</li>
+                        <li><strong>SEO 친화적:</strong> 서버 사이드 렌더링(SSR)을 지원하여 초기 페이지 로드 속도를 개선하고 검색 엔진 크롤링을 용이하게 합니다.</li>
+                        <li><strong>React Hooks:</strong> 클래스 컴포넌트를 작성하지 않고도 함수형 컴포넌트에서 상태 및 기타 React 기능을 사용할 수 있게 해줍니다. 이는 코드의 가독성과 유지보수성을 높입니다.</li>
+                    </ul>
+                    <h4>주요 사용 사례:</h4>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li>단일 페이지 애플리케이션 (SPA): 동적이고 빠른 사용자 경험을 제공하는 웹 애플리케이션.</li>
+                        <li>대규모 애플리케이션: 모듈식 아키텍처와 컴포넌트 기반 구조는 복잡한 애플리케이션 관리에 유리합니다.</li>
+                        <li>고성능 요구 애플리케이션: 가상 DOM을 활용하여 렌더링 속도를 최적화하고 빠른 응답성을 보장합니다.</li>
+                        <li>모바일 앱 개발 (React Native 사용 시): React의 원칙을 모바일 앱 개발에 적용하여 iOS 및 Android용 네이티브 앱을 구축할 수 있습니다.</li>
+                    </ul>
+                </div>
+
+                <div id="s1-3">
+                    <h3>1.3. React의 핵심 개념 간략 소개</h3>
+                    <p>React를 처음 배울 때 알아야 할 몇 가지 핵심 개념이 있습니다. 이 가이드의 뒷부분에서 각 개념을 자세히 다룰 것입니다.</p>
+                     <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>컴포넌트 (Components):</strong> UI를 구성하는 독립적이고 재사용 가능한 블록입니다. 버튼처럼 작을 수도 있고, 전체 페이지처럼 클 수도 있습니다.</li>
+                        <li><strong>JSX (JavaScript XML):</strong> JavaScript 코드 내에서 HTML과 유사한 마크업을 작성할 수 있게 해주는 구문 확장입니다.</li>
+                        <li><strong>Props (Properties):</strong> 컴포넌트에 전달되는 읽기 전용 데이터입니다. 부모 컴포넌트에서 자식 컴포넌트로 데이터를 전달하는 데 사용됩니다.</li>
+                        <li><strong>State:</strong> 컴포넌트의 내부 데이터를 나타내며, 시간이 지남에 따라 변경될 수 있습니다. State가 변경되면 컴포넌트는 다시 렌더링됩니다.</li>
+                        <li><strong>Virtual DOM (가상 DOM):</strong> 실제 DOM의 가상 복사본으로, UI 변경 사항을 효율적으로 관리하고 성능을 최적화하는 데 사용됩니다.</li>
+                        <li><strong>Hooks:</strong> 함수형 컴포넌트에서 상태(state) 및 생명주기(lifecycle) 기능과 같은 React 기능을 "연결(hook into)"할 수 있게 해주는 함수입니다.</li>
+                    </ul>
+                    <p>이러한 개념들은 React 애플리케이션을 구축하는 데 있어 기초가 됩니다. React는 JavaScript 라이브러리이므로 JavaScript에 대한 기본적인 이해가 선행되어야 합니다.</p>
+                </div>
+            </section>
+
+            <section id="s2" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>2. React 개발 환경 설정</h2>
+                <p>React 애플리케이션 개발을 시작하기 전에 몇 가지 도구를 설치하고 개발 환경을 구성해야 합니다.</p>
+                <div id="s2-1">
+                    <h3>2.1. Node.js와 npm 설치</h3>
+                    <p>React 개발에는 Node.js와 npm (Node Package Manager)이 필수적입니다. Node.js는 브라우저 외부에서 JavaScript 코드를 실행할 수 있게 해주는 JavaScript 런타임 환경이며, npm은 Node.js 패키지를 관리하는 도구입니다.</p>
+                    <h4>1. Node.js 설치:</h4>
+                    <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4">
+                        <li>Node.js 공식 웹사이트로 이동하여 LTS(Long Term Support) 버전을 다운로드하여 설치합니다. LTS 버전은 안정성이 더 높습니다.</li>
+                        <li>Ubuntu에서는 다음 명령어를 사용하여 Node.js와 npm을 설치할 수도 있습니다:</li>
+                    </ul>
+                    <pre><code class="language-bash">sudo apt update
+sudo apt install nodejs npm</code></pre>
+                    <p>최신 버전을 원한다면 Nodesource 저장소를 추가하여 설치할 수 있습니다.</p>
+                    <pre><code class="language-bash">curl -sL https://deb.nodesource.com/setup_current.x -o nodesource_setup.sh
+sudo bash nodesource_setup.sh
+sudo apt-get install nodejs -y</code></pre>
+                    <h4>2. 설치 확인:</h4>
+                    <p>터미널 또는 명령 프롬프트에서 다음 명령어를 실행하여 Node.js와 npm이 올바르게 설치되었는지 확인합니다.</p>
+                    <pre><code class="language-bash">node -v
+npm -v</code></pre>
+                    <p>각각의 버전 번호가 출력되어야 합니다.</p>
+                </div>
+                <div id="s2-2">
+                    <h3>2.2. Create React App을 이용한 프로젝트 생성</h3>
+                    <p>Create React App (CRA)은 React 애플리케이션을 쉽게 생성하고 구성할 수 있도록 도와주는 공식적으로 지원되는 도구입니다. 복잡한 빌드 설정 없이 바로 React 개발을 시작할 수 있게 해줍니다.</p>
+                    <h4>1. Create React App 설치 (전역 또는 npx 사용):</h4>
+                    <p>과거에는 <code>create-react-app</code>을 전역으로 설치했지만, 현재는 <code>npx</code>를 사용하는 것이 권장됩니다. <code>npx</code>는 npm 패키지를 실행하는 도구로, 로컬에 패키지를 설치하지 않고도 최신 버전을 사용할 수 있게 해줍니다.</p>
+                    <h4>2. 새로운 React 프로젝트 생성:</h4>
+                    <p>터미널에서 원하는 디렉토리로 이동한 후 다음 명령어를 실행합니다. <code>my-react-app</code> 부분을 원하는 프로젝트 이름으로 변경하세요. (이름에는 대문자를 사용할 수 없습니다.)</p>
+                    <pre><code class="language-bash">npx create-react-app my-react-app</code></pre>
+                    <p>이 명령어는 <code>my-react-app</code>이라는 새 폴더를 만들고, 그 안에 React 프로젝트 구조와 필요한 의존성 패키지들을 설치합니다.</p>
+                    <h4>3. 프로젝트 디렉토리로 이동:</h4>
+                    <pre><code class="language-bash">cd my-react-app</code></pre>
+                    <h4>4. 개발 서버 실행:</h4>
+                    <p>프로젝트 디렉토리 내에서 다음 명령어를 실행하여 개발 서버를 시작합니다.</p>
+                    <pre><code class="language-bash">npm start</code></pre>
+                    <p>이 명령어를 실행하면 웹 브라우저에서 <code>http://localhost:3000</code> 주소로 React 애플리케이션이 자동으로 열립니다. 소스 코드를 수정하면 변경 사항이 브라우저에 실시간으로 반영됩니다.</p>
+                </div>
+                <div id="s2-3">
+                    <h3>2.3. (선택) Vite를 이용한 프로젝트 생성</h3>
+                    <p>Vite는 매우 빠른 개발 서버 시작과 빌드 속도를 제공하는 최신 프론트엔드 빌드 도구입니다. Create React App의 대안으로 고려할 수 있습니다.</p>
+                    <h4>1. Vite를 사용하여 React 프로젝트 생성:</h4>
+                    <pre><code class="language-bash">npm create vite@latest my-vite-app --template react</code></pre>
+                    <p><code>my-vite-app</code> 부분을 원하는 프로젝트 이름으로 변경합니다.</p>
+                    <h4>2. 프로젝트 디렉토리로 이동 및 의존성 설치:</h4>
+                    <pre><code class="language-bash">cd my-vite-app
+npm install</code></pre>
+                    <h4>3. 개발 서버 실행:</h4>
+                    <pre><code class="language-bash">npm run dev</code></pre>
+                    <p>Vite 개발 서버는 일반적으로 <code>http://localhost:5173</code> (또는 사용 가능한 다른 포트)에서 실행됩니다.</p>
+                </div>
+                <div id="s2-4">
+                    <h3>2.4. 코드 에디터 설정 (VS Code 추천)</h3>
+                    <p>효율적인 React 개발을 위해 좋은 코드 에디터를 사용하는 것이 중요합니다. Visual Studio Code (VS Code)는 React 개발에 널리 사용되는 강력하고 인기 있는 무료 코드 에디터입니다.</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-1 ml-4">
+                        <li><strong>VS Code 설치:</strong> <a href="https://code.visualstudio.com/" target="_blank" class="text-blue-400 hover:underline">https://code.visualstudio.com/</a>에서 다운로드하여 설치합니다.</li>
+                        <li><strong>유용한 확장 프로그램 설치:</strong>
+                            <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li>ESLint: JavaScript 코드의 오류를 찾고 코딩 스타일을 일관되게 유지하도록 도와줍니다.</li>
+                                <li>Prettier - Code formatter: 코드를 자동으로 정렬하여 가독성을 높입니다.</li>
+                                <li>Simple React Snippets: React 코드 조각을 빠르게 작성할 수 있도록 도와줍니다.</li>
+                                <li>Live Share: 다른 개발자와 실시간으로 코드를 공유하고 협업할 수 있게 해줍니다.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <p>VS Code는 통합 터미널을 제공하므로, 별도의 터미널 창을 열지 않고도 VS Code 내에서 <code>npm start</code>와 같은 명령어를 실행할 수 있습니다.</p>
+                    <p>이제 React 개발을 시작할 준비가 되었습니다! 다음 섹션에서는 React 프로젝트의 일반적인 구조와 모범 사례에 대해 알아보겠습니다.</p>
+                </div>
+            </section>
+
+            <section id="s3" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>3. React 프로젝트 구조 및 모범 사례</h2>
+                <p>잘 구성된 프로젝트 구조는 애플리케이션의 유지보수성과 확장성을 높이는 데 중요합니다. Create React App으로 생성된 프로젝트는 기본적인 폴더 구조를 제공하며, 이를 바탕으로 필요에 따라 확장할 수 있습니다.</p>
+                <div id="s3-1">
+                    <h3>3.1. Create React App 기본 폴더 구조 이해</h3>
+                    <p><code>npx create-react-app my-react-app</code> 명령어로 프로젝트를 생성하면 다음과 같은 주요 파일 및 폴더 구조를 볼 수 있습니다.</p>
+                    <pre><code class="language-text">my-react-app/
+├── node_modules/      # 프로젝트 의존성 패키지들이 설치되는 폴더
+├── public/            # 정적 파일들을 위한 폴더
+│   ├── favicon.ico    # 브라우저 탭에 표시될 아이콘
+│   ├── index.html     # 애플리케이션의 유일한 HTML 파일 (SPA의 진입점)
+│   ├── logo192.png    # PWA용 로고
+│   ├── logo512.png    # PWA용 로고
+│   └── manifest.json  # PWA(Progressive Web App) 설정 파일
+├── src/               # 실제 React 코드 작업이 이루어지는 폴더
+│   ├── App.css        # App 컴포넌트 스타일 파일
+│   ├── App.js         # 메인 App 컴포넌트
+│   ├── App.test.js    # App 컴포넌트 테스트 파일
+│   ├── index.css      # 전역 스타일 파일
+│   ├── index.js       # 애플리케이션의 JavaScript 진입점, ReactDOM.render() 호출
+│   ├── logo.svg       # React 로고 이미지
+│   ├── reportWebVitals.js # 웹 성능 측정 관련 파일
+│   └── setupTests.js  # 테스트 환경 설정 파일
+├── .gitignore         # Git 버전 관리에서 제외할 파일/폴더 목록
+├── package.json       # 프로젝트 정보, 의존성 목록, 스크립트 정의
+├── package-lock.json  # 의존성 패키지들의 정확한 버전 정보 고정
+└── README.md          # 프로젝트 설명 파일</code></pre>
+                    <p><code>public/index.html</code>: React 애플리케이션이 삽입될 기본 HTML 템플릿입니다. <code>&lt;div id="root"&gt;&lt;/div&gt;</code> 요소를 포함하며, <code>src/index.js</code>에서 이 요소를 찾아 React 컴포넌트를 렌더링합니다.</p>
+                    <p><code>src/index.js</code>: 애플리케이션의 JavaScript 진입점입니다. <code>ReactDOM.createRoot(document.getElementById('root')).render(&lt;App /&gt;);</code> 코드를 통해 App 컴포넌트를 <code>public/index.html</code>의 <code>root</code> div에 렌더링합니다.</p>
+                    <p><code>src/App.js</code>: 애플리케이션의 최상위 컴포넌트입니다. 일반적으로 다른 컴포넌트들을 조합하여 전체 UI를 구성합니다.</p>
+                </div>
+                <div id="s3-2">
+                    <h3>3.2. 일반적인 폴더 구조 패턴 (예: 기능별, 타입별)</h3>
+                    <p>프로젝트가 커짐에 따라 <code>src</code> 폴더 내부를 체계적으로 구성하는 것이 중요합니다. 일반적인 두 가지 패턴은 다음과 같습니다.</p>
+                    <h4>기능별(Feature-based) 또는 컴포넌트 중심(Component-centric) 구조:</h4>
+                    <p>특정 기능이나 컴포넌트와 관련된 모든 파일(JavaScript, CSS, 테스트 파일, 이미지 등)을 하나의 폴더에 모아 관리합니다. 이는 응집도를 높이고 관련 코드를 쉽게 찾을 수 있게 해줍니다.</p>
+                    <pre><code class="language-text">src/
+├── features/ (또는 components/)
+│   ├── Login/
+│   │   ├── Login.jsx
+│   │   ├── Login.module.css (CSS Modules 사용 시)
+│   │   ├── Login.test.js
+│   │   └── LoginAPI.js (해당 기능 관련 API 호출)
+│   └── ProductList/
+│       ├── ProductList.jsx
+│       ├── ProductList.module.css
+│       └── ProductItem.jsx
+├── App.js
+└── index.js</code></pre>
+                    <h4>타입별(Type-based) 구조:</h4>
+                    <p>파일 유형에 따라 폴더를 구성합니다. 예를 들어 모든 컴포넌트는 <code>components</code> 폴더에, 모든 페이지는 <code>pages</code> 폴더에, 모든 유틸리티 함수는 <code>utils</code> 폴더에 저장합니다.</p>
+                    <pre><code class="language-text">src/
+├── assets/         # 이미지, 폰트 등 정적 자원
+├── components/     # 재사용 가능한 UI 컴포넌트
+├── pages/          # 각 페이지를 나타내는 컴포넌트 (라우팅에 사용)
+├── services/       # API 호출 등 외부 서비스 연동 로직
+├── hooks/          # 커스텀 훅
+├── store/          # 상태 관리 (Redux, Zustand 등)
+├── utils/          # 유틸리티 함수
+├── App.js
+└── index.js</code></pre>
+                    <p>어떤 구조를 선택할지는 프로젝트의 크기, 팀의 선호도, 애플리케이션의 특성에 따라 달라질 수 있습니다. 중요한 것은 일관성을 유지하고 팀원 모두가 이해하기 쉬운 구조를 선택하는 것입니다.</p>
+                </div>
+                <div id="s3-3">
+                    <h3>3.3. 네이밍 컨벤션</h3>
+                    <p>일관된 네이밍 컨벤션은 코드의 가독성을 높이고 협업을 용이하게 합니다.</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>컴포넌트:</strong> 파스칼 케이스(PascalCase)를 사용합니다. 예: <code>MyButton</code>, <code>UserProfile</code>. 이는 일반 HTML 태그(소문자)와 구분하기 위함입니다.</li>
+                        <li><strong>파일 및 폴더:</strong> 컴포넌트 이름과 동일하게 파스칼 케이스를 사용하거나, 케밥 케이스(kebab-case) (예: <code>user-profile</code>)를 사용할 수 있습니다. 일관성이 중요합니다.</li>
+                        <li><strong>JavaScript 변수 및 함수:</strong> 카멜 케이스(camelCase)를 사용합니다. 예: <code>userName</code>, <code>fetchUserData()</code>.</li>
+                        <li><strong>CSS 클래스:</strong> 케밥 케이스(kebab-case) (예: <code>user-profile</code>) 또는 BEM(Block Element Modifier)과 같은 CSS 네이밍 방법론을 따를 수 있습니다. CSS Modules를 사용하면 클래스 이름 충돌을 방지할 수 있습니다.</li>
+                        <li><strong>상수:</strong> 대문자와 스네이크 케이스(UPPER_SNAKE_CASE)를 사용합니다. 예: <code>const API_URL = '...'</code>.</li>
+                    </ul>
+                </div>
+                <div id="s3-4">
+                    <h3>3.4. 컴포넌트 설계 모범 사례</h3>
+                     <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>단일 책임 원칙 (Single Responsibility Principle, SRP):</strong> 컴포넌트는 가능한 한 가지 기능만 수행하도록 작게 분리합니다. 이렇게 하면 컴포넌트를 관리, 테스트, 재사용하기 쉬워집니다.</li>
+                        <li><strong>프레젠테이셔널 컴포넌트와 컨테이너 컴포넌트 분리 (선택 사항):</strong>
+                            <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li>프레젠테이셔널 컴포넌트: UI 렌더링에만 집중하고, 데이터를 props로 받습니다.</li>
+                                <li>컨테이너 컴포넌트: 데이터 로직, 상태 관리, API 호출 등을 처리하고, 프레젠테이셔널 컴포넌트에 데이터를 전달합니다. 이 패턴은 Hooks의 등장으로 덜 엄격하게 적용되기도 하지만, 여전히 관심사 분리에 유용한 개념입니다.</li>
+                            </ul>
+                        </li>
+                        <li><strong>재사용성:</strong> 반복적으로 사용되는 UI 요소나 로직은 별도의 컴포넌트나 커스텀 훅으로 추출하여 재사용성을 높입니다.</li>
+                        <li><strong>Props 명명:</strong> Props 이름은 컴포넌트 자체의 관점에서, 전달받는 데이터의 의미를 명확하게 나타내도록 짓습니다.</li>
+                        <li><strong>불필요한 div 줄이기:</strong> 여러 요소를 반환할 때 불필요한 div로 감싸는 대신 React Fragment (<code>&lt;&gt;&lt;/&gt;</code> 또는 <code>&lt;React.Fragment&gt;&lt;/React.Fragment&gt;</code>)를 사용합니다.</li>
+                    </ul>
+                </div>
+                <div id="s3-5">
+                    <h3>3.5. 코드 스타일 및 가독성</h3>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>일관된 들여쓰기와 공백:</strong> 코드 전체에 걸쳐 일관된 들여쓰기(보통 스페이스 2칸 또는 4칸)와 공백을 사용합니다.</li>
+                        <li><strong>주석:</strong> 복잡한 로직이나 중요한 결정 사항에 대해서는 명확하고 간결한 주석을 작성합니다. 다만, 코드가 자체적으로 설명 가능하도록 작성하는 것이 더 좋습니다. 불필요한 주석은 제거합니다.</li>
+                        <li><strong>ES6+ 문법 활용:</strong> <code>let</code>, <code>const</code>, 화살표 함수, 디스트럭처링 할당, 스프레드 연산자 등 최신 JavaScript 문법을 적극적으로 활용하여 코드를 간결하고 명확하게 작성합니다.</li>
+                        <li><strong>DRY (Don't Repeat Yourself) 원칙:</strong> 반복되는 코드는 함수나 컴포넌트로 추출하여 중복을 최소화합니다.</li>
+                    </ul>
+                    <p>이러한 프로젝트 구조와 모범 사례를 따르면 더 깨끗하고, 유지보수하기 쉽고, 확장 가능한 React 애플리케이션을 만들 수 있습니다.</p>
+                </div>
+            </section>
+            
+            <section id="s4" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>4. React 핵심 개념 상세 학습</h2>
+                <p>이 섹션에서는 React의 핵심 개념들을 더 깊이 있게 살펴보고, 실제 코드 예제를 통해 이해를 돕겠습니다.</p>
+                <div id="s4-1">
+                    <h3>4.1. 컴포넌트 (Components)</h3>
+                    <p>React 애플리케이션은 컴포넌트라는 독립적이고 재사용 가능한 UI 조각들로 만들어집니다. 컴포넌트는 자체적인 로직과 모양을 가지며, JavaScript 함수나 클래스로 정의할 수 있습니다.</p>
+                    <div id="s4-1-1">
+                        <h4>4.1.1. 함수형 컴포넌트와 클래스형 컴포넌트</h4>
+                        <p>React 컴포넌트를 정의하는 두 가지 주요 방법이 있습니다.</p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li><strong>함수형 컴포넌트 (Functional Components):</strong>
+                                <p>가장 간단한 형태의 컴포넌트로, props를 인자로 받아 React 엘리먼트를 반환하는 JavaScript 함수입니다. Hooks의 도입 이후 상태 관리와 생명주기 기능을 사용할 수 있게 되어 현재 가장 널리 사용되는 방식입니다.</p>
+                                <pre><code class="language-javascript">// 예시: 함수형 컴포넌트
+function Welcome(props) {
+  return &lt;h1&gt;Hello, {props.name}&lt;/h1&gt;;
+}</code></pre>
+                            </li>
+                            <li><strong>클래스형 컴포넌트 (Class Components):</strong>
+                                <p>ES6 클래스를 사용하여 정의하며, <code>React.Component</code>를 상속받습니다. <code>render()</code> 메서드를 반드시 포함해야 하며, 이 메서드가 React 엘리먼트를 반환합니다. 과거에는 상태(state)와 생명주기(lifecycle) 메서드를 사용하기 위해 클래스형 컴포넌트를 주로 사용했습니다.</p>
+                                <pre><code class="language-javascript">// 예시: 클래스형 컴포넌트
+class Welcome extends React.Component {
+  render() {
+    return &lt;h1&gt;Hello, {this.props.name}&lt;/h1&gt;;
+  }
+}</code></pre>
+                            </li>
+                        </ul>
+                        <p>React 팀은 새로운 코드 작성 시 함수형 컴포넌트와 Hooks 사용을 권장하고 있지만, 기존의 클래스형 컴포넌트도 계속 지원할 예정입니다.</p>
+                    </div>
+                    <div id="s4-1-2">
+                        <h4>4.1.2. 컴포넌트 생성 및 중첩</h4>
+                        <p>컴포넌트는 UI의 작은 부분(예: 버튼)부터 전체 페이지까지 다양한 크기로 만들 수 있습니다. React 컴포넌트는 일반 JavaScript 함수처럼 호출하는 것이 아니라 JSX 태그 형태로 사용합니다. 컴포넌트 이름은 항상 대문자로 시작해야 합니다. 소문자로 시작하는 태그는 일반 HTML 태그로 간주됩니다.</p>
+                        <p>컴포넌트는 다른 컴포넌트를 자신의 출력물에 포함하여 중첩시킬 수 있습니다. 이를 통해 복잡한 UI를 작은 컴포넌트들로 조합하여 만들 수 있습니다.</p>
+                        <pre><code class="language-javascript">// MyButton.js
+function MyButton() {
+  return (
+    &lt;button&gt;I'm a button&lt;/button&gt;
+  );
+}
+export default MyButton;
+
+// App.js
+import MyButton from './MyButton';
+
+function App() {
+  return (
+    &lt;div&gt;
+      &lt;h1&gt;Welcome to my app&lt;/h1&gt;
+      &lt;MyButton /&gt; {/* MyButton 컴포넌트 사용 */}
+      &lt;MyButton /&gt;
+    &lt;/div&gt;
+  );
+}
+export default App;</code></pre>
+                    </div>
+                    <div id="s4-1-3">
+                        <h4>4.1.3. 컴포넌트 재사용성</h4>
+                        <p>컴포넌트 기반 아키텍처의 가장 큰 장점 중 하나는 재사용성입니다. 잘 설계된 컴포넌트는 애플리케이션의 여러 부분에서, 또는 다른 프로젝트에서도 재사용될 수 있습니다. UI의 일부가 여러 번 사용되거나(예: 버튼, 패널, 아바타) 그 자체로 충분히 복잡하다면(예: 앱, 피드 스토리, 댓글) 별도의 컴포넌트로 추출하는 것이 좋습니다.</p>
+                    </div>
+                     <div id="s4-1-4">
+                        <h4>4.1.4. 컴포넌트 추출</h4>
+                        <p>복잡한 컴포넌트는 더 작은 컴포넌트들로 나누어 추출할 수 있습니다. 이는 코드의 가독성을 높이고, 각 부분을 독립적으로 관리하고 테스트하기 쉽게 만듭니다.</p>
+                        <p>예를 들어, 사용자 정보와 댓글 내용을 함께 보여주는 <code>Comment</code> 컴포넌트가 있다고 가정해 봅시다. 여기서 사용자 아바타를 보여주는 부분을 <code>Avatar</code> 컴포넌트로 추출할 수 있습니다.</p>
+                        <pre><code class="language-javascript">// Avatar.js
+function Avatar(props) {
+  return (
+    &lt;img className="Avatar"
+      src={props.user.avatarUrl}
+      alt={props.user.name}
+    /&gt;
+  );
+}
+
+// Comment.js (Avatar 추출 후)
+function Comment(props) {
+  return (
+    &lt;div className="Comment"&gt;
+      &lt;div className="UserInfo"&gt;
+        &lt;Avatar user={props.author} /&gt; {/* Avatar 컴포넌트 사용 */}
+        &lt;div className="UserInfo-name"&gt;
+          {props.author.name}
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className="Comment-text"&gt;
+        {props.text}
+      &lt;/div&gt;
+      &lt;div className="Comment-date"&gt;
+        {/* formatDate(props.date) */}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+                    </div>
+                </div>
+                <div id="s4-2">
+                    <h3>4.2. JSX (JavaScript XML)</h3>
+                    <p>JSX는 JavaScript를 확장한 문법으로, React에서 UI가 어떻게 보일지 설명하는 데 사용됩니다. HTML과 매우 유사해 보이지만, 실제로는 JavaScript 코드 내에서 사용되며, 브라우저가 이해할 수 있는 일반 JavaScript 코드로 변환(컴파일)됩니다.</p>
+                    <div id="s4-2-1">
+                        <h4>4.2.1. JSX란 무엇인가?</h4>
+                        <p>근본적으로 JSX는 <code>React.createElement(component, props, ...children)</code> 함수 호출에 대한 문법적 설탕(syntactic sugar)을 제공합니다.</p>
+                        <p>예를 들어, 다음과 같은 JSX 코드는:</p>
+                        <pre><code class="language-javascript">&lt;MyButton color="blue" shadowSize={2}&gt;
+  Click Me
+&lt;/MyButton&gt;</code></pre>
+                        <p>다음과 같은 JavaScript 코드로 컴파일됩니다:</p>
+                        <pre><code class="language-javascript">React.createElement(
+  MyButton,
+  {color: 'blue', shadowSize: 2},
+  'Click Me'
+)</code></pre>
+                        <p>JSX를 사용하면 마크업과 로직을 같은 파일에 유지하면서 컴포넌트의 구조를 시각적으로 명확하게 표현할 수 있습니다.</p>
+                    </div>
+                    <div id="s4-2-2">
+                        <h4>4.2.2. JSX의 기본 규칙</h4>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li><strong>단일 루트 요소:</strong> 컴포넌트는 항상 단일 루트(root) 요소만 반환해야 합니다. 여러 요소를 반환하려면 <code>&lt;div&gt;</code>나 React Fragment (<code>&lt;&gt;&lt;/&gt;</code> 또는 <code>&lt;React.Fragment&gt;</code>)로 감싸야 합니다.</li>
+                            <li><strong>HTML 어트리뷰트와의 차이:</strong>
+                                <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                    <li><code>class</code> 대신 <code>className</code>을 사용합니다. (JSX는 JavaScript이므로 <code>class</code>는 JavaScript의 예약어입니다.)</li>
+                                    <li><code>for</code> 대신 <code>htmlFor</code>를 사용합니다.</li>
+                                    <li>어트리뷰트 이름은 카멜 케이스(camelCase)를 따릅니다 (예: <code>tabindex</code> -> <code>tabIndex</code>).</li>
+                                </ul>
+                            </li>
+                            <li><strong>JavaScript 표현식 사용:</strong> JSX 내에서 중괄호 <code>{}</code>를 사용하여 JavaScript 표현식을 삽입할 수 있습니다.
+                                <pre><code class="language-javascript">const name = "React Developer";
+const element = &lt;h1&gt;Hello, {name}&lt;/h1&gt;; // "Hello, React Developer" 출력
+
+function formatUser(user) {
+  return user.firstName + ' ' + user.lastName;
+}
+const user = { firstName: 'Harper', lastName: 'Perez' };
+const elementWithFunction = &lt;h1&gt;Hello, {formatUser(user)}!&lt;/h1&gt;;</code></pre>
+                            </li>
+                            <li><strong>조건부 렌더링:</strong> <code>if</code> 문이나 삼항 연산자, 논리 연산자 <code>&&</code> 등을 사용하여 조건에 따라 다른 UI를 렌더링할 수 있습니다. React에는 조건부 렌더링을 위한 특별한 문법이 없으며, 일반 JavaScript 코드를 사용합니다.
+                                <pre><code class="language-javascript">function Greeting(props) {
+  const isLoggedIn = props.isLoggedIn;
+  if (isLoggedIn) {
+    return &lt;h1&gt;Welcome back!&lt;/h1&gt;;
+  }
+  return &lt;h1&gt;Please sign up.&lt;/h1&gt;;
+}</code></pre>
+                            </li>
+                            <li><strong>주석:</strong> JSX 내에서 주석은 <code>{/* 주석 내용 */}</code> 형태로 작성합니다.</li>
+                            <li><strong>Self-closing 태그:</strong> 자식이 없는 태그는 XML처럼 <code>/&gt;</code>로 닫아야 합니다. 예: <code>&lt;img src="..." /&gt;</code>.</li>
+                        </ul>
+                    </div>
+                    <div id="s4-2-3">
+                        <h4>4.2.3. JSX에서의 스타일링</h4>
+                        <p>JSX에서 스타일을 적용하는 몇 가지 방법이 있습니다:</p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li><strong>인라인 스타일:</strong> 스타일을 JavaScript 객체 형태로 작성하여 <code>style</code> 어트리뷰트에 전달합니다. 프로퍼티 이름은 카멜 케이스를 사용합니다.
+                                <pre><code class="language-javascript">&lt;h1 style={{ color: 'blue', fontSize: '16px' }}&gt;Hello World&lt;/h1&gt;</code></pre>
+                            </li>
+                            <li><strong>CSS 파일 임포트:</strong> 일반적인 CSS 파일을 작성하고 컴포넌트 파일에서 임포트하여 사용합니다.
+                                <p><code>App.css</code>:</p>
+                                <pre><code class="language-css">.title {
+  color: blue;
+  font-size: 16px;
+}</code></pre>
+                                <p><code>App.js</code>:</p>
+                                <pre><code class="language-javascript">import './App.css';
+
+function App() {
+  return &lt;h1 className="title"&gt;Hello World&lt;/h1&gt;;
+}</code></pre>
+                            </li>
+                            <li><strong>CSS Modules:</strong> CSS 클래스 이름이 로컬 스코프를 가지도록 하여 이름 충돌을 방지합니다. 파일 이름을 <code>[name].module.css</code> 형태로 작성하고, <code>styles.className</code> 형태로 사용합니다.</li>
+                            <li><strong>CSS-in-JS 라이브러리:</strong> Styled Components, Emotion 등 JavaScript 코드 내에서 CSS를 작성할 수 있게 해주는 라이브러리들이 있습니다.</li>
+                        </ul>
+                    </div>
+                    <div id="s4-2-4">
+                        <h4>4.2.4. JSX와 보안 (XSS 방지)</h4>
+                        <p>JSX에 삽입된 모든 내용은 렌더링되기 전에 문자열로 변환됩니다. 이는 기본적으로 크로스 사이트 스크립팅(XSS) 공격을 방지하는 데 도움이 됩니다. 즉, 사용자가 입력한 내용을 <code>{}</code>를 통해 JSX에 직접 삽입하더라도, 해당 내용이 스크립트로 실행되지 않고 단순 텍스트로 처리됩니다.</p>
+                    </div>
+                </div>
+                <div id="s4-3">
+                    <h3>4.3. Props와 State</h3>
+                    <p>Props와 State는 React 컴포넌트에서 데이터를 다루는 두 가지 주요 개념입니다. 이 둘의 차이를 이해하는 것은 매우 중요합니다.</p>
+                    <div id="s4-3-1">
+                        <h4>4.3.1. Props (Properties)</h4>
+                        <p>Props는 "properties"의 줄임말로, 컴포넌트에 전달되는 데이터입니다. 부모 컴포넌트가 자식 컴포넌트에게 정보를 전달하는 주요 수단입니다. HTML 어트리뷰트와 유사하게 사용됩니다.</p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li><strong>데이터 전달:</strong> 부모 컴포넌트에서 자식 컴포넌트를 호출할 때 어트리뷰트 형태로 props를 전달합니다.
+                                <pre><code class="language-javascript">// 부모 컴포넌트
+function App() {
+  return &lt;Greeting name="Alice" /&gt;;
+}
+
+// 자식 컴포넌트
+function Greeting(props) {
+  return &lt;h1&gt;Hello, {props.name}!&lt;/h1&gt;;
+}</code></pre>
+                                <p>위 예시에서 <code>App</code> 컴포넌트는 <code>Greeting</code> 컴포넌트에 <code>name="Alice"</code>라는 prop을 전달하고, <code>Greeting</code> 컴포넌트는 <code>props.name</code>을 통해 이 값을 사용합니다.</p>
+                            </li>
+                            <li><strong>읽기 전용 (Read-Only):</strong> Props는 자식 컴포넌트 내부에서 절대로 수정해서는 안 됩니다. 모든 React 컴포넌트는 자신의 props에 관해서는 순수 함수처럼 동작해야 합니다. 즉, 동일한 입력(props)에 대해 항상 동일한 출력(UI)을 반환하고, 입력값을 변경하지 않아야 합니다.</li>
+                            <li><strong>단방향 데이터 흐름:</strong> 데이터는 항상 부모에서 자식으로, 즉 위에서 아래로 흐릅니다. 이를 "단방향 데이터 흐름(unidirectional data flow)"이라고 하며, 애플리케이션의 데이터 흐름을 예측 가능하게 만듭니다.</li>
+                            <li><strong><code>props.children</code>:</strong> 컴포넌트 태그 사이에 있는 내용은 <code>props.children</code>으로 전달됩니다.
+                            <pre><code class="language-javascript">&lt;MyContainer&gt;
+  &lt;MyFirstComponent /&gt;
+  &lt;MySecondComponent /&gt;
+  Hello world!
+&lt;/MyContainer&gt;</code></pre>
+                            <p>위 코드에서 <code>MyContainer</code>의 <code>props.children</code>은 <code>MyFirstComponent</code>, <code>MySecondComponent</code> 엘리먼트와 "Hello world!" 문자열을 포함하는 배열이 됩니다.</p>
+                            </li>
+                        </ul>
+                    </div>
+                    <div id="s4-3-2">
+                        <h4>4.3.2. State</h4>
+                        <p>State는 컴포넌트 내부에서 관리되는 데이터로, 시간이 지남에 따라 변경될 수 있습니다. 사용자의 입력, 네트워크 응답, 또는 다른 이벤트에 따라 컴포넌트의 모습이 바뀌어야 할 때 state를 사용합니다. State가 변경되면 React는 해당 컴포넌트와 그 자식 컴포넌트들을 다시 렌더링하여 UI를 업데이트합니다.</p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li><strong>함수형 컴포넌트에서의 State (<code>useState</code> Hook):</strong> <code>useState</code> Hook을 사용하여 함수형 컴포넌트에서 state를 사용할 수 있습니다. <code>useState</code>는 현재 state 값과 이 값을 업데이트하는 함수를 배열 형태로 반환합니다.
+                                <pre><code class="language-javascript">import React, { useState } from 'react';
+
+function Counter() {
+  // "count"라는 새 state 변수를 선언하고, 초기값을 0으로 설정
+  const [count, setCount] = useState(0);
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;You clicked {count} times&lt;/p&gt;
+      &lt;button onClick={() =&gt; setCount(count + 1)}&gt;
+        Click me
+      &lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+                            </li>
+                            <li><strong>State 업데이트:</strong> State는 직접 수정해서는 안 됩니다. 항상 <code>useState</code>가 반환한 세터 함수(예: <code>setCount</code>)를 사용하여 업데이트해야 합니다. 이 함수를 호출하면 React는 state 변경을 감지하고 컴포넌트 리렌더링을 예약합니다.</li>
+                            <li><strong>State는 지역적 (Local):</strong> State는 기본적으로 해당 컴포넌트에 지역적이며, 다른 컴포넌트에서 직접 접근할 수 없습니다. 다른 컴포넌트와 state를 공유하려면, 해당 state를 공통 부모 컴포넌트로 "끌어올리고(lifting state up)" props를 통해 자식 컴포넌트로 전달해야 합니다.</li>
+                        </ul>
+                    </div>
+                    <div id="s4-3-3">
+                        <h4>4.3.3. Props vs. State 비교</h4>
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>특징</th>
+                                        <th>Props</th>
+                                        <th>State</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>소유권</td>
+                                        <td>부모 컴포넌트가 소유하고 자식에게 전달</td>
+                                        <td>컴포넌트 자체가 소유하고 관리</td>
+                                    </tr>
+                                    <tr>
+                                        <td>변경 가능성</td>
+                                        <td>읽기 전용 (자식 컴포넌트에서 변경 불가)</td>
+                                        <td>변경 가능 (세터 함수를 통해)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>데이터 흐름</td>
+                                        <td>단방향 (부모 -&gt; 자식)</td>
+                                        <td>컴포넌트 내부에서 관리, 변경 시 리렌더링 유발</td>
+                                    </tr>
+                                    <tr>
+                                        <td>목적</td>
+                                        <td>컴포넌트 설정 및 데이터 전달</td>
+                                        <td>컴포넌트의 동적인 데이터 및 UI 상태 관리</td>
+                                    </tr>
+                                    <tr>
+                                        <td>초기값 설정</td>
+                                        <td>부모 컴포넌트에서 전달</td>
+                                        <td><code>useState</code> Hook 또는 클래스 생성자에서 초기화</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <h4>State 구조화 팁:</h4>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li>관련된 state 그룹화: 항상 함께 업데이트되는 두 개 이상의 state 변수가 있다면 단일 state 변수로 병합하는 것을 고려합니다.</li>
+                            <li>State의 모순 방지: 여러 state 조각이 서로 모순될 수 있는 구조를 피합니다.</li>
+                            <li>중복된 state 방지: props나 기존 state 변수로부터 렌더링 중에 계산할 수 있는 정보는 state에 넣지 않습니다.</li>
+                            <li>State의 깊은 중첩 방지: 깊게 중첩된 state는 업데이트하기 불편하므로 가능한 한 평평하게 구조화합니다.</li>
+                        </ul>
+                        <p>Props와 State는 React의 데이터 관리에서 핵심적인 역할을 하며, 이 둘을 올바르게 이해하고 사용하는 것이 중요합니다. State는 컴포넌트가 "기억"해야 하는 데이터를 관리하고, props는 이러한 데이터를 컴포넌트 트리를 통해 전달하는 통로 역할을 합니다.</p>
+                    </div>
+                </div>
+                <div id="s4-4">
+                  <h3>4.4. Virtual DOM (가상 DOM)</h3>
+                  <p>Virtual DOM(VDOM)은 React의 성능 최적화에 핵심적인 역할을 하는 프로그래밍 개념입니다. 실제 DOM(Document Object Model)의 가벼운 복사본으로, 메모리에 유지됩니다.</p>
+                  <div id="s4-4-1">
+                    <h4>4.4.1. DOM과 Virtual DOM의 개념</h4>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>DOM (Document Object Model):</strong> 브라우저가 HTML 문서를 로드할 때 생성하는 트리 구조의 객체 모델입니다. 웹 페이지의 콘텐츠와 구조를 나타내며, JavaScript를 통해 이 DOM을 조작하여 페이지 내용을 동적으로 변경할 수 있습니다. 그러나 실제 DOM 조작은 상대적으로 느리고 비용이 많이 드는 작업입니다.</li>
+                        <li><strong>Virtual DOM (VDOM):</strong> 실제 DOM의 이상적인, 또는 "가상" 표현입니다. React 엘리먼트들은 사용자 인터페이스를 나타내는 객체이며, 이들이 모여 Virtual DOM을 구성합니다. Virtual DOM은 JavaScript 객체이므로 실제 DOM보다 훨씬 빠르게 조작할 수 있습니다.</li>
+                    </ul>
+                  </div>
+                  <div id="s4-4-2">
+                    <h4>4.4.2. React의 렌더링 과정과 Virtual DOM의 역할</h4>
+                    <p>React의 렌더링 과정에서 Virtual DOM은 다음과 같은 역할을 합니다:</p>
+                    <ol class="list-decimal list-inside text-gray-300 space-y-2">
+                        <li><strong>초기 렌더링:</strong> React 애플리케이션이 처음 로드될 때, React는 컴포넌트들을 기반으로 전체 Virtual DOM 트리를 생성하고, 이를 실제 DOM으로 렌더링합니다.</li>
+                        <li><strong>State 변경 및 리렌더링:</strong> 컴포넌트의 state가 변경되면, React는 새로운 Virtual DOM 트리를 생성합니다.</li>
+                        <li><strong>조정 (Reconciliation):</strong> React는 새로 생성된 Virtual DOM 트리와 이전 Virtual DOM 트리를 비교합니다. 이 비교 과정을 "조정(Reconciliation)"이라고 합니다.</li>
+                        <li><strong>Diffing 알고리즘:</strong> 조정 과정에서는 "Diffing 알고리즘"을 사용하여 두 Virtual DOM 트리 간의 차이점을 효율적으로 찾아냅니다. 이 알고리즘은 다음과 같은 두 가지 가정에 기반합니다:
+                            <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li>서로 다른 타입의 두 엘리먼트는 서로 다른 트리를 만들어낸다.</li>
+                                <li>개발자가 <code>key</code> prop을 통해 여러 렌더링 사이에서 어떤 자식 엘리먼트가 변경되지 않아야 하는지 표시해 줄 수 있다.</li>
+                            </ul>
+                        </li>
+                        <li><strong>최소한의 DOM 업데이트:</strong> React는 Diffing 알고리즘을 통해 발견된 변경 사항만을 실제 DOM에 적용합니다. 이렇게 하면 불필요한 DOM 조작을 최소화하여 애플리케이션 성능을 크게 향상시킬 수 있습니다.</li>
+                    </ol>
+                  </div>
+                  <div id="s4-4-3">
+                    <h4>4.4.3. Virtual DOM의 장점</h4>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>성능 향상:</strong> 실제 DOM 조작을 최소화하여 렌더링 성능을 최적화합니다.</li>
+                        <li><strong>개발 편의성:</strong> 개발자는 실제 DOM 조작의 복잡성을 신경 쓸 필요 없이, 단순히 UI가 어떤 상태여야 하는지만 선언적으로 기술하면 됩니다. React가 나머지를 처리해줍니다.</li>
+                        <li><strong>플랫폼 간 호환성:</strong> Virtual DOM 개념은 브라우저 환경뿐만 아니라 React Native를 통해 모바일 앱 개발에도 적용될 수 있는 추상화 계층을 제공합니다.</li>
+                    </ul>
+                    <p>Virtual DOM은 React가 빠르고 효율적으로 UI를 업데이트할 수 있게 하는 핵심 기술입니다. "Shadow DOM"과는 다른 개념으로, Shadow DOM은 웹 컴포넌트의 변수와 CSS를 스코핑하기 위한 브라우저 기술인 반면, Virtual DOM은 JavaScript 라이브러리에 의해 브라우저 API 위에 구현된 개념입니다. React 16부터 도입된 "Fiber"는 Virtual DOM의 점진적 렌더링을 가능하게 하는 새로운 조정 엔진입니다.</p>
+                  </div>
+                </div>
+                <div id="s4-5">
+                    <h3>4.5. Hooks</h3>
+                    <p>Hooks는 React 16.8 버전에 새로 추가된 기능으로, 클래스를 작성하지 않고도 함수형 컴포넌트에서 state 및 다른 React 기능을 사용할 수 있게 해줍니다.</p>
+                    <div id="s4-5-1">
+                        <h4>4.5.1. Hooks란 무엇인가?</h4>
+                        <p>Hooks는 함수형 컴포넌트에 "연결(hook into)"하여 React의 state와 생명주기(lifecycle) 기능을 사용할 수 있게 해주는 특별한 함수들입니다. Hooks는 클래스 내부에서는 동작하지 않으며, 함수형 컴포넌트의 사용을 장려합니다.</p>
+                    </div>
+                    <div id="s4-5-2">
+                        <h4>4.5.2. Hooks가 도입된 이유</h4>
+                         <p>Hooks는 기존 클래스형 컴포넌트 기반 개발에서 발생하던 몇 가지 문제점을 해결하기 위해 도입되었습니다:</p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li><strong>컴포넌트 간 상태 관련 로직 재사용의 어려움:</strong> 기존에는 고차 컴포넌트(Higher-Order Components)나 렌더 프롭(Render Props)과 같은 패턴을 사용해야 했지만, 이는 컴포넌트 계층 구조를 복잡하게 만들 수 있었습니다. Hooks를 사용하면 컴포넌트 계층 구조를 변경하지 않고도 상태 관련 로직을 추출하여 재사용할 수 있습니다.</li>
+                            <li><strong>복잡한 컴포넌트 이해의 어려움:</strong> 클래스형 컴포넌트의 생명주기 메서드(예: <code>componentDidMount</code>, <code>componentDidUpdate</code>)에는 서로 관련 없는 로직이 섞이기 쉬워 컴포넌트가 커질수록 이해하고 유지보수하기 어려워집니다. Hooks를 사용하면 생명주기 메서드 기반이 아닌, 서로 관련된 로직(예: 데이터 구독 설정 및 해제)을 기준으로 코드를 더 작은 함수들로 나눌 수 있습니다.</li>
+                            <li><strong>클래스의 혼란스러움:</strong> JavaScript의 <code>this</code> 키워드, 클래스 문법, 이벤트 핸들러 바인딩 등은 초보자에게 혼란을 줄 수 있으며, 클래스는 코드 압축(minification)이나 핫 리로딩(hot reloading)에도 불리한 점이 있었습니다. Hooks는 함수형 프로그래밍의 장점을 살리면서도 React의 실용적인 정신을 유지합니다.</li>
+                        </ul>
+                    </div>
+                    <div id="s4-5-3">
+                        <h4>4.5.3. 기본 Hooks: useState, useEffect</h4>
+                        <p>React에는 여러 내장 Hooks가 있으며, 가장 기본적인 두 가지는 <code>useState</code>와 <code>useEffect</code>입니다.</p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li><strong><code>useState</code> (State Hook):</strong>
+                                <p>함수형 컴포넌트 내에서 지역적인 state를 추가할 수 있게 해줍니다. <code>useState</code>는 현재 state 값과 해당 state를 업데이트하는 함수, 이 두 가지를 배열 형태로 반환합니다.</p>
+                                <pre><code class="language-javascript">import React, { useState } from 'react';
+
+function Example() {
+  // "count"라는 새 state 변수를 선언하고, 초기값을 0으로 설정합니다.
+  const [count, setCount] = useState(0);
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;You clicked {count} times&lt;/p&gt;
+      &lt;button onClick={() =&gt; setCount(count + 1)}&gt;
+        Click me
+      &lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+                                <p><code>useState</code>의 인자는 state의 초기값입니다. <code>setCount</code>와 같은 세터 함수는 클래스의 <code>this.setState</code>와 유사하지만, 이전 state와 새 state를 병합하지 않고 완전히 대체합니다.</p>
+                            </li>
+                            <li><strong><code>useEffect</code> (Effect Hook):</strong>
+                                <p>함수형 컴포넌트에서 데이터 가져오기, 구독 설정, DOM 직접 조작과 같은 "부수 효과(side effects)"를 수행할 수 있게 해줍니다. <code>useEffect</code>는 렌더링 이후에 실행됩니다.</p>
+                                <pre><code class="language-javascript">import React, { useState, useEffect } from 'react';
+
+function FriendStatus(props) {
+  const [isOnline, setIsOnline] = useState(null);
+
+  useEffect(() =&gt; {
+    function handleStatusChange(status) {
+      setIsOnline(status.isOnline);
+    }
+    // ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
+    // useEffect는 정리가 필요한 경우 함수를 반환할 수 있습니다.
+    // 이 함수는 컴포넌트가 언마운트될 때, 또는 다음 effect가 실행되기 전에 실행됩니다.
+    return () =&gt; {
+      // ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
+    };
+  }); // 의존성 배열이 없으면 매 렌더링마다 실행됩니다.
+
+  if (isOnline === null) {
+    return 'Loading...';
+  }
+  return isOnline ? 'Online' : 'Offline';
+}</code></pre>
+                                <p><code>useEffect</code>의 두 번째 인자로 전달하는 배열(의존성 배열)은 effect가 언제 다시 실행될지를 제어합니다.</p>
+                                <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                    <li>배열이 없으면: 매 렌더링마다 실행됩니다.</li>
+                                    <li>빈 배열 <code>[]</code>: 컴포넌트가 마운트될 때 한 번만 실행되고, 언마운트될 때 정리 함수가 실행됩니다.</li>
+                                    <li>배열에 특정 값 <code>[prop, state]</code>이 있으면: 해당 값들이 변경될 때마다 effect가 다시 실행됩니다.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div id="s4-5-4">
+                        <h4>4.5.4. Hooks의 규칙</h4>
+                        <p>Hooks를 사용할 때는 두 가지 중요한 규칙을 따라야 합니다:</p>
+                        <ol class="list-decimal list-inside text-gray-300 space-y-2">
+                            <li>최상위 레벨에서만 Hooks를 호출해야 합니다. 반복문, 조건문, 중첩된 함수 내에서 Hooks를 호출하면 안 됩니다. 이는 React가 Hooks 호출 순서에 의존하여 state를 올바르게 관리하기 때문입니다.</li>
+                            <li>오직 React 함수 컴포넌트 내에서만 Hooks를 호출해야 합니다. 일반 JavaScript 함수에서는 Hooks를 호출할 수 없습니다. (커스텀 Hooks 내에서는 호출 가능합니다.)</li>
+                        </ol>
+                    </div>
+                    <div id="s4-5-5">
+                        <h4>4.5.5. 커스텀 Hooks (Custom Hooks)</h4>
+                        <p>커스텀 Hooks는 이름이 "<code>use</code>"로 시작하고 내부에서 다른 Hooks를 호출하는 JavaScript 함수입니다. 이를 통해 컴포넌트 로직을 재사용 가능한 함수로 추출할 수 있습니다. 예를 들어, 위 <code>FriendStatus</code> 예제의 친구 온라인 상태 구독 로직을 <code>useFriendStatus</code>라는 커스텀 Hook으로 만들 수 있습니다.</p>
+                        <pre><code class="language-javascript">import React, { useState, useEffect } from 'react';
+
+function useFriendStatus(friendID) {
+  const [isOnline, setIsOnline] = useState(null);
+
+  useEffect(() =&gt; {
+    function handleStatusChange(status) {
+      setIsOnline(status.isOnline);
+    }
+    // ChatAPI.subscribeToFriendStatus(friendID, handleStatusChange);
+    return () =&gt; {
+      // ChatAPI.unsubscribeFromFriendStatus(friendID, handleStatusChange);
+    };
+  }, [friendID]); // friendID가 변경될 때만 재구독
+
+  return isOnline;
+}
+
+// 이제 useFriendStatus Hook을 여러 컴포넌트에서 사용할 수 있습니다.
+function FriendListItem(props) {
+  const isOnline = useFriendStatus(props.friend.id);
+  // ...
+}</code></pre>
+                        <p>커스텀 Hooks는 React의 기능이 아니라 컨벤션이며, 컴포넌트 간 로직 공유를 매우 효과적으로 만들어줍니다. Hooks는 React 개념에 대한 기존 지식을 대체하는 것이 아니라, props, state, context, refs, lifecycle과 같은 이미 알고 있는 React 개념에 대한 더 직접적인 API를 제공합니다.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="s5" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>5. React 애플리케이션 상태 관리 심화</h2>
+                <p>애플리케이션의 규모가 커지고 복잡해짐에 따라 컴포넌트 간의 상태 공유 및 관리가 어려워질 수 있습니다. React는 이러한 문제를 해결하기 위해 Context API를 제공하며, 더 복잡한 시나리오에서는 Redux와 같은 외부 상태 관리 라이브러리를 사용할 수 있습니다.</p>
+                <div id="s5-1">
+                    <h3>5.1. Context API</h3>
+                    <p>React Context API는 props를 통해 명시적으로 전달하지 않고도 컴포넌트 트리 전체에 걸쳐 데이터를 공유할 수 있는 방법을 제공합니다. 이는 "prop drilling"(여러 계층의 컴포넌트를 통해 props를 계속해서 전달하는 것) 문제를 피하는 데 유용합니다.</p>
+                    <div id="s5-1-1">
+                        <h4>5.1.1. Context API란 무엇인가? (Prop Drilling 문제 해결)</h4>
+                        <p>애플리케이션의 여러 컴포넌트가 동일한 데이터(예: 테마 정보, 현재 로그인한 사용자 정보)에 접근해야 할 때, 이 데이터를 최상위 컴포넌트에서부터 필요한 모든 하위 컴포넌트까지 props로 일일이 전달하는 것은 번거롭고 코드의 가독성을 해칠 수 있습니다. Context API는 이러한 데이터를 "전역적"으로 공유할 수 있는 메커니즘을 제공하여, 중간 컴포넌트들이 해당 데이터를 사용하지 않더라도 props를 전달할 필요가 없게 만듭니다.</p>
+                    </div>
+                    <div id="s5-1-2">
+                        <h4>5.1.2. Context API 사용법: <code>createContext</code>, <code>Provider</code>, <code>useContext</code></h4>
+                        <p>Context API를 사용하는 주요 단계는 다음과 같습니다:</p>
+                        <ol class="list-decimal list-inside text-gray-300 space-y-2">
+                            <li><strong>Context 생성 (<code>createContext</code>):</strong>
+                                <p><code>React.createContext()</code> 함수를 사용하여 Context 객체를 생성합니다. 이 함수는 선택적으로 기본값을 인자로 받을 수 있으며, 이 기본값은 적절한 Provider를 찾지 못했을 때 사용됩니다.</p>
+                                <pre><code class="language-javascript">// theme-context.js
+import React from 'react';
+
+// Context를 생성하고 기본값으로 'light'를 설정
+export const ThemeContext = React.createContext('light');</code></pre>
+                            </li>
+                            <li><strong>Provider로 값 제공:</strong>
+                                <p>생성된 Context 객체는 <code>Provider</code>라는 컴포넌트를 가집니다. 이 <code>Provider</code> 컴포넌트로 하위 컴포넌트들을 감싸고, <code>value</code> prop을 통해 공유할 값을 전달합니다.</p>
+                                <pre><code class="language-javascript">// App.js
+import React, { useState } from 'react';
+import { ThemeContext } from './theme-context';
+import Toolbar from './Toolbar'; // Toolbar 컴포넌트가 있다고 가정
+
+function App() {
+  const [theme, setTheme] = useState('dark');
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
+
+  return (
+    &lt;ThemeContext.Provider value={{ theme, toggleTheme }}&gt;
+      &lt;Toolbar /&gt;
+    &lt;/ThemeContext.Provider&gt;
+  );
+}
+export default App;</code></pre>
+                                <p>위 예시에서는 <code>theme</code> 상태와 <code>toggleTheme</code> 함수를 <code>ThemeContext.Provider</code>를 통해 하위 컴포넌트에 제공합니다.</p>
+                            </li>
+                            <li><strong>Context 값 사용 (<code>useContext</code> Hook 또는 <code>Consumer</code>):</strong>
+                                <p>함수형 컴포넌트에서는 <code>useContext</code> Hook을 사용하여 Provider로부터 값을 읽어올 수 있습니다. 클래스형 컴포넌트에서는 <code>Context.Consumer</code> 컴포넌트를 사용할 수 있습니다.</p>
+                                <pre><code class="language-javascript">// Toolbar.js
+import React, { useContext } from 'react';
+import { ThemeContext } from './theme-context';
+import ThemedButton from './ThemedButton'; // ThemedButton 컴포넌트가 있다고 가정
+
+function Toolbar() {
+  // useContext 사용하여 ThemeContext의 현재 값을 가져옴
+  const { theme } = useContext(ThemeContext);
+
+  return (
+    &lt;div style={{ background: theme === 'dark' ? '#333' : '#FFF', color: theme === 'dark' ? '#FFF' : '#333' }}&gt;
+      &lt;ThemedButton /&gt;
+    &lt;/div&gt;
+  );
+}
+export default Toolbar;
+
+// ThemedButton.js
+import React, { useContext } from 'react';
+import { ThemeContext } from './theme-context';
+
+function ThemedButton() {
+  const { theme, toggleTheme } = useContext(ThemeContext);
+
+  return (
+    &lt;button
+      onClick={toggleTheme}
+      style={{ background: theme === 'dark' ? '#555' : '#EEE', color: theme === 'dark' ? '#FFF' : '#333' }}
+    &gt;
+      Switch Theme to {theme === 'dark' ? 'Light' : 'Dark'}
+    &lt;/button&gt;
+  );
+}
+export default ThemedButton;</code></pre>
+                                <p><code>useContext</code>는 가장 가까운 상위 Provider의 <code>value</code>를 반환합니다. 만약 상위에 Provider가 없다면 <code>createContext</code>에 전달된 기본값을 사용합니다.</p>
+                            </li>
+                        </ol>
+                    </div>
+                    <div id="s5-1-3">
+                        <h4>5.1.3. Context API 사용 시 고려사항</h4>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li><strong>언제 사용해야 하는가:</strong> Context는 테마, 현재 사용자 정보, 언어 설정 등 애플리케이션의 여러 부분에서 필요한 "전역적" 데이터를 공유하는 데 적합합니다.</li>
+                            <li><strong>불필요한 리렌더링:</strong> Context의 <code>value</code>가 변경되면 해당 Context를 구독하는 모든 컴포넌트가 리렌더링됩니다. 따라서 Context <code>value</code>에 너무 많은 데이터를 넣거나 자주 변경되는 데이터를 넣으면 성능 문제가 발생할 수 있습니다. 상태를 여러 Context로 분리하거나 <code>React.memo</code> 등을 사용하여 최적화할 수 있습니다.</li>
+                            <li><strong>Redux와의 비교:</strong> Context API는 Redux와 같은 복잡한 상태 관리 라이브러리를 대체하기 위한 것이 아니라, props drilling을 피하기 위한 간단한 솔루션입니다. 매우 복잡한 상태 로직, 미들웨어, 시간 여행 디버깅 등이 필요하다면 Redux가 더 적합할 수 있습니다.</li>
+                        </ul>
+                        <p>Context API는 React 내장 기능으로, 외부 라이브러리 없이도 상태 공유 문제를 효과적으로 해결할 수 있는 강력한 도구입니다.</p>
+                    </div>
+                </div>
+                <div id="s5-2">
+                    <h3>5.2. Redux</h3>
+                    <p>Redux는 JavaScript 애플리케이션을 위한 예측 가능한 상태 컨테이너입니다. 주로 React와 함께 사용되어 애플리케이션의 전체 상태를 중앙에서 관리합니다. 특히 애플리케이션의 규모가 커지고 상태 관리가 복잡해질 때 유용합니다.</p>
+                    <div id="s5-2-1">
+                        <h4>5.2.1. Redux의 핵심 개념: <code>Store</code>, <code>Action</code>, <code>Reducer</code>, <code>Dispatch</code></h4>
+                        <p>Redux는 다음과 같은 핵심 개념으로 구성됩니다:</p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li><strong>Store (스토어):</strong> 애플리케이션의 전체 상태 트리를 저장하는 단일 객체입니다. 스토어는 상태를 읽고, 상태 업데이트를 디스패치하고, 리스너를 등록하는 메서드를 제공합니다. Redux 애플리케이션에는 단 하나의 스토어만 존재합니다.</li>
+                            <li><strong>Action (액션):</strong> 애플리케이션에서 스토어로 데이터를 보내는 유일한 방법입니다. 액션은 상태에 어떤 변화가 일어나야 하는지를 설명하는 평범한 JavaScript 객체입니다. 액션은 반드시 <code>type</code> 프로퍼티를 가져야 하며, 이 <code>type</code>은 보통 문자열 상수입니다.
+                                <pre><code class="language-javascript">// 예시: 액션 객체
+{
+  type: 'ADD_TODO',
+  payload: { text: 'Learn Redux' }
+}</code></pre>
+                            </li>
+                            <li><strong>Reducer (리듀서):</strong> 액션 객체와 현재 상태를 인자로 받아 새로운 상태를 반환하는 순수 함수입니다. 리듀서는 이전 상태를 변경하는 대신, 새로운 상태 객체를 생성하여 반환해야 합니다. (불변성 유지)
+                                <pre><code class="language-javascript">// 예시: todos 리듀서
+function todosReducer(state = [], action) {
+  switch (action.type) {
+    case 'ADD_TODO':
+      return [
+        ...state,
+        {
+          text: action.payload.text,
+          completed: false
+        }
+      ];
+    case 'TOGGLE_TODO':
+      return state.map((todo, index) =>
+        index === action.payload.index
+          ? { ...todo, completed: !todo.completed }
+          : todo
+      );
+    default:
+      return state;
+  }
+}</code></pre>
+                            </li>
+                            <li><strong>Dispatch (디스패치):</strong> 액션을 스토어로 보내는 함수입니다. <code>store.dispatch(action)</code> 형태로 사용되며, 디스패치된 액션은 루트 리듀서로 전달되어 상태 변경을 유발합니다.</li>
+                        </ul>
+                        <h4>데이터 흐름:</h4>
+                        <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                            <li>UI에서 이벤트 발생 (예: 버튼 클릭).</li>
+                            <li>이벤트 핸들러에서 액션 생성자를 호출하여 액션 객체 생성.</li>
+                            <li><code>store.dispatch(action)</code>을 통해 액션 디스패치.</li>
+                            <li>스토어는 현재 상태와 디스패치된 액션을 리듀서에게 전달.</li>
+                            <li>리듀서는 액션 타입에 따라 새로운 상태를 계산하여 반환.</li>
+                            <li>스토어는 리듀서로부터 받은 새로운 상태로 업데이트.</li>
+                            <li>스토어를 구독하고 있는 UI 컴포넌트들은 상태 변경을 감지하고 리렌더링.</li>
+                        </ol>
+                        <p>이러한 단방향 데이터 흐름은 애플리케이션의 상태 변화를 예측 가능하고 추적하기 쉽게 만듭니다.</p>
+                    </div>
+                    <div id="s5-2-2">
+                        <h4>5.2.2. React와 Redux 연동 (<code>react-redux</code> 라이브러리)</h4>
+                        <p><code>react-redux</code>는 React 컴포넌트를 Redux 스토어에 연결해주는 공식 라이브러리입니다. 주요 구성 요소는 다음과 같습니다:</p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li><strong><code>&lt;Provider store={store}&gt;</code>:</strong> 애플리케이션의 최상위 컴포넌트를 <code>&lt;Provider&gt;</code> 컴포넌트로 감싸고, Redux 스토어를 <code>store</code> prop으로 전달합니다. 이렇게 하면 하위 컴포넌트들이 스토어에 접근할 수 있게 됩니다.
+                                <pre><code class="language-javascript">// index.js 또는 main.jsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
+import store from './store'; // Redux 스토어
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  &lt;Provider store={store}&gt;
+    &lt;App /&gt;
+  &lt;/Provider&gt;
+);</code></pre>
+                            </li>
+                            <li><strong><code>useSelector</code> Hook:</strong> 함수형 컴포넌트에서 스토어의 상태를 선택(select)하여 가져올 수 있게 해주는 Hook입니다. 스토어의 전체 상태 객체를 인자로 받는 함수를 전달하면, 해당 함수가 반환하는 값을 컴포넌트에서 사용할 수 있습니다. 스토어 상태가 변경되어 선택된 값이 변경되면 컴포넌트는 리렌더링됩니다.
+                                <pre><code class="language-javascript">// TodoList.js
+import React from 'react';
+import { useSelector } from 'react-redux';
+
+function TodoList() {
+  const todos = useSelector(state => state.todos); // 스토어에서 todos 상태 선택
+  // ... 컴포넌트 렌더링 로직 ...
+  return (
+    &lt;ul&gt;
+      {todos.map(todo => (
+        &lt;li key={todo.id}&gt;{todo.text}&lt;/li&gt;
+      ))}
+    &lt;/ul&gt;
+  );
+}</code></pre>
+                            </li>
+                            <li><strong><code>useDispatch</code> Hook:</strong> 함수형 컴포넌트에서 액션을 디스패치할 수 있는 함수를 반환하는 Hook입니다.
+                                <pre><code class="language-javascript">// AddTodo.js
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+// import { addTodo } from './actions'; // 액션 생성자 (예시)
+
+// 예시 액션 생성자 (실제로는 별도 파일에 정의)
+const addTodo = (text) => ({
+    type: 'ADD_TODO',
+    payload: { text }
+});
+
+
+function AddTodo() {
+  const [text, setText] = useState('');
+  const dispatch = useDispatch();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!text.trim()) return;
+    dispatch(addTodo(text)); // addTodo 액션 디스패치
+    setText('');
+  };
+
+  return (
+    &lt;form onSubmit={handleSubmit}&gt;
+      &lt;input type="text" value={text} onChange={e => setText(e.target.value)} /&gt;
+      &lt;button type="submit"&gt;Add Todo&lt;/button&gt;
+    &lt;/form&gt;
+  );
+}</code></pre>
+                            </li>
+                        </ul>
+                    </div>
+                    <div id="s5-2-3">
+                        <h4>5.2.3. Redux Toolkit 사용 권장</h4>
+                        <p>과거의 Redux는 보일러플레이트 코드가 많고 설정이 복잡하다는 단점이 있었습니다. 이를 해결하기 위해 Redux 팀은 Redux Toolkit이라는 공식 도구 세트를 출시했습니다. Redux Toolkit은 스토어 설정, 리듀서 작성, 불변 업데이트 로직, 액션 생성 등을 훨씬 간편하게 만들어주므로, 새로운 Redux 프로젝트에서는 Redux Toolkit 사용이 강력히 권장됩니다.</p>
+                        <p>Redux Toolkit의 주요 기능:</p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-1">
+                            <li><code>configureStore()</code>: 스토어 설정을 단순화하고, 기본적으로 Redux DevTools Extension 통합 및 유용한 미들웨어(예: <code>redux-thunk</code> for 비동기 로직)를 포함합니다.</li>
+                            <li><code>createSlice()</code>: 리듀서와 액션 생성자를 한 번에 자동으로 생성해줍니다.</li>
+                            <li><code>createAsyncThunk()</code>: 비동기 액션을 쉽게 처리할 수 있도록 도와줍니다.</li>
+                        </ul>
+                        <p>Redux는 강력한 상태 관리 도구이지만, 모든 애플리케이션에 필요한 것은 아닙니다. 작은 규모의 애플리케이션이나 간단한 상태 공유에는 React의 <code>useState</code>나 <code>useReducer</code> Hook, Context API만으로도 충분할 수 있습니다. Redux 도입은 애플리케이션의 복잡도, 팀의 규모, 상태 관리 요구사항 등을 고려하여 신중하게 결정해야 합니다.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="s6" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>6. 클라이언트 사이드 라우팅 (React Router)</h2>
+                <p>단일 페이지 애플리케이션(SPA)에서는 사용자가 다른 "페이지"로 이동할 때 브라우저가 전체 페이지를 새로고침하지 않고, JavaScript가 동적으로 UI를 업데이트합니다. React Router는 React 애플리케이션에서 이러한 클라이언트 사이드 라우팅을 구현하기 위한 표준 라이브러리입니다. URL 경로를 특정 컴포넌트에 매핑하여, 사용자가 URL을 변경하면 해당 컴포넌트를 렌더링합니다.</p>
+                <div id="s6-1">
+                    <h3>6.1. React Router란 무엇인가?</h3>
+                    <p>React Router는 React 애플리케이션 내에서 내비게이션을 관리하고, 다양한 URL에 따라 다른 뷰(컴포넌트)를 보여줄 수 있게 해주는 라이브러리입니다. 사용자가 링크를 클릭하거나 브라우저의 뒤로/앞으로 가기 버튼을 사용해도 페이지 전체가 다시 로드되지 않고, 필요한 부분만 업데이트되어 부드러운 사용자 경험을 제공합니다.</p>
+                </div>
+                <div id="s6-2">
+                    <h3>6.2. 주요 컴포넌트 및 Hook</h3>
+                    <p>React Router (v6 기준)의 주요 컴포넌트와 Hook은 다음과 같습니다:</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong><code>&lt;BrowserRouter&gt;</code>:</strong>
+                            <p>HTML5 History API를 사용하여 UI를 URL과 동기화합니다. 애플리케이션의 최상위에서 다른 라우팅 관련 컴포넌트들을 감싸는 역할을 합니다.</p>
+                            <pre><code class="language-javascript">// main.jsx 또는 index.js
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  &lt;React.StrictMode&gt;
+    &lt;BrowserRouter&gt;
+      &lt;App /&gt;
+    &lt;/BrowserRouter&gt;
+  &lt;/React.StrictMode&gt;
+);</code></pre>
+                            <p>대안으로 <code>&lt;HashRouter&gt;</code>도 있으며, 이는 URL 해시(#)를 사용하여 라우팅합니다.</p>
+                        </li>
+                        <li><strong><code>&lt;Routes&gt;</code>:</strong>
+                            <p>여러 개의 <code>&lt;Route&gt;</code> 컴포넌트를 그룹화하는 컨테이너입니다. 현재 URL과 가장 일치하는 첫 번째 <code>&lt;Route&gt;</code>를 렌더링합니다.</p>
+                        </li>
+                        <li><strong><code>&lt;Route&gt;</code>:</strong>
+                            <p>특정 경로(<code>path</code>)와 해당 경로에 렌더링될 컴포넌트(<code>element</code>)를 정의합니다.</p>
+                            <pre><code class="language-javascript">// App.js
+import { Routes, Route } from 'react-router-dom';
+import Home from './pages/Home'; // Home 컴포넌트
+import About from './pages/About'; // About 컴포넌트
+import Contact from './pages/Contact'; // Contact 컴포넌트
+import NotFound from './pages/NotFound'; // NotFound 컴포넌트
+
+function App() {
+  return (
+    &lt;Routes&gt;
+      &lt;Route path="/" element={&lt;Home /&gt;} /&gt;
+      &lt;Route path="/about" element={&lt;About /&gt;} /&gt;
+      &lt;Route path="/contact" element={&lt;Contact /&gt;} /&gt;
+      &lt;Route path="*" element={&lt;NotFound /&gt;} /&gt; {/* 일치하는 경로가 없을 때 */}
+    &lt;/Routes&gt;
+  );
+}</code></pre>
+                            <p><code>path="*"</code>는 와일드카드 라우트로, 다른 어떤 경로와도 일치하지 않을 때 렌더링됩니다 (예: 404 페이지).</p>
+                        </li>
+                        <li><strong><code>&lt;Link to="path"&gt;</code>:</strong>
+                            <p>애플리케이션 내에서 다른 경로로 이동하는 내비게이션 링크를 만듭니다. HTML의 <code>&lt;a&gt;</code> 태그와 유사하지만, 페이지를 새로고침하지 않고 클라이언트 사이드에서 라우팅을 처리합니다.</p>
+                            <pre><code class="language-javascript">import { Link } from 'react-router-dom';
+
+function Navigation() {
+  return (
+    &lt;nav&gt;
+      &lt;Link to="/"&gt;Home&lt;/Link&gt;
+      &lt;Link to="/about"&gt;About&lt;/Link&gt;
+      &lt;Link to="/contact"&gt;Contact&lt;/Link&gt;
+    &lt;/nav&gt;
+  );
+}</code></pre>
+                        </li>
+                        <li><strong><code>useNavigate</code> Hook:</strong>
+                            <p>프로그래매틱하게(코드 내에서) 다른 경로로 이동할 수 있게 해주는 Hook입니다. 예를 들어, 폼 제출 후 특정 페이지로 리디렉션할 때 사용합니다.</p>
+                            <pre><code class="language-javascript">import { useNavigate } from 'react-router-dom';
+
+function LoginForm() {
+  const navigate = useNavigate();
+
+  const handleSubmit = () => {
+    // 로그인 로직 처리...
+    navigate('/dashboard'); // 로그인 성공 시 대시보드로 이동
+  };
+  // ...
+}</code></pre>
+                        </li>
+                        <li><strong><code>useParams</code> Hook:</strong>
+                            <p>URL 경로에서 동적 파라미터 값을 가져올 때 사용합니다. 예를 들어, <code>/users/:userId</code>와 같은 경로에서 <code>userId</code> 값을 가져올 수 있습니다.</p>
+                            <pre><code class="language-javascript">// UserProfile.js
+import { useParams } from 'react-router-dom';
+
+function UserProfile() {
+  const { userId } = useParams(); // URL에서 userId 파라미터 값 가져오기
+  return &lt;h1&gt;User Profile for ID: {userId}&lt;/h1&gt;;
+}
+
+// App.js (라우트 설정)
+// &lt;Route path="/users/:userId" element={&lt;UserProfile /&gt;} /&gt;</code></pre>
+                        </li>
+                        <li><strong><code>&lt;Outlet&gt;</code>:</strong>
+                            <p>중첩 라우팅(Nested Routes)에서 부모 라우트의 컴포넌트 내부에 자식 라우트의 컴포넌트를 렌더링하는 위치를 지정합니다.</p>
+                        </li>
+                    </ul>
+                </div>
+                <div id="s6-3">
+                    <h3>6.3. 기본 라우팅 설정 예제</h3>
+                    <p>다음은 React Router를 사용한 기본적인 라우팅 설정 예제입니다.</p>
+                    <ol class="list-decimal list-inside text-gray-300 space-y-2">
+                        <li><strong>필수 패키지 설치:</strong>
+                            <pre><code class="language-bash">npm install react-router-dom</code></pre>
+                        </li>
+                        <li><strong><code>main.jsx</code> (또는 <code>index.js</code>) 설정:</strong>
+                            <pre><code class="language-javascript">// src/main.jsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+import './index.css'; // 전역 CSS
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  &lt;React.StrictMode&gt;
+    &lt;BrowserRouter&gt;
+      &lt;App /&gt;
+    &lt;/BrowserRouter&gt;
+  &lt;/React.StrictMode&gt;
+);</code></pre>
+                        </li>
+                        <li><strong><code>App.js</code>에서 라우트 정의:</strong>
+                            <pre><code class="language-javascript">// src/App.js
+import React from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
+import Home from './pages/Home';
+import About from './pages/About';
+import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail'; // 동적 라우트용
+import NotFound from './pages/NotFound';
+
+function App() {
+  return (
+    &lt;&gt;
+      &lt;nav className="p-4 bg-gray-700 text-white"&gt;
+        &lt;ul className="flex space-x-4"&gt;
+          &lt;li&gt;&lt;Link to="/" className="hover:text-blue-300"&gt;Home&lt;/Link&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;Link to="/about" className="hover:text-blue-300"&gt;About&lt;/Link&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;Link to="/products" className="hover:text-blue-300"&gt;Products&lt;/Link&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/nav&gt;
+
+      &lt;div className="p-4"&gt;
+        &lt;Routes&gt;
+          &lt;Route path="/" element={&lt;Home /&gt;} /&gt;
+          &lt;Route path="/about" element={&lt;About /&gt;} /&gt;
+          &lt;Route path="/products" element={&lt;Products /&gt;} /&gt;
+          &lt;Route path="/products/:productId" element={&lt;ProductDetail /&gt;} /&gt; {/* 동적 라우트 */}
+          &lt;Route path="*" element={&lt;NotFound /&gt;} /&gt;
+        &lt;/Routes&gt;
+      &lt;/div&gt;
+    &lt;/&gt;
+  );
+}
+export default App;
+
+// 페이지 컴포넌트 (Home.js, About.js 등)는 각자 생성해야 합니다.
+// 예시: src/pages/Home.js
+// const Home = () => &lt;div&gt;&lt;h2 className="text-2xl font-bold"&gt;Home Page&lt;/h2&gt;&lt;p&gt;Welcome to the Home Page!&lt;/p&gt;&lt;/div&gt;;
+// export default Home;</code></pre>
+                        </li>
+                    </ol>
+                </div>
+                <div id="s6-4">
+                    <h3>6.4. 중첩 라우팅 (Nested Routes)</h3>
+                    <p>React Router는 중첩 라우팅을 지원하여 복잡하고 계층적인 UI 구조를 쉽게 구성할 수 있게 해줍니다. 부모 라우트 컴포넌트 내에서 <code>&lt;Outlet /&gt;</code>을 사용하여 자식 라우트 컴포넌트가 렌더링될 위치를 지정합니다.</p>
+                    <pre><code class="language-javascript">// src/pages/Products.js
+import React from 'react';
+import { Link, Outlet } from 'react-router-dom';
+
+function Products() {
+  return (
+    &lt;div&gt;
+      &lt;h2 className="text-2xl font-bold mb-4"&gt;Our Products&lt;/h2&gt;
+      &lt;nav className="mb-4"&gt;
+        &lt;Link to="featured" className="mr-4 hover:text-blue-300"&gt;Featured&lt;/Link&gt;
+        &lt;Link to="new" className="hover:text-blue-300"&gt;New&lt;/Link&gt;
+      &lt;/nav&gt;
+      &lt;Outlet /&gt; {/* 자식 라우트 컴포넌트가 여기에 렌더링됨 */}
+    &lt;/div&gt;
+  );
+}
+export default Products;
+
+// src/App.js (라우트 설정 수정)
+// ...
+// &lt;Route path="/products" element={&lt;Products /&gt;}&gt;
+//   &lt;Route index element={&lt;ProductList /&gt;} /&gt; {/* /products 경로일 때 기본으로 렌더링 */}
+//   &lt;Route path="featured" element={&lt;FeaturedProducts /&gt;} /&gt; {/* /products/featured */}
+//   &lt;Route path="new" element={&lt;NewProducts /&gt;} /&gt; {/* /products/new */}
+// &lt;/Route&gt;
+// ...
+
+// ProductList, FeaturedProducts, NewProducts 컴포넌트는 별도 생성 필요
+// const ProductList = () => &lt;p&gt;Please select a category (Featured or New).&lt;/p&gt;;
+// const FeaturedProducts = () => &lt;p&gt;Showing featured products.&lt;/p&gt;;
+// const NewProducts = () => &lt;p&gt;Showing new products.&lt;/p&gt;;</code></pre>
+                    <p>React Router는 선언적 라우팅, URL 관리, 브라우저 히스토리 스택 유지 등 SPA 개발에 필수적인 기능들을 제공하여 사용자가 웹사이트 내에서 원활하게 이동할 수 있도록 돕습니다.</p>
+                </div>
+            </section>
+            
+            <section id="s7" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>7. Ubuntu 서버 환경 설정 및 백엔드 연동 기초</h2>
+                <p>React 프론트엔드 애플리케이션은 종종 데이터를 저장하고 처리하기 위해 백엔드 서버와 통신합니다. 이 섹션에서는 Ubuntu 서버에 Nginx 웹 서버와 PostgreSQL 데이터베이스를 설치 및 설정하고, 간단한 백엔드 API를 구축하여 React 애플리케이션과 연동하는 기초를 다룹니다.</p>
+                <div id="s7-1">
+                    <h3>7.1. Ubuntu 서버에 Nginx 설치 및 기본 설정</h3>
+                    <p>Nginx는 고성능 웹 서버이자 리버스 프록시 서버로, 정적 파일을 제공하거나 백엔드 애플리케이션으로 요청을 전달하는 데 널리 사용됩니다.</p>
+                    <div id="s7-1-1">
+                        <h4>7.1.1. Nginx 설치 (Ubuntu 22.04 기준)</h4>
+                        <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                            <li><strong>패키지 목록 업데이트:</strong> 최신 버전의 패키지 정보를 가져오기 위해 다음 명령어를 실행합니다.
+                                <pre><code class="language-bash">sudo apt update</code></pre>
+                            </li>
+                            <li><strong>Nginx 설치:</strong> 다음 명령어로 Nginx를 설치합니다.
+                                <pre><code class="language-bash">sudo apt install nginx</code></pre>
+                            </li>
+                            <li><strong>Nginx 상태 확인:</strong> 설치 후 Nginx 서비스가 자동으로 시작됩니다. 상태를 확인하려면 다음 명령어를 사용합니다.
+                                <pre><code class="language-bash">sudo systemctl status nginx</code></pre>
+                                <p>출력에 <code>active (running)</code>이 표시되면 정상적으로 실행 중인 것입니다.</p>
+                            </li>
+                        </ol>
+                    </div>
+                    <div id="s7-1-2">
+                        <h4>7.1.2. 방화벽 설정 (UFW)</h4>
+                        <p>Ubuntu는 기본적으로 ufw (Uncomplicated Firewall) 방화벽을 사용합니다. Nginx가 외부 요청을 받을 수 있도록 방화벽 설정을 조정해야 합니다.</p>
+                        <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                            <li><strong>애플리케이션 프로필 확인:</strong> Nginx 설치 시 ufw에 몇 가지 애플리케이션 프로필이 등록됩니다.
+                                <pre><code class="language-bash">sudo ufw app list</code></pre>
+                                <p>출력에는 <code>Nginx HTTP</code> (포트 80), <code>Nginx HTTPS</code> (포트 443), <code>Nginx Full</code> (두 포트 모두 허용) 등이 포함됩니다.</p>
+                            </li>
+                            <li><strong>HTTP 트래픽 허용:</strong> 가장 제한적인 프로필부터 시작하는 것이 좋습니다. HTTP 트래픽(포트 80)만 허용하려면 다음 명령어를 실행합니다.
+                                <pre><code class="language-bash">sudo ufw allow 'Nginx HTTP'</code></pre>
+                                <p>HTTPS를 설정할 계획이라면 <code>Nginx Full</code> 또는 <code>Nginx HTTPS</code>를 허용해야 합니다.</p>
+                            </li>
+                            <li><strong>방화벽 상태 확인:</strong>
+                                <pre><code class="language-bash">sudo ufw status</code></pre>
+                                <p>출력에서 <code>Nginx HTTP</code> (또는 선택한 프로필)가 <code>ALLOW</code>로 표시되는지 확인합니다. (UFW가 비활성 상태라면 <code>sudo ufw enable</code>로 활성화해야 합니다.)</p>
+                            </li>
+                        </ol>
+                    </div>
+                    <div id="s7-1-3">
+                        <h4>7.1.3. Nginx 기본 작동 확인</h4>
+                        <p>웹 브라우저에서 서버의 IP 주소 (<code>http://서버_IP_주소</code>)로 접속하여 Nginx 기본 환영 페이지가 나타나는지 확인합니다.</p>
+                    </div>
+                </div>
+                <div id="s7-2">
+                    <h3>7.2. Ubuntu 서버에 PostgreSQL 설치 및 기본 설정</h3>
+                    <p>PostgreSQL은 강력한 오픈소스 객체-관계형 데이터베이스 시스템입니다.</p>
+                    <div id="s7-2-1">
+                        <h4>7.2.1. PostgreSQL 설치 (Ubuntu)</h4>
+                        <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                            <li><strong>패키지 목록 업데이트</strong> (이미 수행했다면 생략 가능):
+                                <pre><code class="language-bash">sudo apt update</code></pre>
+                            </li>
+                            <li><strong>PostgreSQL 및 관련 패키지 설치:</strong> PostgreSQL 서버, 클라이언트 유틸리티, 추가 모듈(contrib)을 함께 설치하는 것이 일반적입니다.
+                                <pre><code class="language-bash">sudo apt install postgresql postgresql-contrib postgresql-client</code></pre>
+                                <p>또는 공식 PostgreSQL 저장소를 추가하여 최신 버전을 설치할 수도 있습니다:</p>
+                                <pre><code class="language-bash"># PGDG 저장소 설정 스크립트 실행 (Ubuntu 버전에 맞게 자동 설정)
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" &gt; /etc/apt/sources.list.d/pgdg.list'
+# 저장소 GPG 키 가져오기 및 추가
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+# 패키지 목록 다시 업데이트
+sudo apt update
+# PostgreSQL 설치 (예: PostgreSQL 16)
+sudo apt -y install postgresql-16 postgresql-client-16</code></pre>
+                            </li>
+                            <li><strong>PostgreSQL 서비스 상태 확인:</strong>
+                                <pre><code class="language-bash">sudo systemctl status postgresql</code></pre>
+                                <p>서비스가 <code>active (running)</code> 상태인지 확인합니다.</p>
+                            </li>
+                        </ol>
+                    </div>
+                    <div id="s7-2-2">
+                        <h4>7.2.2. PostgreSQL 역할(사용자) 및 데이터베이스 생성</h4>
+                        <p>PostgreSQL은 "역할(role)"을 사용하여 사용자 접근을 관리합니다. 기본적으로 <code>postgres</code>라는 슈퍼유저 역할이 생성됩니다.</p>
+                        <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                            <li><strong><code>postgres</code> 사용자로 전환:</strong>
+                                <pre><code class="language-bash">sudo -i -u postgres</code></pre>
+                            </li>
+                            <li><strong><code>psql</code> 유틸리티 실행:</strong> PostgreSQL 명령행 인터페이스에 접속합니다.
+                                <pre><code class="language-bash">psql</code></pre>
+                                <p>프롬프트가 <code>postgres=#</code>로 변경됩니다.</p>
+                            </li>
+                            <li><strong>새로운 역할(사용자) 생성</strong> (선택 사항이지만 권장): 애플리케이션 전용 사용자를 만드는 것이 보안상 좋습니다.
+                                <pre><code class="language-sql">CREATE USER myappuser WITH ENCRYPTED PASSWORD 'mypassword';</code></pre>
+                            </li>
+                            <li><strong>새로운 데이터베이스 생성:</strong> 애플리케이션에서 사용할 데이터베이스를 생성하고 소유자를 지정합니다.
+                                <pre><code class="language-sql">CREATE DATABASE myappdb OWNER myappuser;</code></pre>
+                            </li>
+                            <li><strong>사용자에게 데이터베이스 권한 부여</strong> (필요시): 만약 데이터베이스 생성 시 소유자를 지정하지 않았거나, 다른 사용자에게 권한을 주려면 다음 명령을 사용합니다.
+                                <pre><code class="language-sql">GRANT ALL PRIVILEGES ON DATABASE myappdb TO myappuser;</code></pre>
+                            </li>
+                            <li><strong><code>psql</code> 종료:</strong> <code>\q</code>를 입력하여 <code>psql</code>을 종료하고, <code>exit</code>를 입력하여 <code>postgres</code> 사용자 세션에서 나옵니다.</li>
+                        </ol>
+                    </div>
+                    <div id="s7-2-3">
+                        <h4>7.2.3. 데이터베이스 테이블 생성 예시</h4>
+                        <p>새로 생성한 데이터베이스에 접속하여 테이블을 생성할 수 있습니다. <code>psql</code>을 사용하여 <code>myappdb</code>에 <code>myappuser</code>로 접속합니다.</p>
+                        <pre><code class="language-bash">psql -U myappuser -d myappdb -h localhost</code></pre>
+                        <p>(비밀번호 입력)</p>
+                        <p>간단한 <code>items</code> 테이블 생성 예시:</p>
+                        <pre><code class="language-sql">CREATE TABLE items (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+                        <p><code>SERIAL PRIMARY KEY</code>는 자동으로 증가하는 정수형 기본 키를 생성합니다.</p>
+                    </div>
+                </div>
+                <div id="s7-3">
+                    <h3>7.3. 백엔드 API 서버 구축 (Node.js/Express 또는 Python/Flask 선택)</h3>
+                    <p>React 프론트엔드와 통신할 REST API를 구축합니다. Node.js/Express 또는 Python/Flask 중 하나를 선택할 수 있습니다.</p>
+                    <div id="s7-3-1">
+                        <h4>7.3.1. Node.js/Express와 PostgreSQL 연동 (예시)</h4>
+                        <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                            <li><strong>프로젝트 설정 및 의존성 설치:</strong>
+                                <p>새로운 Node.js 프로젝트를 만들고 필요한 패키지를 설치합니다.</p>
+                                <pre><code class="language-bash">mkdir my-node-api
+cd my-node-api
+npm init -y
+npm install express pg cors body-parser</code></pre>
+                                <ul class="list-disc list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                    <li><code>express</code>: 웹 프레임워크</li>
+                                    <li><code>pg</code>: Node.js용 PostgreSQL 클라이언트 라이브러리</li>
+                                    <li><code>cors</code>: Cross-Origin Resource Sharing 활성화</li>
+                                    <li><code>body-parser</code>: 요청 본문 파싱 (Express 4.16.0+ 버전에서는 <code>express.json()</code> 및 <code>express.urlencoded()</code>로 대체 가능)</li>
+                                </ul>
+                            </li>
+                            <li><strong>데이터베이스 연결 설정 (<code>db.js</code> 또는 설정 파일):</strong>
+                                <p>PostgreSQL 연결 풀을 설정합니다.</p>
+                                <pre><code class="language-javascript">// db.js
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  user: 'myappuser',     // 실제 사용자명으로 변경
+  host: 'localhost',
+  database: 'myappdb', // 실제 데이터베이스명으로 변경
+  password: 'mypassword', // 실제 비밀번호로 변경
+  port: 5432,
+});
+
+module.exports = pool;</code></pre>
+                            </li>
+                            <li><strong>Express 앱 설정 및 라우트 정의 (<code>server.js</code> 또는 <code>app.js</code>):</strong>
+                                <p>CRUD 작업을 위한 API 엔드포인트를 만듭니다.</p>
+                                <pre><code class="language-javascript">// server.js
+const express = require('express');
+const bodyParser = require('body-parser'); // 또는 express.json()
+const cors = require('cors');
+const pool = require('./db'); // 데이터베이스 연결 풀
+
+const app = express();
+const port = 3001; // 백엔드 서버 포트
+
+app.use(cors());
+app.use(bodyParser.json()); // 요청 본문을 JSON으로 파싱
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+);
+
+// 모든 아이템 가져오기 (GET /api/items)
+app.get('/api/items', async (req, res) => {
+  try {
+    const allItems = await pool.query('SELECT * FROM items ORDER BY id ASC');
+    res.json(allItems.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// 아이템 추가 (POST /api/items)
+app.post('/api/items', async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    const newItem = await pool.query(
+      'INSERT INTO items (name, description) VALUES ($1, $2) RETURNING *',
+      [name, description]
+    );
+    res.json(newItem.rows[0]); // 반환된 첫 번째 행 (새 아이템)
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// (PUT, DELETE 라우트도 유사하게 추가)
+
+app.listen(port, () => {
+  console.log(\`Backend server running on port ${port}\`);
+});</code></pre>
+                            </li>
+                        </ol>
+                    </div>
+                    <div id="s7-3-2">
+                        <h4>7.3.2. Python/Flask와 PostgreSQL 연동 (예시)</h4>
+                         <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                            <li><strong>프로젝트 설정 및 의존성 설치:</strong>
+                                <p>가상 환경을 만들고 필요한 패키지를 설치합니다.</p>
+                                <pre><code class="language-bash">python3 -m venv venv
+source venv/bin/activate   # Linux/macOS
+# venv\Scripts\activate  # Windows
+pip install Flask psycopg2-binary Flask-SQLAlchemy Flask-Migrate python-dotenv Flask-CORS</code></pre>
+                                <ul class="list-disc list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                    <li><code>Flask</code>: 웹 프레임워크</li>
+                                    <li><code>psycopg2-binary</code>: Python용 PostgreSQL 어댑터</li>
+                                    <li><code>Flask-SQLAlchemy</code> (선택 사항): ORM 사용 시</li>
+                                    <li><code>Flask-Migrate</code> (선택 사항): 데이터베이스 마이그레이션 도구 (SQLAlchemy 사용 시)</li>
+                                    <li><code>python-dotenv</code> (선택 사항): <code>.env</code> 파일로 환경 변수 관리</li>
+                                    <li><code>Flask-CORS</code>: CORS 지원</li>
+                                </ul>
+                            </li>
+                            <li><strong>Flask 앱 설정 및 라우트 정의 (<code>app.py</code>):</strong>
+                                <pre><code class="language-python"># app.py
+from flask import Flask, request, jsonify
+from flask_cors import CORS # CORS 임포트
+import psycopg2
+import os
+# from dotenv import load_dotenv # .env 파일 사용 시
+# load_dotenv()
+
+app = Flask(__name__)
+CORS(app) # 모든 라우트에 대해 CORS 활성화
+
+# 데이터베이스 연결 정보 (환경 변수 또는 직접 설정)
+DB_NAME = os.getenv('DB_NAME', 'myappdb')
+DB_USER = os.getenv('DB_USER', 'myappuser')
+DB_PASSWORD = os.getenv('DB_PASSWORD', 'mypassword')
+DB_HOST = os.getenv('DB_HOST', 'localhost')
+
+def get_db_connection():
+    conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST)
+    return conn
+
+@app.route('/api/items', methods=['GET'])
+def get_items():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor) # DictCursor 사용
+    cur.execute('SELECT * FROM items ORDER BY id ASC;')
+    items_query = cur.fetchall()
+    cur.close()
+    conn.close()
+    
+    items_list = [dict(row) for row in items_query] # 딕셔너리 리스트로 변환
+    return jsonify(items_list)
+
+@app.route('/api/items', methods=['POST'])
+def add_item():
+    data = request.get_json()
+    name = data['name']
+    description = data.get('description', "") # description은 선택 사항으로 처리
+
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute('INSERT INTO items (name, description) VALUES (%s, %s) RETURNING id, name, description, created_at;',
+                (name, description))
+    new_item_tuple = cur.fetchone()
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    new_item = dict(new_item_tuple) if new_item_tuple else None
+    return jsonify(new_item), 201
+
+# (PUT, DELETE 라우트도 유사하게 추가)
+
+if __name__ == '__main__':
+    app.run(debug=True, port=3002) # 백엔드 서버 포트</code></pre>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+                <div id="s7-4">
+                    <h3>7.4. React 프론트엔드와 백엔드 API 연동</h3>
+                    <p>React 애플리케이션에서 백엔드 API와 통신하기 위해 <code>fetch</code> API 또는 <code>axios</code>와 같은 HTTP 클라이언트 라이브러리를 사용합니다.</p>
+                    <div id="s7-4-1">
+                        <h4>7.4.1. <code>fetch</code> API 사용 예제</h4>
+                        <p><code>fetch</code>는 브라우저에 내장된 API로, 별도의 설치 없이 사용할 수 있습니다.</p>
+                        <pre><code class="language-javascript">// ItemService.js (API 호출 로직을 모듈화)
+const API_BASE_URL = 'http://localhost:3001/api'; // Node.js 백엔드 기준
+
+export const getItems = async () => {
+  try {
+    const response = await fetch(\`${API_BASE_URL}/items\`);
+    if (!response.ok) {
+      throw new Error(\`HTTP error! status: ${"${response.status}"}\`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching items:", error);
+    throw error;
+  }
+};
+
+export const addItem = async (itemData) => {
+  try {
+    const response = await fetch(\`${API_BASE_URL}/items\`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(itemData),
+    });
+    if (!response.ok) {
+      throw new Error(\`HTTP error! status: ${"${response.status}"}\`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error adding item:", error);
+    throw error;
+  }
+};
+
+// React 컴포넌트 내에서 사용 (MyComponent.js)
+// import React, { useState, useEffect } from 'react';
+// import { getItems, addItem } from './ItemService';
+// function MyComponent() {
+//   const [items, setItems] = useState([]);
+//   const [newItemName, setNewItemName] = useState("");
+//   useEffect(() => {
+//     const fetchItems = async () => {
+//       try {
+//         const data = await getItems();
+//         setItems(data);
+//       } catch (error) { /* 오류 처리 */ }
+//     };
+//     fetchItems();
+//   }, []);
+//   const handleAddItem = async () => {
+//     if (!newItemName.trim()) return;
+//     try {
+//       const addedItem = await addItem({ name: newItemName, description: 'New item description' });
+//       setItems([...items, addedItem]);
+//       setNewItemName("");
+//     } catch (error) { /* 오류 처리 */ }
+//   };
+//   // ... JSX ...
+// }</code></pre>
+                    </div>
+                    <div id="s7-4-2">
+                        <h4>7.4.2. <code>axios</code> 라이브러리 사용 예제</h4>
+                        <p><code>axios</code>는 <code>fetch</code>보다 더 많은 기능을 제공하는 인기 있는 HTTP 클라이언트 라이브러리입니다 (예: 자동 JSON 변환, 요청/응답 인터셉터, CSRF 보호).</p>
+                        <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                            <li><strong><code>axios</code> 설치:</strong>
+                                <pre><code class="language-bash">npm install axios
+# 또는
+yarn add axios</code></pre>
+                            </li>
+                            <li><strong><code>axios</code> 사용:</strong>
+                                <pre><code class="language-javascript">// ItemService.js (axios 사용)
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:3001/api'; // Node.js 백엔드 기준
+
+// Axios 인스턴스 생성 (선택사항이지만 권장)
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export const getItems = async () => {
+  try {
+    const response = await apiClient.get('/items');
+    return response.data; // axios는 자동으로 JSON을 파싱하여 response.data에 담아줌
+  } catch (error) {
+    console.error("Error fetching items:", error);
+    throw error;
+  }
+};
+
+export const addItem = async (itemData) => {
+  try {
+    const response = await apiClient.post('/items', itemData);
+    return response.data;
+  } catch (error) {
+    console.error("Error adding item:", error);
+    throw error;
+  }
+};</code></pre>
+                                <p>React 컴포넌트에서의 사용법은 <code>fetch</code> 예제와 유사합니다.</p>
+                            </li>
+                        </ol>
+                    </div>
+                    <div id="s7-4-3">
+                        <h4>7.4.3. CORS (Cross-Origin Resource Sharing) 문제 해결</h4>
+                        <p>개발 중 React 프론트엔드(예: <code>http://localhost:3000</code>)와 백엔드 API 서버(예: <code>http://localhost:3001</code>)가 다른 포트에서 실행될 때 브라우저의 동일 출처 정책(Same-Origin Policy)으로 인해 API 요청이 차단될 수 있습니다. 이를 해결하기 위해:</p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-1">
+                            <li><strong>백엔드에서 CORS 활성화:</strong> Express에서는 <code>cors</code> 미들웨어를 사용하고 (위 예제 참고), Flask에서는 <code>Flask-CORS</code> 확장을 사용하여 특정 출처(프론트엔드 주소)의 요청을 허용하도록 설정합니다.</li>
+                            <li><strong>개발 환경에서 프록시 설정:</strong> Create React App의 경우 <code>package.json</code>에 <code>"proxy": "http://localhost:3001"</code> 설정을 추가하거나, Vite의 경우 <code>vite.config.js</code>에서 프록시를 설정하여 API 요청을 백엔드로 전달할 수 있습니다.</li>
+                            <li><strong>프로덕션 환경에서는 Nginx 리버스 프록시 사용:</strong> 다음 섹션에서 다룰 Nginx 리버스 프록시를 사용하면 동일한 도메인에서 프론트엔드와 백엔드를 모두 서비스하여 CORS 문제를 근본적으로 해결할 수 있습니다.</li>
+                        </ul>
+                        <p>API 통신 시에는 로딩 상태 관리, 오류 처리, 사용자 피드백 제공 등을 꼼꼼하게 구현하여 사용자 경험을 향상시키는 것이 중요합니다. 커스텀 훅을 만들어 API 호출 로직을 추상화하고 재사용성을 높이는 것도 좋은 방법입니다.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="s8" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>8. React 애플리케이션 배포 (Nginx 활용)</h2>
+                <p>개발이 완료된 React 애플리케이션을 실제 사용자들이 접근할 수 있도록 웹 서버에 배포해야 합니다. 이 섹션에서는 Nginx를 사용하여 Ubuntu 서버에 React 애플리케이션을 배포하는 방법을 설명합니다.</p>
+                <div id="s8-1">
+                    <h3>8.1. React 앱 프로덕션 빌드 생성</h3>
+                    <p>React 애플리케이션을 배포하기 전에 프로덕션용으로 최적화된 빌드 파일을 생성해야 합니다. Create React App을 사용하고 있다면 다음 명령어를 프로젝트 루트 디렉토리에서 실행합니다.</p>
+                    <pre><code class="language-bash">npm run build</code></pre>
+                    <p>이 명령어는 프로젝트 루트에 <code>build</code>라는 폴더를 생성합니다. <code>build</code> 폴더 안에는 HTML, CSS, JavaScript 파일 등 정적 에셋들이 최적화된 형태로 포함되어 있습니다.</p>
+                    <p>빌드 결과물 특징:</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-1">
+                        <li><strong>최적화:</strong> 코드가 압축되고, 불필요한 공백이 제거되며, 파일 크기가 최소화됩니다.</li>
+                        <li><strong>정적 파일:</strong> <code>build/static</code> 디렉토리 내에 JavaScript (<code>.js</code>) 및 CSS (<code>.css</code>) 파일이 생성되며, 파일 이름에는 내용 기반 해시값이 포함되어 캐싱 효율을 높입니다.</li>
+                        <li><strong><code>index.html</code>:</strong> <code>build</code> 폴더의 루트에 위치하며, 빌드된 JavaScript 및 CSS 파일을 참조합니다.</li>
+                        <li><strong>청크(Chunks):</strong> 코드가 여러 개의 작은 파일(청크)로 분리되어 초기 로딩 속도를 개선할 수 있습니다 (예: <code>main.[hash].chunk.js</code>, <code>[number].[hash].chunk.js</code>). 벤더 코드(<code>node_modules</code>에서 가져온 라이브러리)와 애플리케이션 코드가 분리될 수 있습니다.</li>
+                    </ul>
+                    <p>Vite를 사용하고 있다면 다음 명령어로 프로덕션 빌드를 생성합니다.</p>
+                    <pre><code class="language-bash">npm run build</code></pre>
+                    <p>Vite는 기본적으로 <code>dist</code> 폴더에 빌드 결과물을 생성합니다.</p>
+                </div>
+                <div id="s8-2">
+                    <h3>8.2. Nginx를 사용하여 정적 파일 제공</h3>
+                    <p>생성된 <code>build</code> (또는 <code>dist</code>) 폴더의 내용을 Ubuntu 서버의 Nginx가 접근할 수 있는 위치로 복사하고, Nginx가 이 파일들을 제공하도록 설정합니다.</p>
+                    <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                        <li><strong>빌드 파일 서버에 업로드:</strong>
+                            <p><code>scp</code>나 <code>rsync</code>와 같은 도구를 사용하여 로컬 머신의 <code>build</code> 폴더 내용을 서버의 특정 디렉토리(예: <code>/var/www/my-react-app</code>)로 업로드합니다.</p>
+                            <pre><code class="language-bash">scp -r build/* user@your_server_ip:/var/www/my-react-app/</code></pre>
+                            <p>서버에 해당 디렉토리가 없다면 미리 생성해야 합니다 (<code>sudo mkdir -p /var/www/my-react-app</code>).</p>
+                        </li>
+                        <li><strong>Nginx 서버 블록 설정:</strong>
+                            <p>Nginx는 "서버 블록" (Apache의 가상 호스트와 유사)을 사용하여 여러 웹사이트나 애플리케이션을 하나의 서버에서 호스팅할 수 있습니다. React 앱을 위한 새 서버 블록 설정 파일을 생성합니다. (예: <code>/etc/nginx/sites-available/my-react-app</code>)</p>
+                            <pre><code class="language-bash">sudo vim /etc/nginx/sites-available/my-react-app</code></pre>
+                            <p>다음과 같이 서버 블록을 구성합니다. <code>your_domain.com</code>은 실제 도메인으로, <code>/var/www/my-react-app</code>은 빌드 파일을 업로드한 경로로 변경합니다.</p>
+                            <pre><code class="language-nginx">server {
+    listen 80;
+    server_name your_domain.com www.your_domain.com; # 사용할 도메인
+
+    root /var/www/my-react-app; # React 빌드 폴더 경로
+    index index.html; # 기본으로 제공할 파일
+
+    location / {
+        try_files $uri $uri/ /index.html;
+        # $uri: 요청된 URI를 그대로 파일 시스템에서 찾음
+        # $uri/: 요청된 URI가 디렉토리일 경우 해당 디렉토리의 index 파일을 찾음
+        # /index.html: 위 두 경우 모두 실패하면 /index.html을 반환 (SPA 라우팅 처리)
+    }
+
+    # (선택) 정적 파일 캐싱 설정
+    location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg)$ {
+        expires 30d; # 30일 동안 브라우저에 캐시
+        access_log off; # 해당 파일 접근 로그 기록 안 함
+    }
+}</code></pre>
+                            <ul class="list-disc list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li><code>listen 80;</code>: HTTP 요청을 수신합니다. HTTPS를 사용하려면 <code>listen 443 ssl;</code> 및 관련 SSL 인증서 설정을 추가해야 합니다.</li>
+                                <li><code>server_name your_domain.com;</code>: 이 서버 블록이 응답할 도메인 이름을 지정합니다.</li>
+                                <li><code>root /var/www/my-react-app;</code>: React 애플리케이션의 빌드된 정적 파일들이 위치한 루트 디렉토리를 지정합니다.</li>
+                                <li><code>index index.html;</code>: 디렉토리 요청 시 기본으로 제공할 파일을 지정합니다.</li>
+                                <li><code>location / { try_files $uri $uri/ /index.html; }</code>: 이 부분이 클라이언트 사이드 라우팅을 처리하는 핵심입니다. 사용자가 <code>/about</code>이나 <code>/products/1</code>과 같은 경로로 직접 접근했을 때, Nginx는 해당 경로에 실제 파일이나 디렉토리가 있는지 확인합니다. 만약 없다면, <code>index.html</code> 파일을 반환합니다. 그러면 React Router가 브라우저에서 해당 경로를 해석하고 적절한 컴포넌트를 렌더링하게 됩니다.</li>
+                                <li><code>location ~* \.(css|js|...)$ { ... }</code>: 정적 에셋(CSS, JS, 이미지 등)에 대한 브라우저 캐싱 설정을 추가하여 성능을 향상시킬 수 있습니다.</li>
+                            </ul>
+                        </li>
+                        <li><strong>서버 블록 활성화 및 Nginx 재시작:</strong>
+                            <ul class="list-disc list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li>생성한 설정 파일을 <code>sites-enabled</code> 디렉토리에 심볼릭 링크로 연결하여 활성화합니다.
+                                    <pre><code class="language-bash">sudo ln -s /etc/nginx/sites-available/my-react-app /etc/nginx/sites-enabled/</code></pre>
+                                </li>
+                                <li>(선택 사항) 기본 Nginx 설정과의 충돌을 피하기 위해 기본 설정을 비활성화할 수 있습니다.
+                                    <pre><code class="language-bash">sudo unlink /etc/nginx/sites-enabled/default</code></pre>
+                                </li>
+                                <li>Nginx 설정 파일에 문법 오류가 없는지 테스트합니다.
+                                    <pre><code class="language-bash">sudo nginx -t</code></pre>
+                                    <p><code>syntax is ok</code>와 <code>test is successful</code> 메시지가 나타나면 정상입니다.</p>
+                                </li>
+                                <li>Nginx 서비스를 재시작하여 변경 사항을 적용합니다.
+                                    <pre><code class="language-bash">sudo systemctl restart nginx</code></pre>
+                                </li>
+                            </ul>
+                        </li>
+                    </ol>
+                    <p>이제 웹 브라우저에서 <code>http://your_domain.com</code>으로 접속하면 배포된 React 애플리케이션을 확인할 수 있습니다.</p>
+                </div>
+                <div id="s8-3">
+                    <h3>8.3. Nginx 리버스 프록시 설정: 백엔드 API 연동</h3>
+                    <p>React 애플리케이션이 백엔드 API와 통신해야 하는 경우 (예: <code>/api/users</code> 요청), Nginx를 리버스 프록시로 설정하여 프론트엔드와 백엔드를 동일한 도메인에서 서비스할 수 있습니다. 이는 CORS(Cross-Origin Resource Sharing) 문제를 해결하고, API 엔드포인트를 숨기며, 로드 밸런싱이나 SSL 종료와 같은 추가적인 이점을 제공할 수 있습니다.</p>
+                    <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                        <li><strong>Nginx 서버 블록 수정:</strong>
+                            <p>위에서 생성한 React 앱 서버 블록 설정 파일 (<code>/etc/nginx/sites-available/my-react-app</code>)에 API 요청을 백엔드 서버로 전달하는 <code>location</code> 블록을 추가합니다.</p>
+                            <p>가정:</p>
+                            <ul class="list-disc list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li>React 앱은 <code>http://your_domain.com/</code>에서 서비스됩니다.</li>
+                                <li>백엔드 API 서버는 동일한 서버의 <code>http://localhost:3001</code> (Node.js/Express 예시) 또는 <code>http://localhost:3002</code> (Python/Flask 예시)에서 실행 중입니다.</li>
+                                <li>프론트엔드에서 <code>/api/...</code>로 시작하는 모든 요청을 백엔드로 전달하려고 합니다.</li>
+                            </ul>
+                            <pre><code class="language-nginx">server {
+    listen 80;
+    server_name your_domain.com www.your_domain.com;
+
+    root /var/www/my-react-app;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # API 요청을 백엔드 서버로 전달하는 리버스 프록시 설정
+    location /api {
+        proxy_pass http://localhost:3001; # 백엔드 API 서버 주소 및 포트
+
+        # 백엔드로 원본 요청 헤더 전달 (중요)
+        proxy_set_header Host $host; # 원본 요청의 Host 헤더
+        proxy_set_header X-Real-IP $remote_addr; # 실제 클라이언트 IP
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; # 프록시를 거친 IP 목록
+        proxy_set_header X-Forwarded-Proto $scheme; # 원본 요청 프로토콜 (http/https)
+
+        # (선택) WebSocket 지원을 위한 헤더 (필요시)
+        # proxy_http_version 1.1;
+        # proxy_set_header Upgrade $http_upgrade;
+        # proxy_set_header Connection "upgrade";
+    }
+
+    location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg)$ {
+        expires 30d;
+        access_log off;
+    }
+}</code></pre>
+                            <p>주요 <code>proxy_*</code> 지시어 설명:</p>
+                            <ul class="list-disc list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li><code>proxy_pass http://localhost:3001;</code>: <code>/api</code>로 시작하는 요청을 <code>http://localhost:3001</code>로 전달합니다. Nginx는 <code>/api</code> 접두사를 제거하고 나머지 경로(예: <code>/api/users</code> -> <code>/users</code>)를 백엔드로 전달합니다. 만약 <code>/api</code> 접두사를 포함하여 전달하고 싶다면 <code>proxy_pass http://localhost:3001/api/;</code> 와 같이 백엔드 주소에도 <code>/api</code>를 명시할 수 있습니다. (이 경우 백엔드도 <code>/api/users</code>와 같은 경로를 기대해야 함)</li>
+                                <li><code>proxy_set_header Host $host;</code>: 백엔드 서버가 원본 요청의 호스트 이름을 알 수 있도록 합니다.</li>
+                                <li><code>proxy_set_header X-Real-IP $remote_addr;</code>: 실제 클라이언트의 IP 주소를 백엔드에 전달합니다.</li>
+                                <li><code>proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</code>: 요청이 여러 프록시를 거친 경우, 모든 IP 주소 목록을 전달합니다.</li>
+                                <li><code>proxy_set_header X-Forwarded-Proto $scheme;</code>: 원본 요청이 HTTP인지 HTTPS인지 백엔드에 알려줍니다.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Nginx 설정 테스트 및 재시작:</strong>
+                            <p>설정 파일을 저장한 후, 문법을 테스트하고 Nginx를 재시작합니다.</p>
+                            <pre><code class="language-bash">sudo nginx -t
+sudo systemctl restart nginx</code></pre>
+                        </li>
+                    </ol>
+                    <p>이제 React 애플리케이션에서 <code>/api/items</code>와 같이 API를 호출하면, Nginx가 이 요청을 가로채 백엔드 서버(<code>http://localhost:3001/api/items</code> 또는 설정에 따라 <code>http://localhost:3001/items</code>)로 전달하고, 백엔드의 응답을 다시 클라이언트에게 전달합니다.</p>
+                    <h4>React 배포를 위한 주요 Nginx 지시어</h4>
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>지시어</th>
+                                    <th>설명</th>
+                                    <th>React 배포 시 사용 예시 (값)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>listen</code></td>
+                                    <td>Nginx가 수신 대기할 포트 번호</td>
+                                    <td><code>80</code> (HTTP), <code>443 ssl</code> (HTTPS)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>server_name</code></td>
+                                    <td>이 서버 블록이 처리할 도메인 이름</td>
+                                    <td><code>example.com www.example.com</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>root</code></td>
+                                    <td>웹사이트의 루트 디렉토리 경로</td>
+                                    <td><code>/var/www/my-react-app</code> (React 빌드 폴더)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>index</code></td>
+                                    <td>디렉토리 요청 시 기본으로 제공할 파일</td>
+                                    <td><code>index.html</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>location /</code></td>
+                                    <td>모든 요청에 대한 기본 처리 블록</td>
+                                    <td><code>{ try_files $uri $uri/ /index.html; }</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>try_files</code></td>
+                                    <td>요청된 파일을 순서대로 찾아보고, 없으면 마지막 인자를 반환</td>
+                                    <td><code>$uri $uri/ /index.html</code> (SPA 라우팅 지원)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>location /api</code></td>
+                                    <td>특정 경로(예: API) 요청 처리 블록</td>
+                                    <td><code>{ proxy_pass http://backend_server; ... }</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>proxy_pass</code></td>
+                                    <td>요청을 전달할 백엔드 서버 주소</td>
+                                    <td><code>http://localhost:3001</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>proxy_set_header</code></td>
+                                    <td>백엔드로 전달할 HTTP 헤더 설정</td>
+                                    <td><code>Host $host;</code>, <code>X-Real-IP $remote_addr;</code> 등</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>Nginx의 정적 파일 제공 기능과 리버스 프록시 기능을 함께 사용하면, 단일 도메인에서 프론트엔드와 백엔드를 모두 효율적으로 서비스할 수 있습니다. 또한, 이는 개발 환경과 프로덕션 환경 간의 차이를 줄이고, 보안 강화(예: SSL/TLS 적용 중앙화), 로드 밸런싱, 캐싱 등 다양한 고급 기능을 Nginx 수준에서 처리할 수 있는 기반을 마련해 줍니다.</p>
+                </div>
+            </section>
+
+            <section id="s9" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>9. 종합 실습 예제: 할 일 목록(To-Do List) 애플리케이션 제작</h2>
+                <p>지금까지 배운 React의 핵심 개념, 백엔드 API 구축, 서버 환경 설정, API 연동 및 배포 과정을 통합적으로 경험해보기 위해 간단한 할 일 목록(To-Do List) 애플리케이션을 만들어 보겠습니다. 이 예제는 CRUD(Create, Read, Update, Delete) 기능을 모두 포함합니다.</p>
+                <div id="s9-1">
+                    <h3>9.1. 요구사항 정의 및 설계</h3>
+                    <h4>기능:</h4>
+                    <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                        <li>새로운 할 일 추가 (Create)</li>
+                        <li>모든 할 일 목록 보기 (Read)</li>
+                        <li>개별 할 일 내용 수정 (Update) - 이 예제에서는 단순화를 위해 생략하고 완료/미완료 처리로 대체 가능</li>
+                        <li>할 일 완료/미완료 상태 변경 (Update)</li>
+                        <li>할 일 삭제 (Delete)</li>
+                    </ol>
+                    <h4>데이터 모델 (<code>todos</code> 테이블):</h4>
+                    <ul class="list-disc list-inside text-gray-300 space-y-1">
+                        <li><code>id</code>: 숫자, 기본 키(PK), 자동 증가 (<code>SERIAL</code>)</li>
+                        <li><code>task</code>: 문자열, 할 일 내용 (<code>VARCHAR</code>, <code>NOT NULL</code>)</li>
+                        <li><code>completed</code>: 불리언, 완료 여부 (<code>BOOLEAN</code>, 기본값 <code>FALSE</code>)</li>
+                        <li><code>created_at</code>: 타임스탬프, 생성 일시 (<code>TIMESTAMP</code>, 기본값 <code>CURRENT_TIMESTAMP</code>)</li>
+                    </ul>
+                     <div class="flow-diagram">
+                        <div class="flow-box">1. 사용자: 할 일 입력</div>
+                        <div class="flow-arrow" data-label="Create"></div>
+                        <div class="flow-box">2. React: 상태 업데이트, API 호출 (POST /api/todos)</div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-box">3. 백엔드: DB에 할 일 저장</div>
+                        <div class="flow-arrow" data-label="Read"></div>
+                        <div class="flow-box">4. React: API 호출 (GET /api/todos), 목록 표시</div>
+                        <div class="flow-arrow" data-label="Update/Delete"></div>
+                        <div class="flow-horizontal-container">
+                             <div class="flex flex-col items-center">
+                                 <div class="flow-box">5a. 사용자: 완료/삭제</div>
+                                 <div class="flow-arrow"></div>
+                                 <div class="flow-box">6a. React: API 호출 (PUT/DELETE)</div>
+                            </div>
+                            <div class="flow-arrow-right mx-4 hidden md:block" data-label="결과"></div>
+                            <div class="md:hidden flow-arrow my-2" data-label="결과"></div>
+                            <div class="flex flex-col items-center">
+                                 <div class="flow-box">7. 백엔드: DB 업데이트</div>
+                                 <div class="flow-arrow"></div>
+                                 <div class="flow-box">8. React: UI 갱신</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="s9-2">
+                    <h3>9.2. 백엔드 개발 (Node.js/Express + PostgreSQL)</h3>
+                    <p>섹션 7.3.1에서 다룬 Node.js/Express와 PostgreSQL 연동 방식을 기반으로 할 일 목록 API를 구축합니다.</p>
+                    <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                        <li><strong>데이터베이스 테이블 생성:</strong>
+                            <p><code>psql</code>을 사용하여 PostgreSQL에 접속 후, <code>todos</code> 테이블을 생성합니다.</p>
+                            <pre><code class="language-sql">CREATE TABLE todos (
+    id SERIAL PRIMARY KEY,
+    task VARCHAR(255) NOT NULL,
+    completed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+                        </li>
+                        <li><strong>API 엔드포인트 설계 및 구현 (<code>server.js</code> 또는 별도 라우터 파일):</strong>
+                            <ul class="list-disc list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li><code>POST /api/todos</code>: 새 할 일 추가
+                                    <ul class="list-circle list-inside text-gray-500 space-y-1 ml-4 mt-1">
+                                        <li>요청 본문: <code>{ "task": "새로운 할 일 내용" }</code></li>
+                                        <li>응답: 추가된 할 일 객체</li>
+                                    </ul>
+                                </li>
+                                <li><code>GET /api/todos</code>: 모든 할 일 목록 가져오기
+                                    <ul class="list-circle list-inside text-gray-500 space-y-1 ml-4 mt-1">
+                                        <li>응답: 할 일 객체 배열</li>
+                                    </ul>
+                                </li>
+                                <li><code>PUT /api/todos/:id</code>: 특정 할 일 수정 (완료/미완료 상태 변경)
+                                    <ul class="list-circle list-inside text-gray-500 space-y-1 ml-4 mt-1">
+                                        <li>요청 본문: <code>{ "completed": true/false }</code> (또는 <code>{ "task": "수정된 내용", "completed": true/false }</code>)</li>
+                                        <li>응답: 업데이트된 할 일 객체 또는 성공 메시지</li>
+                                    </ul>
+                                </li>
+                                <li><code>DELETE /api/todos/:id</code>: 특정 할 일 삭제
+                                    <ul class="list-circle list-inside text-gray-500 space-y-1 ml-4 mt-1">
+                                        <li>응답: 성공 메시지 또는 삭제된 할 일 ID</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <p>예시: <code>server.js</code> (일부)</p>
+                            <pre><code class="language-javascript">// ... (express, pg pool 설정은 7.3.1.과 동일)
+
+// GET /api/todos - 모든 할 일 가져오기
+app.get('/api/todos', async (req, res) => {
+  try {
+    const allTodos = await pool.query('SELECT * FROM todos ORDER BY id ASC');
+    res.json(allTodos.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// POST /api/todos - 새 할 일 추가
+app.post('/api/todos', async (req, res) => {
+  try {
+    const { task } = req.body;
+    if (!task) {
+      return res.status(400).json({ msg: 'Please enter a task' });
+    }
+    const newTodo = await pool.query(
+      'INSERT INTO todos (task) VALUES ($1) RETURNING *',
+      [task]
+    );
+    res.json(newTodo.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// PUT /api/todos/:id - 할 일 완료/미완료 상태 변경
+app.put('/api/todos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { completed, task } = req.body; // task 내용도 업데이트 가능하도록 확장
+
+    // 현재 할 일 정보 가져오기 (선택적, 변경된 부분만 업데이트 시 필요)
+    // const currentTodoResult = await pool.query('SELECT * FROM todos WHERE id = $1', [id]);
+    // if (currentTodoResult.rows.length === 0) {
+    //   return res.status(404).json({ msg: 'Todo not found' });
+    // }
+    // const currentTodo = currentTodoResult.rows[0];
+
+    const updatedTask = task !== undefined ? task : null; // undefined면 업데이트 안 함
+    const updatedCompleted = completed !== undefined ? completed : null;
+
+    let queryText = 'UPDATE todos SET ';
+    const queryParams = [];
+    let paramIndex = 1;
+
+    if (updatedTask !== null) {
+      queryText += \`task = $${"${paramIndex++}"}\`;
+      queryParams.push(updatedTask);
+    }
+    if (updatedCompleted !== null) {
+      if (queryParams.length > 0) queryText += ', ';
+      queryText += \`completed = $${"${paramIndex++}"}\`;
+      queryParams.push(updatedCompleted);
+    }
+
+    if (queryParams.length === 0) {
+      return res.status(400).json({ msg: 'No update fields provided' });
+    }
+
+    queryText += \` WHERE id = $${"${paramIndex}"} RETURNING *\`;
+    queryParams.push(id);
+
+    const updateTodo = await pool.query(queryText, queryParams);
+
+    if (updateTodo.rows.length === 0) {
+      return res.status(404).json({ msg: 'Todo not found or no change made' });
+    }
+    res.json(updateTodo.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// DELETE /api/todos/:id - 할 일 삭제
+app.delete('/api/todos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteTodo = await pool.query('DELETE FROM todos WHERE id = $1 RETURNING *', [
+      id,
+    ]);
+    if (deleteTodo.rows.length === 0) {
+      return res.status(404).json({ msg: 'Todo not found' });
+    }
+    res.json({ msg: 'Todo deleted', todo: deleteTodo.rows[0] });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// ... (app.listen 부분)</code></pre>
+                        </li>
+                    </ol>
+                </div>
+                <div id="s9-3">
+                    <h3>9.3. 프론트엔드 개발 (React)</h3>
+                    <p>Create React App 또는 Vite를 사용하여 React 프로젝트를 생성합니다. <code>axios</code>를 설치하여 API 통신에 사용합니다.</p>
+                    <ol class="list-decimal list-inside text-gray-300 space-y-1">
+                        <li><strong>컴포넌트 구성:</strong>
+                            <ul class="list-disc list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li><code>src/App.js</code>: 최상위 컴포넌트, 할 일 목록 상태와 API 호출 함수들을 관리할 수 있습니다.</li>
+                                <li><code>src/components/TodoList.js</code>: 할 일 목록을 받아 <code>TodoItem</code> 컴포넌트들을 렌더링합니다.</li>
+                                <li><code>src/components/TodoItem.js</code>: 개별 할 일을 표시하고, 완료 체크박스와 삭제 버튼을 가집니다. 각 아이템의 상태 변경 및 삭제 이벤트를 처리합니다.</li>
+                                <li><code>src/components/AddTodoForm.js</code>: 새로운 할 일을 입력받는 폼입니다. 제출 시 할 일 추가 API를 호출합니다.</li>
+                            </ul>
+                        </li>
+                        <li><strong>상태 관리 (<code>useState</code>, <code>useEffect</code>):</strong>
+                            <ul class="list-disc list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li><code>App.js</code>에서 할 일 목록(<code>todos</code>)을 state로 관리합니다.</li>
+                                <li><code>AddTodoForm.js</code>에서 입력 중인 할 일 텍스트를 state로 관리합니다.</li>
+                                <li>API 호출 시 로딩 상태나 오류 상태를 관리할 수 있습니다.</li>
+                            </ul>
+                        </li>
+                        <li><strong>API 연동 (Axios 사용 예시):</strong>
+                            <p>API 호출 로직은 별도의 서비스 파일(예: <code>src/services/todoService.js</code>)로 분리하는 것이 좋습니다.</p>
+                            <pre><code class="language-javascript">// src/services/todoService.js
+import axios from 'axios';
+
+const API_URL = '/api/todos'; // Nginx 리버스 프록시 설정 후 경로
+
+export const getTodos = () => {
+  return axios.get(API_URL);
+};
+
+export const addTodo = (taskData) => {
+  return axios.post(API_URL, taskData);
+};
+
+export const updateTodo = (id, todoData) => {
+  return axios.put(\`${API_URL}/${"${id}"}\`, todoData);
+};
+
+export const deleteTodo = (id) => {
+  return axios.delete(\`${API_URL}/${"${id}"}\`);
+};</code></pre>
+                            <p><code>App.js</code> 예시 (일부):</p>
+                            <pre><code class="language-javascript">// src/App.js
+import React, { useState, useEffect } from 'react';
+// import TodoList from './components/TodoList';
+// import AddTodoForm from './components/AddTodoForm';
+import { getTodos, addTodo, updateTodo, deleteTodo } from './services/todoService';
+// import './App.css'; // App.css 필요시
+
+// 임시 컴포넌트 정의 (실제로는 별도 파일로 분리)
+const TodoItem = ({ todo, onToggleComplete, onDeleteTodo }) => (
+  &lt;li style={{ textDecoration: todo.completed ? 'line-through' : 'none' }} className="flex justify-between items-center p-2 border-b border-gray-700"&gt;
+    &lt;span onClick={() => onToggleComplete(todo.id)} className="cursor-pointer"&gt;
+      &lt;input type="checkbox" checked={todo.completed} readOnly className="mr-2"/&gt;
+      {todo.task}
+    &lt;/span&gt;
+    &lt;button onClick={() => onDeleteTodo(todo.id)} className="text-red-500 hover:text-red-700"&gt;Delete&lt;/button&gt;
+  &lt;/li&gt;
+);
+
+const TodoList = ({ todos, onToggleComplete, onDeleteTodo }) => {
+  if (!todos || todos.length === 0) {
+    return &lt;p className="text-gray-500"&gt;No todos yet!&lt;/p&gt;;
+  }
+  return (
+    &lt;ul className="list-none p-0 mt-4"&gt;
+      {todos.map(todo => (
+        &lt;TodoItem
+          key={todo.id}
+          todo={todo}
+          onToggleComplete={onToggleComplete}
+          onDeleteTodo={onDeleteTodo}
+        /&gt;
+      ))}
+    &lt;/ul&gt;
+  );
+};
+
+const AddTodoForm = ({ onAddTodo }) => {
+  const [taskText, setTaskText] = useState('');
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!taskText.trim()) return;
+    onAddTodo(taskText);
+    setTaskText('');
+  };
+  return (
+    &lt;form onSubmit={handleSubmit} className="flex mt-4"&gt;
+      &lt;input
+        type="text"
+        value={taskText}
+        onChange={(e) => setTaskText(e.target.value)}
+        placeholder="Add a new task"
+        className="flex-grow p-2 border border-gray-700 rounded-l-md bg-gray-800 text-white focus:ring-blue-500 focus:border-blue-500"
+      /&gt;
+      &lt;button type="submit" className="p-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600"&gt;Add&lt;/button&gt;
+    &lt;/form&gt;
+  );
+};
+
+
+function App() {
+  const [todos, setTodos] = useState([]);
+  const [error, setError] = useState(null); // 오류 상태 추가
+
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  const fetchTodos = async () => {
+    try {
+      const response = await getTodos();
+      setTodos(response.data);
+      setError(null); // 성공 시 오류 초기화
+    } catch (err) {
+      console.error("Error fetching todos:", err);
+      setError("할 일 목록을 불러오는 데 실패했습니다.");
+    }
+  };
+
+  const handleAddTodo = async (taskText) => {
+    try {
+      const response = await addTodo({ task: taskText });
+      // 백엔드에서 반환된 전체 할 일 객체 또는 새 할 일 객체를 사용
+      // 여기서는 백엔드가 새 할 일 객체를 반환한다고 가정
+      setTodos([...todos, response.data]); 
+      setError(null);
+    } catch (err) {
+      console.error("Error adding todo:", err);
+      setError("할 일을 추가하는 데 실패했습니다.");
+    }
+  };
+
+  const handleToggleComplete = async (id) => {
+    try {
+      const todoToUpdate = todos.find(todo => todo.id === id);
+      const response = await updateTodo(id, { completed: !todoToUpdate.completed, task: todoToUpdate.task }); // task도 함께 전달
+      setTodos(todos.map(todo => (todo.id === id ? response.data : todo)));
+      setError(null);
+    } catch (err) {
+      console.error("Error updating todo:", err);
+      setError("할 일 상태를 변경하는 데 실패했습니다.");
+    }
+  };
+
+  const handleDeleteTodo = async (id) => {
+    try {
+      await deleteTodo(id);
+      setTodos(todos.filter(todo => todo.id !== id));
+      setError(null);
+    } catch (err) {
+      console.error("Error deleting todo:", err);
+      setError("할 일을 삭제하는 데 실패했습니다.");
+    }
+  };
+
+  return (
+    &lt;div className="App p-4 max-w-md mx-auto bg-gray-800 shadow-lg rounded-lg mt-10"&gt;
+      &lt;h1 className="text-3xl font-bold text-center text-blue-400 mb-6"&gt;My To-Do List&lt;/h1&gt;
+      {error && &lt;p className="text-red-500 bg-red-900 p-2 rounded-md text-center mb-4"&gt;{error}&lt;/p&gt;}
+      &lt;AddTodoForm onAddTodo={handleAddTodo} /&gt;
+      &lt;TodoList
+        todos={todos}
+        onToggleComplete={handleToggleComplete}
+        onDeleteTodo={handleDeleteTodo}
+      /&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default App;</code></pre>
+                        </li>
+                    </ol>
+                </div>
+                <div id="s9-4">
+                    <h3>9.4. Nginx를 이용한 배포</h3>
+                    <p>섹션 8에서 설명한 방법대로 React 앱 프로덕션 빌드를 생성하고, Nginx 서버 블록을 설정하여 정적 파일을 제공합니다. 또한, 백엔드 API 서버가 실행 중인 포트로 <code>/api</code> 경로의 요청을 프록시하도록 Nginx 리버스 프록시 설정을 추가합니다.</p>
+                </div>
+                <div id="s9-5">
+                    <h3>9.5. (참고) Python/Flask 백엔드와의 연동</h3>
+                    <p>만약 백엔드를 Python/Flask로 구축했다면 (섹션 7.3.2. 참고), React 프론트엔드는 동일한 방식으로 Flask API 엔드포인트와 통신할 수 있습니다. <code>todoService.js</code>의 <code>API_URL</code>을 Flask 서버 주소(예: <code>http://localhost:3002/api/todos</code>)로 변경하고, Nginx 리버스 프록시 설정에서 <code>proxy_pass</code> 대상을 Flask 서버 주소로 지정하면 됩니다. Flask에서도 유사한 CRUD 로직을 구현하여 PostgreSQL과 연동할 수 있습니다.</p>
+                    <p>이러한 풀스택 예제를 통해 사용자는 React 프론트엔드 개발, Node.js/Express 백엔드 API 개발, PostgreSQL 데이터베이스 연동, 그리고 Nginx를 이용한 배포까지 웹 애플리케이션 개발의 전체 흐름을 경험할 수 있습니다. 데이터는 사용자 인터랙션에 따라 React 컴포넌트에서 시작되어 API를 통해 백엔드로 전달되고, 데이터베이스에 저장되거나 수정됩니다. 반대로, 데이터베이스의 정보는 API를 통해 React 컴포넌트로 전달되어 사용자에게 표시됩니다. 이 과정에서 Nginx는 안정적인 서비스 제공과 효율적인 요청 처리를 돕습니다.</p>
+                </div>
+            </section>
+
+            <section id="s10" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>10. 더 나아가기: 심화 학습 주제 및 유용한 자료</h2>
+                <p>이 가이드를 통해 React의 기본 개념과 Ubuntu 서버 환경에서의 백엔드 연동 및 배포에 대해 학습했습니다. React 개발자로서 더 성장하기 위해 다음과 같은 심화 주제들을 학습하고 유용한 자료들을 참고할 수 있습니다.</p>
+                <div id="s10-1">
+                    <h3>10.1. 고급 상태 관리</h3>
+                    <p>애플리케이션이 복잡해지면 컴포넌트 간 상태 공유가 어려워지고, "prop drilling" 문제가 발생할 수 있습니다. 이를 해결하기 위한 고급 상태 관리 기법들이 있습니다.</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>Redux:</strong> 대규모 애플리케이션에서 전역 상태를 일관되게 관리하기 위한 강력한 라이브러리입니다.
+                            <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li>핵심 개념: Store(단일 상태 저장소), Action(상태 변경을 설명하는 객체), Reducer(액션에 따라 상태를 변경하는 순수 함수), Dispatch(액션을 스토어로 보내는 함수).</li>
+                                <li><code>react-redux</code>: React와 Redux를 연동하기 위한 라이브러리로, <code>&lt;Provider&gt;</code> 컴포넌트, <code>useSelector</code> Hook (상태 조회), <code>useDispatch</code> Hook (액션 디스패치) 등을 제공합니다.</li>
+                                <li>Redux Toolkit: Redux 사용을 간소화하고 보일러플레이트를 줄여주는 공식 도구 세트입니다. <code>configureStore</code>, <code>createSlice</code> 등의 유용한 API를 제공하여 Redux 개발 경험을 향상시킵니다.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Context API:</strong> React에 내장된 기능으로, props를 통해 단계별로 전달하지 않고도 컴포넌트 트리 전체에 데이터를 공유할 수 있게 해줍니다.
+                            <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li>사용법: <code>React.createContext()</code>로 Context 객체 생성, <code>&lt;MyContext.Provider value={...}&gt;</code>로 값 제공, <code>useContext(MyContext)</code> Hook으로 값 사용.</li>
+                                <li>Redux보다 간단하지만, 매우 복잡한 상태 로직이나 미들웨어 지원 등에서는 Redux가 더 적합할 수 있습니다.</li>
+                            </ul>
+                        </li>
+                        <li><strong>기타 상태 관리 라이브러리:</strong>
+                            <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li>Zustand: Redux보다 훨씬 간단하고 유연한 상태 관리 라이브러리입니다. Hook 기반으로 작동하며, 보일러플레이트가 거의 없습니다.</li>
+                                <li>Recoil: Facebook에서 만든 상태 관리 라이브러리로, Atoms(상태 단위)와 Selectors(파생 상태)를 사용하여 React스러운 방식으로 상태를 관리합니다.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <p>애플리케이션의 규모와 복잡도에 따라 적절한 상태 관리 전략을 선택하는 것이 중요합니다. 작은 앱에서는 React 내장 기능으로 충분할 수 있지만, 규모가 커지면 Redux나 Zustand 같은 전문 라이브러리가 도움이 될 수 있습니다.</p>
+                </div>
+                <div id="s10-2">
+                    <h3>10.2. React 라우팅 (React Router)</h3>
+                    <p>단일 페이지 애플리케이션(SPA)에서 여러 "페이지" 간의 이동을 구현하려면 라우팅 라이브러리가 필요합니다. React Router는 React 커뮤니티에서 가장 널리 사용되는 라우팅 솔루션입니다.</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>주요 컴포넌트 및 Hooks:</strong>
+                            <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li><code>&lt;BrowserRouter&gt;</code>: HTML5 History API를 사용하여 URL과 UI를 동기화합니다.</li>
+                                <li><code>&lt;Routes&gt;</code>: 여러 <code>&lt;Route&gt;</code>를 감싸고, 현재 URL과 가장 일치하는 <code>&lt;Route&gt;</code>를 렌더링합니다.</li>
+                                <li><code>&lt;Route path="..." element={...} /&gt;</code>: 특정 경로와 해당 경로에 렌더링될 컴포넌트를 정의합니다.</li>
+                                <li><code>&lt;Link to="..."&gt;</code>: 페이지 새로고침 없이 다른 경로로 이동하는 링크를 만듭니다.</li>
+                                <li><code>useNavigate()</code>: 프로그래매틱하게 경로를 이동할 때 사용합니다.</li>
+                                <li><code>useParams()</code>: URL 파라미터 값을 가져올 때 사용합니다 (동적 라우팅).</li>
+                                <li><code>&lt;Outlet /&gt;</code>: 중첩 라우팅 시 자식 라우트 컴포넌트가 렌더링될 위치를 지정합니다.</li>
+                            </ul>
+                        </li>
+                        <li><strong>기능:</strong> 동적 라우팅, 중첩 라우팅, 경로 보호, 코드 스플리팅 등 다양한 라우팅 시나리오를 지원합니다.</li>
+                    </ul>
+                </div>
+                <div id="s10-3">
+                    <h3>10.3. React 테스트</h3>
+                    <p>애플리케이션의 안정성과 코드 품질을 유지하기 위해서는 테스트가 필수적입니다.</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>Jest:</strong> Facebook에서 만든 JavaScript 테스트 프레임워크로, Create React App에 기본적으로 포함되어 있습니다. 스냅샷 테스팅, 모킹 등 다양한 기능을 제공합니다.</li>
+                        <li><strong>React Testing Library:</strong> 사용자의 관점에서 컴포넌트를 테스트하도록 권장하는 라이브러리입니다. 컴포넌트의 내부 구현보다는 실제 사용자가 경험하는 동작을 테스트하는 데 중점을 둡니다.</li>
+                    </ul>
+                    <p>단위 테스트, 통합 테스트, E2E(End-to-End) 테스트 등 다양한 수준의 테스트를 통해 애플리케이션의 신뢰도를 높일 수 있습니다.</p>
+                </div>
+                <div id="s10-4">
+                    <h3>10.4. TypeScript와 React</h3>
+                    <p>TypeScript는 JavaScript에 정적 타입을 추가한 상위 집합 언어입니다. React 프로젝트에 TypeScript를 도입하면 다음과 같은 이점이 있습니다:</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li>버그 감소: 컴파일 시점에 타입 오류를 발견하여 런타임 오류를 줄일 수 있습니다.</li>
+                        <li>코드 가독성 및 유지보수성 향상: 코드의 의도가 명확해지고, 대규모 프로젝트에서 협업이 용이해집니다.</li>
+                        <li>개발 도구 지원 강화: 자동 완성, 리팩토링 등 IDE의 지원을 더 잘 받을 수 있습니다.</li>
+                    </ul>
+                    <p>Create React App이나 Vite 모두 TypeScript를 쉽게 지원합니다.</p>
+                </div>
+                <div id="s10-5">
+                    <h3>10.5. 서버 사이드 렌더링 (SSR) 및 Next.js</h3>
+                    <p>기본적으로 React는 클라이언트 사이드 렌더링(CSR) 방식으로 동작합니다. 이는 초기 로딩 시 빈 HTML을 받고 JavaScript가 실행되어 내용을 채우는 방식입니다.</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>서버 사이드 렌더링 (SSR):</strong> 서버에서 React 컴포넌트를 HTML로 렌더링하여 클라이언트에 전달하는 방식입니다.
+                            <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li>장점: 초기 페이지 로딩 속도 개선 (사용자가 콘텐츠를 더 빨리 볼 수 있음), SEO(검색 엔진 최적화)에 유리.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Next.js:</strong> React 기반의 인기 있는 프레임워크로, SSR, 정적 사이트 생성(SSG), 파일 시스템 기반 라우팅, API 라우트 등 다양한 기능을 기본적으로 제공하여 풀스택 React 애플리케이션 개발을 용이하게 합니다.</li>
+                    </ul>
+                </div>
+                <div id="s10-6">
+                    <h3>10.6. 추가 학습 자료</h3>
+                    <p>React와 웹 개발 생태계는 빠르게 변화하므로 지속적인 학습이 중요합니다.</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2">
+                        <li><strong>React 공식 문서 (<a href="https://react.dev" target="_blank" class="text-blue-400 hover:underline">react.dev</a>):</strong> 가장 정확하고 최신 정보를 제공하는 최고의 자료입니다. 튜토리얼, 핵심 개념 설명, API 레퍼런스 등을 포함합니다.</li>
+                        <li><strong>MDN Web Docs (Mozilla Developer Network):</strong> HTML, CSS, JavaScript 등 웹 표준 기술에 대한 포괄적인 문서를 제공합니다.</li>
+                        <li><strong>온라인 강좌 및 튜토리얼:</strong> Udemy, Coursera, freeCodeCamp, Egghead.io 등에서 양질의 React 강좌를 찾을 수 있습니다.</li>
+                        <li><strong>기술 블로그 및 커뮤니티:</strong>
+                            <ul class="list-circle list-inside text-gray-400 space-y-1 ml-4 mt-1">
+                                <li>React 공식 블로그, Smashing Magazine, CSS-Tricks, dev.to 등</li>
+                                <li>Stack Overflow, Reddit (r/reactjs, r/javascript), Discord 서버 등에서 다른 개발자들과 교류하고 도움을 받을 수 있습니다.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <p>이러한 심화 주제들을 학습하고 다양한 자료를 활용함으로써 React 개발 역량을 한층 더 발전시킬 수 있을 것입니다.</p>
+                </div>
+            </section>
+
+            <section id="s11" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>11. 결론</h2>
+                <p>이 가이드에서는 React의 기본적인 개념부터 시작하여 개발 환경 설정, 프로젝트 구조화, 핵심 API 사용법, 그리고 Ubuntu 서버 환경에서 Nginx와 PostgreSQL을 연동한 백엔드와의 통합 및 배포 과정까지 포괄적으로 살펴보았습니다. 할 일 목록 애플리케이션 제작 실습을 통해 이론으로 배운 내용들을 실제 프로젝트에 적용하는 경험을 제공하고자 했습니다.</p>
+                <p>React는 컴포넌트 기반 아키텍처, Virtual DOM, JSX, Hooks와 같은 강력한 기능들을 통해 개발자들이 효율적이고 유지보수 가능한 사용자 인터페이스를 구축할 수 있도록 지원합니다. 또한, Context API나 Redux와 같은 상태 관리 솔루션, React Router를 통한 클라이언트 사이드 라우팅은 복잡한 애플리케이션 개발을 가능하게 합니다.</p>
+                <p>백엔드 기술과의 연동은 현대 웹 애플리케이션 개발의 필수적인 부분입니다. Nginx를 웹 서버 및 리버스 프록시로 사용하고, PostgreSQL과 같은 관계형 데이터베이스를 활용하는 방법을 이해하는 것은 풀스택 개발자로 성장하는 데 중요한 밑거름이 될 것입니다.</p>
+                <p>이 가이드가 React를 처음 배우는 분들에게 훌륭한 출발점이 되기를 바랍니다. 여기서 다룬 내용들은 React 생태계의 광대한 지식 중 일부에 불과하며, 끊임없는 학습과 실습을 통해 더욱 깊이 있는 전문성을 갖추어 나가시길 응원합니다. React 공식 문서와 활발한 개발자 커뮤니티는 여러분의 학습 여정에 훌륭한 동반자가 되어줄 것입니다.</p>
+            </section>
+
+            <section id="s12" class="mb-12 p-6 bg-gray-800 rounded-xl shadow-xl">
+                <h2>참고 자료</h2>
+                <p>이 가이드에서 참조한 주요 자료 목록입니다. 더 자세한 정보는 각 링크를 통해 확인하실 수 있습니다.</p>
+                <ul class="list-decimal list-inside text-gray-300 space-y-1 text-sm">
+                    <li><a href="https://www.geeksforgeeks.org/reactjs-environment-setup/" target="_blank" class="text-blue-400 hover:underline">React Environment Setup | GeeksforGeeks</a></li>
+                    <li><a href="https://react.dev/learn" target="_blank" class="text-blue-400 hover:underline">Quick Start - React</a></li>
+                    <li><a href="https://www.geeksforgeeks.org/reactjs-router/" target="_blank" class="text-blue-400 hover:underline">React Router | GeeksforGeeks</a></li>
+                    <li><a href="https://legacy.reactjs.org/docs/components-and-props.html" target="_blank" class="text-blue-400 hover:underline">Components and Props - React (Legacy)</a></li>
+                    <li><a href="https://www.netguru.com/blog/why-use-react" target="_blank" class="text-blue-400 hover:underline">Why Use React? Top Benefits for Web Development - Netguru</a></li>
+                    <li><a href="https://legacy.reactjs.org/docs/faq-internals.html" target="_blank" class="text-blue-400 hover:underline">Virtual DOM and Internals - React (Legacy)</a></li>
+                    <li><a href="https://refine.dev/blog/react-virtual-dom/" target="_blank" class="text-blue-400 hover:underline">Understanding Virtual DOM in React - Refine dev</a></li>
+                    <li><a href="https://legacy.reactjs.org/docs/jsx-in-depth.html" target="_blank" class="text-blue-400 hover:underline">JSX In Depth - React (Legacy)</a></li>
+                    <li><a href="https://legacy.reactjs.org/docs/hooks-intro.html" target="_blank" class="text-blue-400 hover:underline">Introducing Hooks - React (Legacy)</a></li>
+                    <li><a href="https://react.dev/learn/choosing-the-state-structure" target="_blank" class="text-blue-400 hover:underline">Choosing the State Structure - React</a></li>
+                    <li><a href="https://legacy.reactjs.org/docs/hooks-overview.html" target="_blank" class="text-blue-400 hover:underline">Hooks at a Glance - React (Legacy)</a></li>
+                    <li><a href="https://legacy.reactjs.org/docs/hello-world.html" target="_blank" class="text-blue-400 hover:underline">Hello World - React (Legacy)</a></li>
+                    <li><a href="https://devdotcode.com/5-steps-to-set-up-react-development-environment/" target="_blank" class="text-blue-400 hover:underline">5 Steps to Set up React Development Environment - devdotcode</a></li>
+                    <li><a href="https://help.clouding.io/hc/en-us/articles/4407785919762-How-to-Deploy-a-React-js-App-with-Nginx-on-Ubuntu-20-04" target="_blank" class="text-blue-400 hover:underline">How to Deploy a React.js App with Nginx on Ubuntu 20.04 - Clouding.io</a></li>
+                    <li><a href="https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_getting_started" target="_blank" class="text-blue-400 hover:underline">Getting started with React - MDN</a></li>
+                    <li><a href="https://www.tatvasoft.com/blog/reactjs-best-practices/" target="_blank" class="text-blue-400 hover:underline">React Best Practices and Security - TatvaSoft Blog</a></li>
+                    <li><a href="https://react.dev/learn/passing-data-deeply-with-context" target="_blank" class="text-blue-400 hover:underline">Passing Data Deeply with Context - React</a></li>
+                    <li><a href="https://blog.logrocket.com/react-context-tutorial/" target="_blank" class="text-blue-400 hover:underline">React Context tutorial: Complete guide - LogRocket Blog</a></li>
+                    <li><a href="https://www.geeksforgeeks.org/react-redux-tutorial/" target="_blank" class="text-blue-400 hover:underline">React Redux Tutorial | GeeksforGeeks</a></li>
+					<li><a href="https://www.geeksforgeeks.org/getting-started-with-redux-simplifying-state-management-in-react/#:~:text=Redux%20is%20a%20state%20managing,with%20a%20library%20like%20React." target="_blank" class="text-blue-400 hover:underline">www.geeksforgeeks.org</a></li>
+					<li><a href="https://flatirons.com/blog/what-is-redux/" target="_blank" class="text-blue-400 hover:underline">Understanding the Fundamental Basics of Redux in State Management</a></li>
+					<li><a href="https://www.reddit.com/r/reactjs/comments/110ymsp/beginners_guide_to_redux/" target="_blank" class="text-blue-400 hover:underline">Beginner's guide to Redux : r/reactjs - Reddit</a></li>
+					<li><a href="https://www.geeksforgeeks.org/reactjs-router/#:~:text=React%20Router%20is%20a%20standard,URL%20paths%20to%20specific%20components." target="_blank" class="text-blue-400 hover:underline">www.geeksforgeeks.org</a></li>
+					<li><a href="https://reactrouter.com/v6/start/tutorial" target="_blank" class="text-blue-400 hover:underline">Tutorial v6.30.1 | React Router</a></li>
+					<li><a href="https://www.youtube.com/watch?v=Ul3y1LXxzdU" target="_blank" class="text-blue-400 hover:underline">Learn React Router v6 In 45 Minutes - YouTube</a></li>
+					<li><a href="https://dev.to/imsushant12/serving-static-content-with-nginx-26ih" target="_blank" class="text-blue-400 hover:underline">Serving Static Content with NGINX - DEV Community,</a></li>
+					<li><a href="https://github.com/ltcbuzy/How-to-Configure-Nginx-as-a-Reverse-Proxy" target="_blank" class="text-blue-400 hover:underline">Configuring Nginx as a Reverse Proxy for Node.js Applications - GitHub</a></li>
+					<li><a href="https://flask.palletsprojects.com/en/stable/deploying/nginx/" target="_blank" class="text-blue-400 hover:underline">nginx — Flask Documentation (3.1.x)</a></li>
+					<li><a href="https://phoenixnap.com/kb/install-nginx-ubuntu-22-04" target="_blank" class="text-blue-400 hover:underline">How to Install Nginx on Ubuntu 22.04 - phoenixNAP</a></li>
+					<li><a href="https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-20-04" target="_blank" class="text-blue-400 hover:underline">How to Install and Configure Nginx on Ubuntu | Step-by-Step Guide</a></li>
+					<li><a href="https://ubuntu.com/server/docs/install-and-configure-postgresql" target="_blank" class="text-blue-400 hover:underline">Install and configure PostgreSQL - Ubuntu Server documentation</a></li>
+					<li><a href="https://www.devart.com/dbforge/postgresql/how-to-install-postgresql-on-ubuntu/" target="_blank" class="text-blue-400 hover:underline">Install PostgreSQL 16, 15, 14 on Ubuntu 24.04, 22.04, 20.04 - See</a></li>
+					<li><a href="https://www.postgresql.org/docs/8.0/user-manag.html" target="_blank" class="text-blue-400 hover:underline">Documentation: 8.0: Database Users and Privileges - PostgreSQL</a></li>
+					<li><a href="https://neon.tech/postgresql/postgresql-tutorial/postgresql-create-table" target="_blank" class="text-blue-400 hover:underline">PostgreSQL CREATE TABLE Statement - Neon</a></li>
+					<li><a href="https://www.strongdm.com/blog/postgres-create-user" target="_blank" class="text-blue-400 hover:underline">How to Create a Postgres User (Step-by-Step Tutorial) | StrongDM</a></li>
+					<li><a href="https://www.djamware.com/post/626e00ade9d85587effcba87/node-express-postgresql-faster-crud-rest-api" target="_blank" class="text-blue-400 hover:underline">Node Express PostgreSQL Faster CRUD REST API - Djamware</a></li>
+					<li><a href="https://www.postgresql.org/docs/current/sql-createuser.html" target="_blank" class="text-blue-400 hover:underline">Documentation: 17: CREATE USER - PostgreSQL</a></li>
+					<li><a href="https://www.prisma.io/dataguide/postgresql/create-and-delete-databases-and-tables" target="_blank" class="text-blue-400 hover:underline">Create and Delete Databases and Tables in PostgreSQL | PSQL CreateDB - Prisma</a></li>
+					<li><a href="https://www.postgresql.org/docs/current/sql-createdatabase.html" target="_blank" class="text-blue-400 hover:underline">Documentation: 17: CREATE DATABASE - PostgreSQL</a></li>
+					<li><a href="https://www.postgresql.org/docs/current/sql-createtable.html" target="_blank" class="text-blue-400 hover:underline">Documentation: 17: CREATE TABLE - PostgreSQL</a></li>
+					<li><a href="https://www.corbado.com/blog/react-express-crud-app-postgresql" target="_blank" class="text-blue-400 hover:underline">React, Node.js, Express and PostgreSQL CRUD app - Corbado</a></li>
+					<li><a href="https://dev.to/aadarsh-nagrath/building-a-simple-crud-application-with-react-and-postgresql-using-docker-550i" target="_blank" class="text-blue-400 hover:underline">Building a Simple CRUD Application with React and PostgreSQL</a></li>
+					<li><a href="https://deadsimplechat.com/blog/rest-api-with-postgresql-and-node-js/" target="_blank" class="text-blue-400 hover:underline">Rest API with PostgreSQL and Node Js, Step-by-Step Tutorial - DeadSimpleChat</a></li>
+					<li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/Express_Nodejs/Introduction" target="_blank" class="text-blue-400 hover:underline">Express/Node introduction - Learn web development | MDN</a></li>
+					<li><a href="https://blog.logrocket.com/getting-started-postgres-react-app/" target="_blank" class="text-blue-400 hover:underline">Getting started with Postgres in your React app - LogRocket Blog</a></li>
+					<li><a href="https://www.harness.io/blog/introduction-to-building-a-crud-api-with-node-js-and-express" target="_blank" class="text-blue-400 hover:underline">Introduction to Building a CRUD API with Node.js and Express - Harness</a></li>
+					<li><a href="https://dev.to/francescoxx/build-a-crud-rest-api-in-python-using-flask-sqlalchemy-postgres-docker-28lo" target="_blank" class="text-blue-400 hover:underline">Python CRUD Rest API using Flask, SQLAlchemy, Postgres, Docker, Docker Compose</a></li>
+					<li><a href="https://dev.to/yahiaqous/how-to-build-a-crud-api-using-python-flask-and-sqlalchemy-orm-with-postgresql-2jjj" target="_blank" class="text-blue-400 hover:underline">How to build a CRUD API using Python Flask and SQLAlchemy</a></li>
+					<li><a href="https://www.geeksforgeeks.org/flask-tutorial/" target="_blank" class="text-blue-400 hover:underline">Flask Tutorial - GeeksforGeeks</a></li>
+					<li><a href="https://www.geeksforgeeks.org/making-a-flask-app-using-a-postgresql-database/" target="_blank" class="text-blue-400 hover:underline">Making a Flask app using a PostgreSQL database | GeeksforGeeks</a></li>
+					<li><a href="https://www.codewalnut.com/learn/how-to-build-react-app-with-java-backend" target="_blank" class="text-blue-400 hover:underline">Build a React App with a Java Backend: Step-by-Step Guide</a></li>
+					<li><a href="https://apidog.com/blog/how-to-use-react-fetch-api/" target="_blank" class="text-blue-400 hover:underline">How to Use the Fetch APIs in React - Apidog</a></li>
+					<li><a href="https://www.geeksforgeeks.org/how-to-fetch-data-from-an-api-in-reactjs/" target="_blank" class="text-blue-400 hover:underline">How to Fetch Data From an API in ReactJS? - GeeksforGeeks</a></li>
+					<li><a href="https://www.geekster.in/articles/axios-in-react/" target="_blank" class="text-blue-400 hover:underline">Axios in React With Example - Geekster</a></li>
+					<li><a href="https://www.geeksforgeeks.org/axios-in-react-a-guide-for-beginners/" target="_blank" class="text-blue-400 hover:underline">Axios in React: A Guide for Beginners | GeeksforGeeks</a></li>
+					<li><a href="https://rapidapi.com/guides/fetch-api-react" target="_blank" class="text-blue-400 hover:underline">How to use the Fetch API with React? - Rapid API</a></li>
+					<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch" target="_blank" class="text-blue-400 hover:underline">Using the Fetch API - MDN Web Docs</a></li>
+					<li><a href="https://www.guvi.in/blog/how-to-fetch-and-display-data-from-api-in-react/" target="_blank" class="text-blue-400 hover:underline">Use ReactJS to Fetch and Display Data from API - 5 Simple Steps</a></li>
+					<li><a href="https://blog.logrocket.com/axios-javascript/" target="_blank" class="text-blue-400 hover:underline">Axios in JavaScript: How to make GET, POST, PUT, and DELETE requests - LogRocket Blog</a></li>
+					<li><a href="https://apidog.com/articles/axios-put-request/" target="_blank" class="text-blue-400 hover:underline">How to Send Axios PUT Request - Apidog</a></li>
+					<li><a href="https://dev.to/jerezm/transform-your-react-apps-backend-communication-with-usehttpclient-14p6" target="_blank" class="text-blue-400 hover:underline">Transform Your React App's Backend Communication with</a></li>
+					<li><a href="https://www.digitalocean.com/community/tutorials/deploy-react-application-with-nginx-on-ubuntu" target="_blank" class="text-blue-400 hover:underline">How To Deploy a React Application with Nginx on Ubuntu - DigitalOcean</a></li>
+					<li><a href="https://create-react-app.dev/docs/production-build/" target="_blank" class="text-blue-400 hover:underline">Creating a Production Build | Create React App</a></li>
+					<li><a href="https://serverfault.com/questions/821719/serving-a-reactjs-app-using-nginx-via-a-directory" target="_blank" class="text-blue-400 hover:underline">Serving a ReactJS app using nginx via a directory - Server Fault</a></li>
+					<li><a href="https://phoenixnap.com/kb/nginx-reverse-proxy" target="_blank" class="text-blue-400 hover:underline">Nginx Reverse Proxy: Step-by-Step Setup - phoenixNAP</a></li>
+					<li><a href="https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/" target="_blank" class="text-blue-400 hover:underline">NGINX Reverse Proxy | NGINX Documentation</a></li>
+					<li><a href="https://blog.logrocket.com/how-to-run-node-js-server-nginx/" target="_blank" class="text-blue-400 hover:underline">How to use Nginx as a reverse proxy for a Node.js server</a></li>
+					<li><a href="https://serverfault.com/questions/1172006/problems-with-python-flask-web-service-behind-nginx-reverse-proxy" target="_blank" class="text-blue-400 hover:underline">Problems with Python Flask web service behind NGINX reverse proxy - Server Fault</a></li>
+					<li><a href="https://ngrok.com/blog-post/react-crud-example" target="_blank" class="text-blue-400 hover:underline">React CRUD: An Introductory Guide - ngrok</a></li>
+					<li><a href="https://beeceptor.com/docs/react-todo-app-tutorial/" target="_blank" class="text-blue-400 hover:underline">React ToDo App | Beeceptor</a></li>
+					<li><a href="https://www.geeksforgeeks.org/create-todo-app-using-reactjs/" target="_blank" class="text-blue-400 hover:underline">Create ToDo App using ReactJS - GeeksforGeeks</a></li>
+					<li><a href="https://github.com/jackjyq/fullstack_tutorial" target="_blank" class="text-blue-400 hover:underline">jackjyq/fullstack_tutorial: A Simple CRUD Flask/React App ... - GitHub</a></li>
+					<li><a href="https://react.dev/learn/creating-a-react-app" target="_blank" class="text-blue-400 hover:underline">Creating a React App</a></li>
+                </ul>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const sectionsData = [
+            { id: "s1", title: "1. React 소개", subsections: [
+                { id: "s1-1", title: "1.1. React란 무엇인가?" },
+                { id: "s1-2", title: "1.2. 왜 React를 사용하는가?" },
+                { id: "s1-3", title: "1.3. React의 핵심 개념 간략 소개" }
+            ]},
+            { id: "s2", title: "2. React 개발 환경 설정", subsections: [
+                { id: "s2-1", title: "2.1. Node.js와 npm 설치" },
+                { id: "s2-2", title: "2.2. Create React App" },
+                { id: "s2-3", title: "2.3. Vite (선택)" },
+                { id: "s2-4", title: "2.4. 코드 에디터 설정" }
+            ]},
+            { id: "s3", title: "3. React 프로젝트 구조", subsections: [
+                { id: "s3-1", title: "3.1. CRA 기본 폴더 구조" },
+                { id: "s3-2", title: "3.2. 일반적인 폴더 구조" },
+                { id: "s3-3", title: "3.3. 네이밍 컨벤션" },
+                { id: "s3-4", title: "3.4. 컴포넌트 설계 모범 사례" },
+                { id: "s3-5", title: "3.5. 코드 스타일 및 가독성" }
+            ]},
+            { id: "s4", title: "4. React 핵심 개념", subsections: [
+                { id: "s4-1", title: "4.1. 컴포넌트", subSubsections: [
+                    { id: "s4-1-1", title: "4.1.1. 함수형/클래스형" },
+                    { id: "s4-1-2", title: "4.1.2. 생성 및 중첩" },
+                    { id: "s4-1-3", title: "4.1.3. 재사용성" },
+                    { id: "s4-1-4", title: "4.1.4. 추출" }
+                ]},
+                { id: "s4-2", title: "4.2. JSX", subSubsections: [
+                    { id: "s4-2-1", title: "4.2.1. JSX란?" },
+                    { id: "s4-2-2", title: "4.2.2. 기본 규칙" },
+                    { id: "s4-2-3", title: "4.2.3. 스타일링" },
+                    { id: "s4-2-4", title: "4.2.4. 보안 (XSS)" }
+                ]},
+                { id: "s4-3", title: "4.3. Props와 State", subSubsections: [
+                    { id: "s4-3-1", title: "4.3.1. Props" },
+                    { id: "s4-3-2", title: "4.3.2. State" },
+                    { id: "s4-3-3", title: "4.3.3. Props vs. State" }
+                ]},
+                { id: "s4-4", title: "4.4. Virtual DOM", subSubsections: [
+                    { id: "s4-4-1", title: "4.4.1. DOM과 VDOM" },
+                    { id: "s4-4-2", title: "4.4.2. 렌더링 과정" },
+                    { id: "s4-4-3", title: "4.4.3. 장점" }
+                ]},
+                { id: "s4-5", title: "4.5. Hooks", subSubsections: [
+                    { id: "s4-5-1", title: "4.5.1. Hooks란?" },
+                    { id: "s4-5-2", title: "4.5.2. 도입 이유" },
+                    { id: "s4-5-3", title: "4.5.3. 기본 Hooks" },
+                    { id: "s4-5-4", title: "4.5.4. Hooks 규칙" },
+                    { id: "s4-5-5", title: "4.5.5. 커스텀 Hooks" }
+                ]}
+            ]},
+            { id: "s5", title: "5. 상태 관리 심화", subsections: [
+                { id: "s5-1", title: "5.1. Context API", subSubsections: [
+                     {id: "s5-1-1", title: "5.1.1. Context API란?"},
+                     {id: "s5-1-2", title: "5.1.2. 사용법"},
+                     {id: "s5-1-3", title: "5.1.3. 고려사항"}
+                ]},
+                { id: "s5-2", title: "5.2. Redux", subSubsections: [
+                     {id: "s5-2-1", title: "5.2.1. 핵심 개념"},
+                     {id: "s5-2-2", title: "5.2.2. React-Redux"},
+                     {id: "s5-2-3", title: "5.2.3. Redux Toolkit"}
+                ]}
+            ]},
+            { id: "s6", title: "6. 클라이언트 사이드 라우팅", subsections: [
+                { id: "s6-1", title: "6.1. React Router란?" },
+                { id: "s6-2", title: "6.2. 주요 컴포넌트/Hook" },
+                { id: "s6-3", title: "6.3. 기본 라우팅 예제" },
+                { id: "s6-4", title: "6.4. 중첩 라우팅" }
+            ]},
+            { id: "s7", title: "7. 서버 환경 및 백엔드 연동", subsections: [
+                { id: "s7-1", title: "7.1. Nginx 설치/설정", subSubsections: [
+                    {id: "s7-1-1", title: "7.1.1. 설치"}, {id: "s7-1-2", title: "7.1.2. 방화벽"}, {id: "s7-1-3", title: "7.1.3. 작동 확인"}
+                ]},
+                { id: "s7-2", title: "7.2. PostgreSQL 설치/설정", subSubsections: [
+                    {id: "s7-2-1", title: "7.2.1. 설치"}, {id: "s7-2-2", title: "7.2.2. 역할/DB 생성"}, {id: "s7-2-3", title: "7.2.3. 테이블 생성"}
+                ]},
+                { id: "s7-3", title: "7.3. 백엔드 API 서버", subSubsections: [
+                    {id: "s7-3-1", title: "7.3.1. Node.js/Express"}, {id: "s7-3-2", title: "7.3.2. Python/Flask"}
+                ]},
+                { id: "s7-4", title: "7.4. React와 API 연동", subSubsections: [
+                    {id: "s7-4-1", title: "7.4.1. fetch API"}, {id: "s7-4-2", title: "7.4.2. axios"}, {id: "s7-4-3", title: "7.4.3. CORS"}
+                ]}
+            ]},
+            { id: "s8", title: "8. React 앱 배포 (Nginx)", subsections: [
+                { id: "s8-1", title: "8.1. 프로덕션 빌드" },
+                { id: "s8-2", title: "8.2. Nginx 정적 파일 제공" },
+                { id: "s8-3", title: "8.3. Nginx 리버스 프록시" }
+            ]},
+            { id: "s9", title: "9. 종합 실습: To-Do List", subsections: [
+                { id: "s9-1", title: "9.1. 요구사항/설계" },
+                { id: "s9-2", title: "9.2. 백엔드 개발" },
+                { id: "s9-3", title: "9.3. 프론트엔드 개발" },
+                { id: "s9-4", title: "9.4. 배포" },
+                { id: "s9-5", title: "9.5. Flask 백엔드 (참고)" }
+            ]},
+            { id: "s10", title: "10. 더 나아가기", subsections: [
+                { id: "s10-1", title: "10.1. 고급 상태 관리" },
+                { id: "s10-2", title: "10.2. React 라우팅 심화" },
+                { id: "s10-3", title: "10.3. React 테스트" },
+                { id: "s10-4", title: "10.4. TypeScript와 React" },
+                { id: "s10-5", title: "10.5. SSR 및 Next.js" },
+                { id: "s10-6", title: "10.6. 추가 학습 자료" }
+            ]},
+            { id: "s11", title: "11. 결론", subsections: [] },
+            { id: "s12", title: "참고 자료", subsections: [] }
+        ];
+
+        const sidebarNavLinks = document.getElementById('sidebar-nav-links');
+        const mobileNavLinks = document.getElementById('mobile-nav-links');
+
+        sectionsData.forEach(section => {
+            // Sidebar
+            const listItem = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = `#${section.id}`;
+            link.textContent = section.title;
+            link.className = "block py-2 px-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-blue-300 transition duration-200";
+            listItem.appendChild(link);
+
+            if (section.subsections && section.subsections.length > 0) {
+                const subList = document.createElement('ul');
+                subList.className = "ml-4 mt-1 space-y-1";
+                section.subsections.forEach(sub => {
+                    const subListItem = document.createElement('li');
+                    const subLink = document.createElement('a');
+                    subLink.href = `#${sub.id}`;
+                    subLink.textContent = sub.title;
+                    subLink.className = "block py-1 px-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-blue-300 text-sm transition duration-200";
+                    subListItem.appendChild(subLink);
+
+                    if (sub.subSubsections && sub.subSubsections.length > 0) {
+                        const subSubList = document.createElement('ul');
+                        subSubList.className = "ml-4 mt-1 space-y-1";
+                         sub.subSubsections.forEach(subSub => {
+                            const subSubListItem = document.createElement('li');
+                            const subSubLink = document.createElement('a');
+                            subSubLink.href = `#${subSub.id}`;
+                            subSubLink.textContent = subSub.title;
+                            subSubLink.className = "block py-1 px-2 rounded-md text-gray-500 hover:bg-gray-600 hover:text-blue-200 text-xs transition duration-200";
+                            subSubListItem.appendChild(subSubLink);
+                            subSubList.appendChild(subSubListItem);
+                        });
+                        subListItem.appendChild(subSubList);
+                    }
+                    subList.appendChild(subListItem);
+                });
+                listItem.appendChild(subList);
+            }
+            sidebarNavLinks.appendChild(listItem);
+
+            // Mobile Nav (simplified, only main sections for brevity in this example)
+            const mobileListItem = document.createElement('li');
+            const mobileLink = document.createElement('a');
+            mobileLink.href = `#${section.id}`;
+            mobileLink.textContent = section.title;
+            mobileLink.className = "text-lg font-medium text-gray-300 hover:text-blue-400 transition duration-300";
+            mobileLink.onclick = () => closeMobileNav(); // Close nav on click
+            mobileListItem.appendChild(mobileLink);
+            mobileNavLinks.appendChild(mobileListItem);
+        });
+
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                     window.scrollTo({
+                         top: targetElement.offsetTop - 20, // 20px offset from top
+                         behavior: 'smooth'
+                     });
+                }
+            });
+        });
+
+        // Mobile navigation toggle
+        const menuButton = document.getElementById('menuButton');
+        const closeMenuButton = document.getElementById('closeMenuButton');
+        const mobileNav = document.getElementById('mobileNav');
+
+        menuButton.addEventListener('click', () => {
+            mobileNav.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+        });
+        
+        function closeMobileNav() {
+            mobileNav.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        closeMenuButton.addEventListener('click', closeMobileNav);
+        
+        // Highlight active section in sidebar
+        const allSections = document.querySelectorAll('.content-area section > div[id^="s"]'); 
+        const allNavLinks = document.querySelectorAll('.sidebar nav a');
+
+        function highlightNav() {
+            let current = '';
+            // Define activationOffset at the beginning of the function
+            const activationOffset = window.innerHeight * 0.4; 
+
+            allSections.forEach(sectionEl => {
+                const sectionTop = sectionEl.offsetTop;
+                const sectionHeight = sectionEl.offsetHeight;
+                
+                if (pageYOffset >= sectionTop - activationOffset && pageYOffset < sectionTop + sectionHeight - activationOffset) {
+                     current = sectionEl.getAttribute('id');
+                }
+            });
+            
+            if (!current && allSections.length > 0) {
+                if (pageYOffset < allSections[0].offsetTop) {
+                    // current = allSections[0].getAttribute('id'); 
+                } else {
+                    const lastSection = allSections[allSections.length - 1];
+                    if (pageYOffset >= lastSection.offsetTop - activationOffset) {
+                        // current = lastSection.getAttribute('id');
+                    }
+                }
+            }
+
+            allNavLinks.forEach(link => {
+                link.classList.remove('bg-gray-700', 'text-blue-300', 'text-blue-200', 'bg-gray-600'); // Added bg-gray-600 removal
+                if (link.classList.contains('text-xs')) { 
+                    link.classList.add('text-gray-500');
+                } else if (link.classList.contains('text-sm')) { 
+                    link.classList.add('text-gray-400');
+                } else { 
+                    link.classList.add('text-gray-300');
+                }
+
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.remove('text-gray-300', 'text-gray-400', 'text-gray-500');
+                    if (link.classList.contains('text-xs')) {
+                        link.classList.add('bg-gray-600', 'text-blue-200');
+                    } else {
+                        link.classList.add('bg-gray-700', 'text-blue-300');
+                    }
+
+                    let parentLi = link.closest('ul.ml-4')?.closest('li');
+                    if(parentLi){
+                        const parentAnchor = parentLi.querySelector('a');
+                        if(parentAnchor && !parentAnchor.classList.contains('bg-gray-700') && !parentAnchor.classList.contains('bg-gray-600')){
+                             parentAnchor.classList.add('text-blue-300'); 
+                        }
+                        parentLi = parentAnchor?.closest('ul.ml-4')?.closest('li');
+                         if(parentLi){
+                            const grandParentAnchor = parentLi.querySelector('a');
+                            if(grandParentAnchor && !grandParentAnchor.classList.contains('bg-gray-700') && !grandParentAnchor.classList.contains('bg-gray-600')){
+                                grandParentAnchor.classList.add('text-blue-300');
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        window.addEventListener('scroll', highlightNav);
+        window.addEventListener('load', () => {
+            highlightNav();
+            if (window.location.hash) {
+                const targetElement = document.querySelector(window.location.hash);
+                if (targetElement) {
+                    setTimeout(() => { 
+                         window.scrollTo({
+                             top: targetElement.offsetTop - 20,
+                             behavior: 'smooth'
+                         });
+                    }, 100);
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
