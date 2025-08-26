@@ -14,24 +14,26 @@ const finalScoreDisplay = document.getElementById('final-score');
 
 // 게임 상태 변수
 let score = 0;
-let words = [];
+let words = []; // 현재 진행할 게임의 단어 목록이 담길 배열
 let availableWords = [];
 let selectedGame = '';
+
+// --- 수정된 부분 1: 모든 게임 데이터를 저장할 변수 ---
+let allGameData = {}; // JSON 파일의 모든 데이터를 저장
 
 // 1. 게임 선택
 document.querySelectorAll('.game-choice-btn').forEach(button => {
     button.addEventListener('click', (e) => {
         selectedGame = e.target.dataset.game;
-        // (나중에 초성퀴즈 추가 시 selectedGame 값으로 분기 처리)
         startButtonContainer.classList.remove('hidden');
     });
 });
 
-// JSON 파일에서 단어 목록 가져오기
+// JSON 파일에서 모든 단어 목록을 가져와서 allGameData에 저장
 fetch('words.json')
     .then(response => response.json())
     .then(data => {
-        words = data.charades; // '몸으로 말해요' 단어 목록 사용
+        allGameData = data; // 'charades'와 'consonant_quiz' 데이터를 모두 저장
     })
     .catch(error => console.error('단어를 불러오는 데 실패했습니다:', error));
 
@@ -45,7 +47,6 @@ function showNewWord() {
     const randomIndex = Math.floor(Math.random() * availableWords.length);
     const newWord = availableWords[randomIndex];
     
-    // 뽑힌 단어는 배열에서 제거하여 중복 방지
     availableWords.splice(randomIndex, 1);
     
     wordDisplay.textContent = newWord;
@@ -58,6 +59,19 @@ function updateScore() {
 
 // 게임 시작 함수
 function startGame() {
+    // --- 수정된 부분 2: 게임 시작 시 선택된 게임에 맞는 단어 목록 설정 ---
+    if (selectedGame === 'charades') {
+        // '몸으로 말해요'를 선택한 경우
+        words = allGameData.charades;
+    } else if (selectedGame === 'consonant') {
+        // '초성퀴즈'를 선택한 경우
+        words = allGameData.consonant_quiz;
+    } else {
+        // 혹시 모를 예외 처리
+        alert('게임을 선택해주세요!');
+        return;
+    }
+
     score = 0;
     availableWords = [...words]; // 사용 가능한 단어 목록 초기화
     updateScore();
@@ -92,5 +106,5 @@ endGameBtn.addEventListener('click', () => {
 restartBtn.addEventListener('click', () => {
     gameOverScreen.classList.add('hidden');
     gameSelectionScreen.classList.remove('hidden');
-    startButtonContainer.classList.add('hidden'); // 시작 버튼 다시 숨기기
+    startButtonContainer.classList.add('hidden');
 });
