@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미니 게임</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main>
+        <section id="game-selection-screen">
+            <h1>게임 선택</h1>
+            <div id="game-buttons">
+                <button class="game-choice-btn" data-game="charades">몸으로 말해요</button>
+                <button class="game-choice-btn" data-game="consonant">초성퀴즈</button>
+            </div>
+            <div id="start-button-container" class="hidden">
+                <button id="start-btn">시작</button>
+            </div>
+        </section>
+
+        <section id="charades-game-screen" class="hidden">
+            <header>
+                <h2>정답수 : <span id="score">0</span></h2>
+            </header>
+            <div id="word-display-area">
+                <h1 id="word-display">단어</h1>
+            </div>
+            <footer>
+                <button id="pass-btn">패스</button>
+                <button id="correct-btn">정답</button>
+                <button id="end-game-btn">종료</button>
+            </footer>
+        </section>
+
+        <section id="game-over-screen" class="hidden">
+            <h2>게임 종료!</h2>
+            <p>총 정답수</p>
+            <h1 id="final-score">0</h1>
+            <button id="restart-btn">돌아가기</button>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
