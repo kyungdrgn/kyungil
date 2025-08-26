@@ -6,6 +6,7 @@ body {
     height: 100vh;
     margin: 0;
     background-color: #f0f0f0;
+    overflow: hidden;
 }
 
 main {
@@ -51,7 +52,7 @@ button:hover {
 }
 
 #word-display, #final-score {
-    font-size: 10em;
+    font-size: 15em;
     color: #333;
 }
 
