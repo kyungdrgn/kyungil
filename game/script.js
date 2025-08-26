@@ -108,3 +108,24 @@ restartBtn.addEventListener('click', () => {
     gameSelectionScreen.classList.remove('hidden');
     startButtonContainer.classList.add('hidden');
 });
+
+// 키보드 이벤트 리스너 추가
+document.addEventListener('keydown', function(event) {
+    const gameScreen = document.getElementById('charades-game-screen');
+
+    // 게임 화면이 활성화 상태가 아닐 때는 아무것도 하지 않음
+    if (gameScreen.classList.contains('hidden')) {
+        return;
+    }
+
+    // Enter 키를 누르면 '정답' 버튼 클릭
+    if (event.key === 'Enter') {
+        event.preventDefault(); // form 제출과 같은 기본 동작 방지
+        document.getElementById('correct-btn').click();
+    } 
+    // Space 바를 누르면 '패스' 버튼 클릭
+    else if (event.code === 'Space' || event.key === ' ') {
+        event.preventDefault(); // 스크롤과 같은 기본 동작 방지
+        document.getElementById('pass-btn').click();
+    }
+});
